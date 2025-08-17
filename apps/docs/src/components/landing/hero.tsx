@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Github } from "lucide-react";
 import Link from "next/link";
+import GlassSurface from "../ui/glass-surface";
 
 export default function HeroSection() {
   return (
@@ -16,19 +17,31 @@ export default function HeroSection() {
           hueShift={240}
         />
       </div>
-      <header className="relative z-10 flex items-center justify-between p-6 md:p-8">
-        <div className="text-xl font-semibold">OpenTagManager</div>
-        <div className="flex items-center gap-4">
-          <Link href="#" className=" hover:text-gray-300 transition-colors">
-            Roadmap
-          </Link>
-          <Link
-            href="https://github.com/Notoriousbrain/OpenTagManager"
-            className="hover:text-gray-300 transition-colors"
-          >
-            <Github className="h-5 w-5" />
-          </Link>
-        </div>
+      <header className="relative z-10 p-6 md:p-8 justify-center flex">
+        <GlassSurface
+          width={1000}
+          height={60}
+          borderRadius={0}
+          className="w-full max-w-4xl md:w-3/5 flex flex-col md:flex-row items-center justify-between gap-4 px-6 py-4"
+        >
+          <div className="flex items-center justify-between w-full">
+            <div className="text-xl font-semibold">OpenTagManager</div>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/roadmap"
+                className="hover:text-gray-300 font-semibold transition-colors"
+              >
+                Roadmap
+              </Link>
+              <Link
+                href="https://github.com/Notoriousbrain/OpenTagManager"
+                className="hover:text-gray-300 transition-colors"
+              >
+                <Github className="h-5 w-5" />
+              </Link>
+            </div>
+          </div>
+        </GlassSurface>
       </header>
 
       <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-120px)] px-6 text-center">
@@ -50,11 +63,11 @@ export default function HeroSection() {
               <Input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 bg-transparent border-gray-800 text-white placeholder:text-gray-500 focus:border-gray-600"
+                className="flex-1 bg-transparent rounded-none border-gray-800 text-white placeholder:text-gray-500 focus:border-gray-600"
               />
               <Button
                 type="submit"
-                className="bg-white text-black hover:bg-gray-200 px-6"
+                className="bg-white rounded-none text-black hover:bg-gray-200 px-6"
               >
                 Join Waitlist
               </Button>
