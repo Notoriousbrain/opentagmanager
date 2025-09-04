@@ -28,10 +28,16 @@ An open-source alternative to Google Tag Manager, built using modern TypeScript 
 bun install
 ```
 
+### Start development (docs app)
+
+```bash
+bun run docs
+```
+
 ### Start development (dashboard app)
 
 ```bash
-bun turbo run dev --filter=dashboard
+bun run dashboard
 ```
 
 ---
@@ -41,8 +47,8 @@ bun turbo run dev --filter=dashboard
 - [x] tRPC server and router configured
 - [x] React Query (TanStack) integration
 - [x] Shared API layer in `packages/trpc`
-- [ ] Drizzle ORM setup
-- [ ] Neon DB connection
+- [x] Drizzle ORM setup
+- [x] Neon DB connection
 - [ ] Schema for containers/tags/triggers
 - [ ] Loader script in separate app
 - [ ] Authentication (BetterAuth)
