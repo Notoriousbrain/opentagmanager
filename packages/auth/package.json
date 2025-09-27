@@ -7,9 +7,13 @@
     "@types/bun": "latest"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^5",
+    "better-auth": "catalog:",
+    "server-only": "catalog:"
   },
   "dependencies": {
+    "@otm/db": "workspace:*",
+    "@otm/env": "workspace:*",
     "drizzle-orm": "^0.44.5"
   }
 }

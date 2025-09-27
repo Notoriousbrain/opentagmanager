@@ -1,5 +1,10 @@
 {
   "extends": "@otm/typescript-config/base.json",
-  "include": ["**/*.ts", "**/*.tsx"],
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": ["**/*.ts", "**/*.tsx", "../db/src/schema/auth-schema.ts"],
   "exclude": ["node_modules"]
 }
