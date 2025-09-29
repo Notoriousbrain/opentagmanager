@@ -7,7 +7,7 @@
     "typescript": "5.8.3"
   },
   "engines": {
-    "node": ">=18"
+    "bun": ">=1.2.19"
   },
   "license": "MIT",
   "packageManager": "bun@1.2.19",
@@ -53,12 +53,15 @@
       "lucide-react": "0.518.0",
       "sonner": "2.0.5",
       "server-only": "0.0.1",
-      "zod": "3.25.67",
+      "zod": "4.1.11",
       "typescript": "5.8.3",
       "eslint": "9.29.0",
       "@types/node": "24",
       "@types/react": "19.1.8",
       "@types/react-dom": "19.1.6"
     }
+  },
+  "dependencies": {
+    "zod": "^4.1.11"
   }
 }
