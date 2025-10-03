@@ -1,19 +1,18 @@
 {
-  "name": "auth",
-  "module": "index.ts",
+  "name": "@otm/auth",
   "type": "module",
   "private": true,
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
-    "typescript": "^5",
+    "typescript": "catalog:",
     "better-auth": "catalog:",
     "server-only": "catalog:"
   },
   "dependencies": {
     "@otm/db": "workspace:*",
     "@otm/env": "workspace:*",
-    "drizzle-orm": "^0.44.5"
+    "drizzle-orm": "catalog:"
   }
 }
