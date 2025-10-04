@@ -15,5 +15,8 @@
     "@trpc/server": "catalog:",
     "superjson": "catalog:",
     "zod": "^catalog:"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   }
 }
