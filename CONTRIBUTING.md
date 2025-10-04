@@ -90,7 +90,7 @@ bun test
 
 ## 🧱 Pull Request Guidelines
 
-- Fork → branch from `main` → open a PR.
+- Fork → branch from `staging` → open a PR.
 - Keep PRs **small and focused** (prefer under 300 lines).
 - Link related issue or roadmap item.
 - Include before/after behavior if visual or API-related.
@@ -101,7 +101,7 @@ bun test
 ## 🔄 Versioning & Roadmap
 
 - Each **minor release (v0.x)** adds one major functional slice.
-- `main` always represents the latest working state.
+- `staging` always represents the latest working state.
 - Roadmap is tracked in `/docs/roadmap` and GitHub milestones.
 
 ---
