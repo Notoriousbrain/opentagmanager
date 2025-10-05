@@ -28,7 +28,7 @@
     "@tailwindcss/postcss": "catalog:",
     "tailwindcss": "catalog:",
     "eslint": "catalog:",
-    "eslint-config-next": "15.4.5",
+    "eslint-config-next": "catalog:",
     "@eslint/eslintrc": "^3"
   }
 }
