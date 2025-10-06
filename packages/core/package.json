@@ -9,8 +9,8 @@
   "types": "./src/index.ts",
   "scripts": {
     "dev": "bun --watch src/index.ts",
-    "smoke": "tsx scripts/smoke.ts",
-    "flags:smoke": "tsx scripts/flags-smoke.ts"
+    "smoke": "bun x tsx scripts/smoke.ts",
+    "flags:smoke": "bun x tsx scripts/flags-smoke.ts"
   },
   "dependencies": {
     "@otm/env": "workspace:*",

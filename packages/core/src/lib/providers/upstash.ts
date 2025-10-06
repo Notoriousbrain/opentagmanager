@@ -1,7 +1,7 @@
+import { Redis } from "@upstash/redis";
+
 import { env } from "@otm/env";
 import type { Cache } from "../cache";
-
-const { Redis } = require("@upstash/redis") as typeof import("@upstash/redis");
 
 export function createUpstashCache(): Cache {
   const client = new Redis({

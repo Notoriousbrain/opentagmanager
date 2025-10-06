@@ -1,4 +1,5 @@
 import { env } from "@otm/env";
+import { createUpstashCache } from "./providers/upstash";
 
 export type Cache = {
   get<T = unknown>(key: string): Promise<T | null>;
@@ -37,9 +38,6 @@ function makeCache(): Cache {
     Boolean(env.OTM_UPSTASH_REDIS_REST_TOKEN);
 
   if (enabled && hasUpstash) {
-    const { createUpstashCache } = require("./providers/upstash") as {
-      createUpstashCache: () => Cache;
-    };
     console.info("✅ OTM cache: Upstash (REST)");
     return createUpstashCache();
   }
