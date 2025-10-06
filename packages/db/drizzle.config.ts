@@ -1,9 +1,13 @@
 import { defineConfig } from "drizzle-kit";
-import { env } from "@otm/env/server";
+
+import { config as loadEnv } from "dotenv";
+import { resolve } from "path";
+
+loadEnv({ path: resolve(process.cwd(), "../../.env") });
 
 export default defineConfig({
-  out: "./drizzle",
-  schema: "./src/schema/index.ts",
   dialect: "postgresql",
-  dbCredentials: { url: env.DATABASE_URL },
+  out: "./drizzle",
+  schema: "./src/schema/events.ts",
+  dbCredentials: { url: process.env.OTM_DATABASE_URL! },
 });
