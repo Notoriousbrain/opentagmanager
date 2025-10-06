@@ -1,5 +1,6 @@
 {
   "name": "api",
+  "version": "0.1.0",
   "module": "index.ts",
   "main": "src/root.ts",
   "types": "src/root.ts",
