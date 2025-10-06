@@ -1,19 +1,12 @@
 {
-  "name": "@otm/core",
-  "version": "0.1.0",
-  "private": false,
-  "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
+  "extends": "@otm/typescript-config/base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "composite": true,
+    "declaration": true
   },
-  "types": "./src/index.ts",
-  "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "smoke": "bun x tsx scripts/smoke.ts",
-    "flags:smoke": "bun x tsx scripts/flags-smoke.ts"
-  },
-  "dependencies": {
-    "@otm/env": "workspace:*",
-    "@upstash/redis": "^1.35.4"
-  }
+  "include": [
+    "src"
+  ]
 }
