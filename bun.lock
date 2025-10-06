@@ -100,6 +100,14 @@
         "typescript": "catalog:",
       },
     },
+    "packages/core": {
+      "name": "@otm/core",
+      "version": "0.1.0",
+      "dependencies": {
+        "@otm/env": "workspace:*",
+        "@upstash/redis": "^1.35.4",
+      },
+    },
     "packages/db": {
       "name": "@otm/db",
       "version": "0.1.0",
@@ -416,6 +424,8 @@
 
     "@otm/auth": ["@otm/auth@workspace:packages/auth"],
 
+    "@otm/core": ["@otm/core@workspace:packages/core"],
+
     "@otm/db": ["@otm/db@workspace:packages/db"],
 
     "@otm/env": ["@otm/env@workspace:packages/env"],
@@ -583,6 +593,8 @@
     "@unrs/resolver-binding-win32-ia32-msvc": ["@unrs/resolver-binding-win32-ia32-msvc@1.11.1", "", { "os": "win32", "cpu": "ia32" }, "sha512-DCEI6t5i1NmAZp6pFonpD5m7i6aFrpofcp4LA2i8IIq60Jyo28hamKBxNrZcyOwVOZkgsRp9O2sXWBWP8MnvIQ=="],
 
     "@unrs/resolver-binding-win32-x64-msvc": ["@unrs/resolver-binding-win32-x64-msvc@1.11.1", "", { "os": "win32", "cpu": "x64" }, "sha512-lrW200hZdbfRtztbygyaq/6jP6AKE8qQN2KvPcJ+x7wiD038YtnYtZ82IMNJ69GJibV7bwL3y9FgK+5w/pYt6g=="],
+
+    "@upstash/redis": ["@upstash/redis@1.35.4", "", { "dependencies": { "uncrypto": "^0.1.3" } }, "sha512-WE1ZnhFyBiIjTDW13GbO6JjkiMVVjw5VsvS8ENmvvJsze/caMQ5paxVD44+U68IUVmkXcbsLSoE+VIYsHtbQEw=="],
 
     "acorn": ["acorn@8.15.0", "", { "bin": { "acorn": "bin/acorn" } }, "sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg=="],
 

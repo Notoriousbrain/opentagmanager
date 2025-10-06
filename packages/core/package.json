@@ -11,6 +11,7 @@
     "dev": "bun --watch src/index.ts"
   },
   "dependencies": {
-    "@otm/env": "workspace:*"
+    "@otm/env": "workspace:*",
+    "@upstash/redis": "^1.35.4"
   }
 }

@@ -1,5 +1,4 @@
-const store = new Map<string, { value: unknown; exp?: number }>();
-const now = () => Date.now();
+import { env } from "@otm/env";
 
 export type Cache = {
   get<T = unknown>(key: string): Promise<T | null>;
@@ -7,25 +6,46 @@ export type Cache = {
   del(key: string): Promise<void>;
 };
 
-const memoryCache: Cache = {
-  async get<T>(key) {
-    const item = store.get(key);
-    if (!item) return null;
-    if (item.exp && item.exp < now()) {
+const store = new Map<string, { value: unknown; exp?: number }>();
+const now = (): number => Date.now();
+
+function createMemoryCache(): Cache {
+  return {
+    async get<T = unknown>(key: string): Promise<T | null> {
+      const item = store.get(key);
+      if (!item) return null;
+      if (item.exp && item.exp < now()) {
+        store.delete(key);
+        return null;
+      }
+      return item.value as T;
+    },
+    async set(key: string, value: unknown, ttlSeconds?: number): Promise<void> {
+      const exp = ttlSeconds ? now() + ttlSeconds * 1000 : undefined;
+      store.set(key, { value, exp });
+    },
+    async del(key: string): Promise<void> {
       store.delete(key);
-      return null;
-    }
-    return item.value as T;
-  },
+    },
+  };
+}
 
-  async set(key, value, ttlSeconds) {
-    const exp = ttlSeconds ? now() + ttlSeconds * 1000 : undefined;
-    store.set(key, { value, exp });
-  },
+function makeCache(): Cache {
+  const enabled: boolean = env.OTM_REDIS_ENABLED === "true";
+  const hasUpstash: boolean =
+    Boolean(env.OTM_UPSTASH_REDIS_REST_URL) &&
+    Boolean(env.OTM_UPSTASH_REDIS_REST_TOKEN);
 
-  async del(key) {
-    store.delete(key);
-  },
-};
+  if (enabled && hasUpstash) {
+    const { createUpstashCache } = require("./providers/upstash") as {
+      createUpstashCache: () => Cache;
+    };
+    console.info("✅ OTM cache: Upstash (REST)");
+    return createUpstashCache();
+  }
 
-export const cache: Cache = memoryCache;
+  console.info("⚙️ OTM cache: in-memory");
+  return createMemoryCache();
+}
+
+export const cache: Cache = makeCache();
