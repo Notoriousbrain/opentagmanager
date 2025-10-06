@@ -19,18 +19,28 @@
       "cache": false,
       "persistent": true
     },
+    "db:generate": {
+      "cache": false,
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "drizzle.config.ts",
+        "src/schema/**"
+      ],
+      "outputs": ["drizzle/**"]
+    },
     "db:migrate": {
       "cache": false,
-      "inputs": ["$TURBO_DEFAULT$", ".env*"]
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "drizzle/**"]
     },
     "db:push": {
       "cache": false,
       "inputs": ["$TURBO_DEFAULT$", ".env*"]
     },
     "db:studio": {
-      "persistent": true,
       "cache": false,
-      "inputs": ["$TURBO_DEFAULT$", ".env*"]
+      "persistent": true,
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "drizzle/**"]
     }
   }
 }
