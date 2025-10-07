@@ -5,7 +5,7 @@
   "private": true,
   "types": "dist/index.d.ts",
   "exports": {
-    "." : "./src/auth.ts"
+    ".": "./src/auth.ts"
   },
   "dependencies": {
     "@otm/db": "workspace:*",

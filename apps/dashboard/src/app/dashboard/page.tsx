@@ -12,7 +12,7 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    if (!isLoading && error) router.replace("/login");
+    if (!isLoading && error) router.replace("/signin");
   }, [error, isLoading, router]);
 
   if (isLoading) return <p className="p-8">Loading…</p>;
@@ -20,7 +20,7 @@ export default function DashboardPage() {
 
   const onSignOut = async () => {
     await authClient.signOut();
-    router.replace("/login");
+    router.replace("/signin");
   };
 
   return (

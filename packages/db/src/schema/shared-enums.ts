@@ -8,11 +8,6 @@ export const userRoleEnum = pgEnum("user_role", [
   "service",
 ]);
 
-export const verificationPurposeEnum = pgEnum("verification_purpose", [
-  "email-verify",
-  "password-reset",
-]);
-
 export const citext = customType<{ data: string; driverData: string }>({
   dataType() {
     return "citext";
