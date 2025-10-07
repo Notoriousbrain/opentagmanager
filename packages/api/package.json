@@ -2,9 +2,12 @@
   "name": "api",
   "version": "0.1.0",
   "module": "index.ts",
-  "main": "src/root.ts",
-  "types": "src/root.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "type": "module",
+  "exports": {
+    ".": "./src"
+  },
   "private": true,
   "devDependencies": {
     "@types/bun": "latest"
