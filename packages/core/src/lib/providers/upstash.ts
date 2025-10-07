@@ -3,11 +3,10 @@ import { Redis } from "@upstash/redis";
 import { env } from "@otm/env";
 import type { Cache } from "../cache";
 
-if (!env.OTM_UPSTASH_REDIS_REST_URL || !env.OTM_UPSTASH_REDIS_REST_TOKEN) {
-  throw new Error("Upstash Redis config missing required env vars.");
-}
-
 export function createUpstashCache(): Cache {
+  if (!env.OTM_UPSTASH_REDIS_REST_URL || !env.OTM_UPSTASH_REDIS_REST_TOKEN) {
+    throw new Error("Upstash Redis config missing required env vars.");
+  }
   const client = new Redis({
     url: env.OTM_UPSTASH_REDIS_REST_URL!,
     token: env.OTM_UPSTASH_REDIS_REST_TOKEN!,
