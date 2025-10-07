@@ -19,8 +19,9 @@
   "packageManager": "bun@1.2.19",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "bun --env-file=.env turbo run dev",
+    "build": "bun --env-file=.env turbo run build",
+    "start": "bun --env-file=.env turbo run start",
     "lint": "biome lint .",
     "format": "biome format .",
     "lint:web": "eslint apps --max-warnings=0",

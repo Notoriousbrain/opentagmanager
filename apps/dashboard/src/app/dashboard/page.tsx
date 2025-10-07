@@ -1,10 +1,50 @@
-import { auth } from "@otm/auth";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+"use client";
 
-export default async function DashboardPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { trpc } from "@/lib/trpc/react";
+import { authClient } from "@/lib/auth-client";
 
-  return <div>Welcome {session.user.name ?? "there"}!</div>;
+export default function DashboardPage() {
+  const router = useRouter();
+  const { data, error, isLoading } = trpc.account.me.useQuery(undefined, {
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (!isLoading && error) router.replace("/login");
+  }, [error, isLoading, router]);
+
+  if (isLoading) return <p className="p-8">Loading…</p>;
+  if (!data) return null;
+
+  const onSignOut = async () => {
+    await authClient.signOut();
+    router.replace("/login");
+  };
+
+  return (
+    <main className="mx-auto max-w-2xl p-8 space-y-4">
+      <header className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <button
+          onClick={onSignOut}
+          className="rounded-xl border px-3 py-1 text-sm"
+        >
+          Sign out
+        </button>
+      </header>
+
+      <p>
+        Welcome, <strong>{data.name ?? data.email}</strong>!
+      </p>
+
+      <section className="rounded-xl border p-4">
+        <h2 className="mb-2 font-medium">Session user</h2>
+        <pre className="whitespace-pre-wrap text-sm">
+          {JSON.stringify(data, null, 2)}
+        </pre>
+      </section>
+    </main>
+  );
 }
