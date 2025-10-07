@@ -11,4 +11,6 @@ const conn =
 if (env.NODE_ENV !== "production") globalForDb.conn = conn;
 
 export const db = drizzle(conn, { schema });
+
+export { schema }
 export type DB = typeof db;
