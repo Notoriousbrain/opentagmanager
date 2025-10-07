@@ -16,8 +16,5 @@
     "drizzle-orm": "catalog:",
     "better-auth": "catalog:",
     "server-only": "catalog:"
-  },
-  "scripts": {
-    "build": "tsc -p tsconfig.json"
   }
 }
