@@ -17,7 +17,14 @@ export const env = createEnv({
 
     GITHUB_CLIENT_ID: z.string().min(1),
     GITHUB_CLIENT_SECRET: z.string().min(1),
+    GOOGLE_CLIENT_ID: z.string().min(1),
+    GOOGLE_CLIENT_SECRET: z.string().min(1),
+
     GITHUB_TOKEN: z.string().min(1),
+
+    BETTER_AUTH_SECRET: z.string().min(32, {
+      message: "BETTER_AUTH_SECRET must be at least 32 characters long.",
+    }),
   },
   experimental__runtimeEnv: process.env,
   skipValidation: process.env.NODE_ENV !== "production",
