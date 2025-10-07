@@ -32,12 +32,10 @@ function createMemoryCache(): Cache {
 }
 
 function makeCache(): Cache {
-  const enabled: boolean = env.OTM_REDIS_ENABLED === "true";
-  const hasUpstash: boolean =
-    Boolean(env.OTM_UPSTASH_REDIS_REST_URL) &&
-    Boolean(env.OTM_UPSTASH_REDIS_REST_TOKEN);
+  const hasUpstash =
+    !!env.OTM_UPSTASH_REDIS_REST_URL && !!env.OTM_UPSTASH_REDIS_REST_TOKEN;
 
-  if (enabled && hasUpstash) {
+  if (hasUpstash) {
     console.info("✅ OTM cache: Upstash (REST)");
     return createUpstashCache();
   }
