@@ -1,23 +1,16 @@
 {
-  "name": "api",
+  "name": "@otm/api",
   "version": "0.1.0",
-  "module": "index.ts",
-  "main": "src/root.ts",
-  "types": "src/root.ts",
   "type": "module",
   "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "catalog:"
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
   },
   "dependencies": {
     "@trpc/server": "catalog:",
     "superjson": "catalog:",
     "zod": "^catalog:"
-  },
-  "scripts": {
-    "typecheck": "tsc -p tsconfig.json --noEmit"
   }
 }

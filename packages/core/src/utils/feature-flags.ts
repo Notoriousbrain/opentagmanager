@@ -22,7 +22,7 @@ export async function setFeatureFlag(
 
 export async function isFeatureEnabled(name: string): Promise<boolean> {
   const v = await cache.get<string>(k(name));
-  return toBoolean(v);
+  return toBoolean(v ?? false);
 }
 
 export async function clearFeatureFlag(name: string) {

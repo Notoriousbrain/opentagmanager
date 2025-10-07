@@ -8,6 +8,6 @@ loadEnv({ path: resolve(process.cwd(), "../../.env") });
 export default defineConfig({
   dialect: "postgresql",
   out: "./drizzle",
-  schema: "./src/schema/events.ts",
+  schema: "./src/schema/**/*.ts",
   dbCredentials: { url: process.env.OTM_DATABASE_URL! },
 });
