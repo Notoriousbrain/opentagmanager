@@ -39,13 +39,37 @@ export const auth = betterAuth({
 
       const userId = s.user.id;
 
-      const rows = await db
-        .select({ id: schema.session.id, createdAt: schema.session.createdAt })
+      const all = await db
+        .select({
+          id: schema.session.id,
+          createdAt: schema.session.createdAt,
+          ip: schema.session.ipAddress,
+          ua: schema.session.userAgent,
+        })
         .from(schema.session)
         .where(eq(schema.session.userId, userId))
         .orderBy(desc(schema.session.createdAt));
 
-      const toDelete = rows.slice(3).map((r) => r.id);
+      const seen = new Set<string>();
+      const dupIds: string[] = [];
+      for (const r of all) {
+        const key = `${r.ip ?? ""}|${r.ua ?? ""}`;
+        if (seen.has(key)) dupIds.push(r.id);
+        else seen.add(key);
+      }
+      if (dupIds.length) {
+        await db
+          .delete(schema.session)
+          .where(inArray(schema.session.id, dupIds));
+      }
+
+      const remaining = await db
+        .select({ id: schema.session.id })
+        .from(schema.session)
+        .where(eq(schema.session.userId, userId))
+        .orderBy(desc(schema.session.createdAt));
+
+      const toDelete = remaining.slice(3).map((r) => r.id);
       if (toDelete.length) {
         await db
           .delete(schema.session)
