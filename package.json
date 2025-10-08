@@ -41,7 +41,8 @@
     "dashboard": "turbo dev --filter=dashboard",
     "upgrade": "bun scripts/bump-catalog.ts --prefix=exact --tag=latest --and-update --yes",
     "upgrade:caret": "bun scripts/bump-catalog.ts --prefix=caret --tag=latest --and-update --yes",
-    "upgrade:dry": "bun scripts/bump-catalog.ts --prefix=exact --tag=latest --dry-run"
+    "upgrade:dry": "bun scripts/bump-catalog.ts --prefix=exact --tag=latest --dry-run",
+    "promote:user": "bun packages/db/scripts/promote-user.ts"
   },
   "workspaces": {
     "packages": [

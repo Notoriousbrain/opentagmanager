@@ -2,6 +2,8 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { env } from "@otm/env";
 import { db, schema } from "@otm/db";
+import { createAuthMiddleware } from "better-auth/api";
+import { desc, eq, inArray } from "drizzle-orm";
 
 export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
@@ -10,7 +12,6 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
-
   socialProviders: {
     github: {
       clientId: env.GITHUB_CLIENT_ID,
@@ -21,9 +22,36 @@ export const auth = betterAuth({
       clientSecret: env.GOOGLE_CLIENT_SECRET,
     },
   },
-
   advanced: {
     cookiePrefix: "otm",
+    cookieSecure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  },
+  user: {
+    additionalFields: {
+      role: { type: "string", required: true },
+    },
+  },
+  hooks: {
+    after: createAuthMiddleware(async (ctx) => {
+      const s = ctx.context.newSession;
+      if (!s) return;
+
+      const userId = s.user.id;
+
+      const rows = await db
+        .select({ id: schema.session.id, createdAt: schema.session.createdAt })
+        .from(schema.session)
+        .where(eq(schema.session.userId, userId))
+        .orderBy(desc(schema.session.createdAt));
+
+      const toDelete = rows.slice(3).map((r) => r.id);
+      if (toDelete.length) {
+        await db
+          .delete(schema.session)
+          .where(inArray(schema.session.id, toDelete));
+      }
+    }),
   },
 });
 
