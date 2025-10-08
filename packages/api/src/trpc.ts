@@ -21,3 +21,15 @@ const authed = t.middleware(({ ctx, next }) => {
 });
 
 export const protectedProcedure = t.procedure.use(authed);
+
+export function requireRole(
+  ...roles: Array<"owner" | "admin" | "editor" | "viewer">
+) {
+  return t.middleware(({ ctx, next }) => {
+    const role = ctx.session!.user.role as (typeof roles)[number] | undefined;
+    if (!role || !roles.includes(role)) {
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
+    return next();
+  });
+}
