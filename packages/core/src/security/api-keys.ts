@@ -36,12 +36,23 @@ function b64urlDecode(s: string): Buffer {
   return Buffer.from(padded, "base64");
 }
 
+function getScryptParams() {
+  const N = Number(process.env.OTM_SCRYPT_N ?? 1 << 15);
+  const r = Number(process.env.OTM_SCRYPT_R ?? 8);
+  const p = Number(process.env.OTM_SCRYPT_P ?? 1);
+  const maxmem = Number(process.env.OTM_SCRYPT_MAXMEM ?? 128 * 1024 * 1024);
+  return { N, r, p, maxmem };
+}
+
 function scryptHash(secret: string, pepper?: string): string {
   const salt = randomBytes(16);
-  const N = 1 << 15;
-  const r = 8;
-  const p = 1;
-  const key = scryptSync((pepper ?? "") + secret, salt, 32, { N, r, p });
+  const { N, r, p, maxmem } = getScryptParams();
+  const key = scryptSync((pepper ?? "") + secret, salt, 32, {
+    N,
+    r,
+    p,
+    maxmem,
+  });
   return `scrypt$N=${N},r=${r},p=${p}$${b64urlEncode(salt)}$${b64urlEncode(key)}`;
 }
 

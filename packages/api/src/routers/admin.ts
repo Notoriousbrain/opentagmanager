@@ -1,7 +1,7 @@
-import { router } from "../trpc";
+import { createTRPCRouter } from "../trpc";
 import { protectedProcedure, requireRole } from "../trpc";
 
-export const adminRouter = router({
+export const adminRouter = createTRPCRouter({
   stats: protectedProcedure
     .use(requireRole("owner", "admin"))
     .query(async () => {

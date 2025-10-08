@@ -114,14 +114,24 @@ export async function createApiKey(input: {
 
 export async function revokeApiKey(keyId: string, actorUserId: string) {
   await db.transaction(async (tx) => {
-    await tx
+    const [updated] = await tx
       .update(schema.apiKey)
       .set({ revokedAt: new Date() })
-      .where(eq(schema.apiKey.id, keyId));
+      .where(eq(schema.apiKey.id, keyId))
+      .returning({ projectId: schema.apiKey.projectId });
+
+    if (!updated) throw new Error("API key not found");
+
+    const [proj] = await tx
+      .select({ orgId: schema.project.orgId })
+      .from(schema.project)
+      .where(eq(schema.project.id, updated.projectId));
 
     await tx.insert(schema.auditEvent).values({
       id: crypto.randomUUID(),
       actorUserId,
+      orgId: proj?.orgId ?? null,
+      projectId: updated.projectId,
       action: "api_key.revoked",
       data: { keyId },
       ip: null,
