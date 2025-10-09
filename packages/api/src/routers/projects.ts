@@ -9,17 +9,27 @@ import {
 } from "@otm/db/repos";
 import { CreateProjectInput, CreateApiKeyInput } from "@otm/core";
 import { makeApiKey } from "@otm/core";
+import { assertOrgRole, assertProjectRole } from "../lib/rbac";
 
 const PEPPER = process.env.OTM_API_KEY_PEPPER ?? "";
 
 export const projectsRouter = createTRPCRouter({
   list: protectedProcedure
     .input(z.object({ orgId: z.string().min(1) }))
-    .query(async ({ input }) => listProjects(input.orgId)),
+    .query(async ({ ctx, input }) => {
+      await assertOrgRole(ctx, input.orgId, [
+        "admin",
+        "editor",
+        "owner",
+        "viewer",
+      ]);
+      return listProjects(input.orgId);
+    }),
 
   create: protectedProcedure
     .input(CreateProjectInput)
     .mutation(async ({ ctx, input }) => {
+      await assertOrgRole(ctx, input.orgId, ["admin", "owner"]);
       const id = await createProject({
         orgId: input.orgId,
         name: input.name,
@@ -31,11 +41,24 @@ export const projectsRouter = createTRPCRouter({
 
   apiKeysList: protectedProcedure
     .input(z.object({ projectId: z.string().min(1) }))
-    .query(async ({ input }) => listActiveApiKeys(input.projectId)),
+    .query(async ({ ctx, input }) => {
+      await assertProjectRole(ctx, input.projectId, [
+        "admin",
+        "editor",
+        "owner",
+        "viewer",
+      ]);
+      return listActiveApiKeys(input.projectId);
+    }),
 
   apiKeysCreate: protectedProcedure
     .input(CreateApiKeyInput)
     .mutation(async ({ ctx, input }) => {
+      await assertProjectRole(ctx, input.projectId, [
+        "owner",
+        "admin",
+        "editor",
+      ]);
       const { token, prefix, keyHash } = makeApiKey(input.type, {
         pepper: PEPPER,
       });

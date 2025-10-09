@@ -4,13 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./*": "./src/*.tsx"
-  },
-  "scripts": {
-    "lint": "eslint . --max-warnings 0",
-    "generate:component": "turbo gen react-component",
-    "check-types": "tsc --noEmit",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    ".": "./src/index.ts",
+    "./lib/utils": "./src/lib/utils.ts"
   },
   "devDependencies": {
     "@otm/eslint-config": "workspace:*",
@@ -19,10 +14,26 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "eslint": "catalog:",
-    "typescript": "catalog:"
+    "next": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "@tailwindcss/postcss": "catalog:"
   },
   "dependencies": {
+    "@radix-ui/react-separator": "^1.1.7",
+    "@radix-ui/react-slot": "^1.2.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "catalog:",
+    "next-themes": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "sonner": "catalog:",
+    "tailwind-merge": "catalog:",
+    "tw-animate-css": "catalog:",
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "next": "catalog:"
   }
 }
