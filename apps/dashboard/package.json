@@ -12,6 +12,7 @@
   "dependencies": {
     "@otm/auth": "workspace:*",
     "@otm/api": "workspace:*",
+    "@otm/ui": "workspace:",
     "@tanstack/react-query": "catalog:",
     "@trpc/client": "catalog:",
     "@trpc/react-query": "catalog:",
