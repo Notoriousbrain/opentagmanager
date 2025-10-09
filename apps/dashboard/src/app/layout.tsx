@@ -15,7 +15,9 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Open Tag Manager",
-  description: "Open Source Alternative of Google Tag Manager",
+  description: "Projects & API Keys dashboard",
+  viewport: { width: "device-width", initialScale: 1 },
+  icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
 export default function RootLayout({
