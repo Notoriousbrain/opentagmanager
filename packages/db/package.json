@@ -12,7 +12,8 @@
     "db:studio": "drizzle-kit studio"
   },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./repos": "./src/repos/projects.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

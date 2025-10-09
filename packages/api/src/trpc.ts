@@ -10,7 +10,7 @@ export type Context = inferAsyncReturnType<typeof createContext>;
 
 const t = initTRPC.context<Context>().create();
 
-export const router = t.router;
+export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 
 const authed = t.middleware(({ ctx, next }) => {
