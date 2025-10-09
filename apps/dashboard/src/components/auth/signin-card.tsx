@@ -8,53 +8,85 @@ import {
   Separator,
 } from "@otm/ui";
 import React from "react";
-import { Chrome, Github } from "lucide-react";
+import { Chrome, Github, Loader2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
 const SignInCard = () => {
-  const handleGithub = () =>
-    authClient.signIn.social({ provider: "github", callbackURL: "/dashboard" });
+  const [loading, setLoading] = React.useState<"github" | "google" | null>(
+    null
+  );
 
-  const handleGoogle = () =>
-    authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" });
+  async function signInWith(provider: "github" | "google") {
+    try {
+      setLoading(provider);
+      await authClient.signIn.social({ provider, callbackURL: "/dashboard" });
+    } finally {
+      setLoading(null);
+    }
+  }
 
   return (
-    <Card className="rounded-xl border-0 bg-[#0f0f0f] px-4 py-8">
-      <CardHeader className="space-y-4">
-        <div className="space-y-1">
-          <CardTitle className="text-2xl tracking-tight">Sign in</CardTitle>
-          <CardDescription className="text-sm text-muted-foreground">
-            Continue with one of the providers below.
-          </CardDescription>
-        </div>
+    <Card className="rounded-2xl border border-white/20 bg-gradient-to-b from-background/95 to-background/70 shadow-lg backdrop-blur-xl">
+      <CardHeader className="space-y-3 ">
+        <CardTitle className="text-3xl font-semibold tracking-tight">
+          Sign in
+        </CardTitle>
+        <CardDescription className="text-base text-muted-foreground">
+          Choose a provider to continue.
+        </CardDescription>
       </CardHeader>
 
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Button
-            className="border w-full py-4 rounded-md "
-            aria-label="Continur with Github"
+            variant="outline"
+            className="w-full py-4 rounded-lg cursor-pointer border border-white/30 text-base font-medium flex items-center justify-center"
+            aria-label="Continue with GitHub"
+            onClick={() => signInWith("github")}
+            disabled={loading !== null}
           >
-            <span className="font-"> Github</span>
+            {loading === "github" ? (
+              <Loader2
+                className="mr-2 size-5 animate-spin"
+                aria-hidden="true"
+              />
+            ) : (
+              <Github className="mr-2 size-5" aria-hidden="true" />
+            )}
+            Continue with GitHub
           </Button>
 
           <Button
-            className="border w-full py-4 rounded-md "
-            aria-label="Continur with Github"
+            variant="outline"
+            className="w-full py-4 rounded-lg text-base border cursor-pointer border-white/30 font-medium flex items-center justify-center"
+            aria-label="Continue with Google"
+            onClick={() => signInWith("google")}
+            disabled={loading !== null}
           >
-            <span className="font-"> Google</span>
+            {loading === "google" ? (
+              <Loader2
+                className="mr-2 size-5 animate-spin"
+                aria-hidden="true"
+              />
+            ) : (
+              <Chrome className="mr-2 size-5" aria-hidden="true" />
+            )}
+            Continue with Google
           </Button>
         </div>
 
-        <div className="my-6 flex items-center gap-3">
+        <div className="my-8 flex items-center gap-3">
           <Separator className="flex-1" aria-hidden="true" />
-          <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
+          <span className="text-xs uppercase tracking-widest text-muted-foreground">
             or
           </span>
           <Separator className="flex-1" aria-hidden="true" />
         </div>
 
-        <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
+        {/* Email/password slot (optional for later) */}
+        {/* <EmailPasswordForm /> */}
+
+        <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
           By continuing, you agree to our{" "}
           <a href="/terms" className="underline underline-offset-4">
             Terms
