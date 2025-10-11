@@ -16,10 +16,12 @@ const SignInCard = () => {
     null
   );
 
+  const callbackURL = "/post-signin";
+
   async function signInWith(provider: "github" | "google") {
     try {
       setLoading(provider);
-      await authClient.signIn.social({ provider, callbackURL: "/dashboard" });
+      await authClient.signIn.social({ provider, callbackURL });
     } finally {
       setLoading(null);
     }

@@ -4,12 +4,10 @@ import Image from "next/image";
 export default function SignInPage() {
   return (
     <div className="relative min-h-dvh bg-background text-foreground">
-      {/* Left: content column (sign-in) */}
       <main className="min-h-dvh lg:mr-[48%] flex items-center justify-center p-6">
         <SignInComponent />
       </main>
 
-      {/* Right: fixed brand image panel */}
       <aside className="hidden lg:block fixed inset-y-0 right-0 w-[48%] overflow-hidden">
         <div className="absolute inset-0">
           <Image
