@@ -28,8 +28,8 @@ const SignInCard = () => {
   }
 
   return (
-    <Card className="rounded-2xl border border-white/20 bg-gradient-to-b from-background/95 to-background/70 shadow-lg backdrop-blur-xl">
-      <CardHeader className="space-y-3 ">
+    <Card className="rounded-2xl py-6 border border-white/20 bg-gradient-to-b from-background/95 to-background/70 shadow-lg backdrop-blur-xl">
+      <CardHeader className="space-y-3 mb-4">
         <CardTitle className="text-3xl font-semibold tracking-tight">
           Sign in
         </CardTitle>
