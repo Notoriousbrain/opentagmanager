@@ -10,12 +10,11 @@ export interface Org {
   name: string;
   role: Role;
 }
-
 interface OrgState {
   activeOrgId: string | null;
   orgs: Org[];
   setActiveOrg: (id: string | null) => void;
-  setOrgs: (list: Org[]) => void;
+  setOrgs: (list: Org[] | ((prev: Org[]) => Org[])) => void;
   reset: () => void;
 }
 
@@ -25,7 +24,10 @@ export const useOrgStore = create<OrgState>()(
       activeOrgId: null,
       orgs: [],
       setActiveOrg: (id) => set({ activeOrgId: id }),
-      setOrgs: (list) => set({ orgs: list }),
+      setOrgs: (list) =>
+        set((s) => ({
+          orgs: typeof list === "function" ? list(s.orgs) : list,
+        })),
       reset: () => set({ activeOrgId: null, orgs: [] }),
     }),
     { name: "otm.org" }
