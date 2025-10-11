@@ -1,6 +1,9 @@
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { db, schema } from "@otm/db";
 import { eq, and } from "drizzle-orm";
+import z from "zod";
+import { organization, organizationMember } from "../../../db/src/schema";
+import { nanoid } from "nanoid";
 
 type Role = "owner" | "admin" | "editor" | "viewer";
 export type OrgSummary = { id: string; name: string; role: Role };
@@ -33,4 +36,31 @@ export const orgsRouter = createTRPCRouter({
     }));
     return result;
   }),
+  create: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(2),
+        slug: z.string().regex(/^[a-z0-9][a-z0-9-]*$/),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const id = `org_${nanoid(10)}`;
+
+      await db.insert(organization).values({
+        id,
+        name: input.name,
+        slug: input.slug,
+        ownerId: userId,
+      });
+
+      await db.insert(organizationMember).values({
+        id: `mem_${nanoid(12)}`,
+        orgId: id,
+        userId,
+        role: "owner",
+      });
+
+      return { id, name: input.name, role: "owner" as const };
+    }),
 });
