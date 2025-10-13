@@ -1,4 +1,4 @@
-import { OrgList } from "../../components/org/org-list";
+import { OrgList } from "../../../components/org/org-list";
 
 export default function Page() {
   return (
