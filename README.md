@@ -1,132 +1,123 @@
-# 🏷️ OTM (Open Tag Manager)
+# 🏷️ OSS Tag — The Open-Source Tag Manager
 
-> **An open-source, self-hosted alternative to Google Tag Manager**, built with modern TypeScript tooling and designed for speed, reliability, and transparency.
+**OSS Tag** is an open-source, privacy-first alternative to Google Tag Manager.
+It lets you manage tracking code (tags) securely and dynamically and without touching your production codebase.
 
----
+Built for transparency, developer control, and speed.
 
-## ⚡️ Status
+## 🚀 Tech Stack
 
-**Version:** `v0.1.0 (Functional Core — In Progress)`  
-**Goal:** Collect → Persist → Inspect  
-Core event pipeline under construction.
-
----
-
-## 🧱 Monorepo Structure
-
-| Package / App                | Purpose                                           |
-| ---------------------------- | ------------------------------------------------- |
-| `apps/docs`                  | Public documentation & landing page               |
-| `apps/dashboard`             | Admin UI (Next.js + tRPC + Better Auth)           |
-| `apps/relay-node`            | Ingest API (Bun + Hono + Drizzle + Postgres)      |
-| `packages/core`              | Shared types, Zod schemas, utilities              |
-| `packages/env`               | Zod-validated environment loader                  |
-| `packages/db`                | Drizzle ORM schema + Postgres integration         |
-| `packages/ui`                | Shadcn-based component library                    |
-| `packages/api`               | tRPC routers (shared between dashboard/backend)   |
-| `packages/cli`               | Developer CLI (`otm init`, `otm dev:relay`, etc.) |
-| `packages/web`               | Lightweight browser runtime (`window.otm.push()`) |
-| `packages/typescript-config` | Shared TypeScript configs                         |
-| `packages/eslint-config`     | Shared ESLint configs                             |
+| Area             | Stack                                          |
+| ---------------- | ---------------------------------------------- |
+| Monorepo         | Turborepo + Bun                                |
+| Framework        | Next.js 15 (App Router + Turbopack)            |
+| Backend          | tRPC + Drizzle ORM + PostgreSQL                |
+| Auth             | Better Auth (Email/Password + Google + GitHub) |
+| State            | Zustand                                        |
+| Styling          | Tailwind CSS v4 + shadcn/ui                    |
+| Cache            | Upstash Redis (optional, REST API)             |
+| Mail             | SMTP + Resend                                  |
+| Linting / Format | Biome                                          |
 
 ---
 
-## 🧩 v0.1 Build Roadmap
+## 🧩 Monorepo Structure
 
-1. **Repo hygiene** – consistent TS + Bun + Turbo setup
-2. **Env package** – validated `.env` handling
-3. **DB** – Drizzle + Postgres + `events` table
-4. **Relay service** – `/healthz`, `/collect` → DB insert
-5. **Optional Upstash** – rate limit & dedupe
-6. **Core types** – shared `CollectEvent` schema
-7. **Browser snippet** – `window.otm.push()` → sendBeacon
-8. **Dashboard stub** – event count view
-9. **CLI** – `init`, `dev:relay` commands
-10. **Preview/debug header**
-11. **CI smoke build**
-
-> v0.1 focuses purely on _data collection and reliability_.  
-> Tag rules and execution come in v0.2.
-
----
-
-## 🧰 Tech Stack
-
-| Layer          | Technology                                          |
-| -------------- | --------------------------------------------------- |
-| Runtime / API  | **Bun**, **Hono**                                   |
-| Database       | **Postgres**, **Drizzle ORM**                       |
-| Cache / Queue  | **Upstash Redis** (optional)                        |
-| Frontend / UI  | **Next.js (App Router)**, **Shadcn/UI**, **Lucide** |
-| API Contracts  | **tRPC v11**, **Zod**                               |
-| Auth           | **Better Auth**                                     |
-| CLI            | **Commander**, **Esbuild**                          |
-| Testing        | **Vitest**, **Playwright**                          |
-| CI/CD          | **GitHub Actions**                                  |
-| Infrastructure | **Docker Compose + Caddy (self-host)**              |
-
----
-
-## 🚀 Local Development
-
-### 1. Install dependencies
-
-```bash
-bun install
 ```
+apps/
+ dashboard/ → Main app (Next.js + tRPC)
+ docs/ → Developer documentation site
 
-### 2. Start Postgres via Docker
-
-```bash
-bun run docker:up
-```
-
-### 3. Run the Docs app
-
-```bash
-bun run docs
-```
-
-### 4. Run the Dashboard
-
-```bash
-bun run dashboard
-```
-
-### 5. Run the Relay Node (Bun API)
-
-```bash
-cd apps/relay-node
-bun run dev
+packages/
+ @osstag/core → Core logic + cache provider (memory / Upstash)
+ @osstag/env → Environment schema & validation (Zod + @t3-oss/env-nextjs)
+ @osstag/db → Drizzle ORM schema & migrations
+ @osstag/ui → Shared shadcn + Tailwind v4 UI system
+ @osstag/auth → Central Better Auth instance
 ```
 
 ---
 
-## 🧠 Project Purpose
+## 📦 Current Progress — v0.1
 
-OTM is designed to:
+### ✅ Core
 
-- Provide a **self-hosted, transparent alternative** to Google Tag Manager
-- Enable **developer-first analytics & tag management**
-- Use **modern TypeScript + Bun DX** for speed and maintainability
-- Be modular: **Core**, **Relay**, **Dashboard**, and **Web Runtime**
+- Feature-flagged cache with memory + Upstash support
+- Environment schema with all project/env keys
+- Upstash auto-detect (no manual flags)
+
+### ✅ Auth (v0.1)
+
+- Better Auth with Email/Password, Google, GitHub
+- JWT sessions (stateless)
+- SMTP + Resend adapters
+- Secure cookies + hooks to limit session count
+- Centralized auth package with Next.js handler and tRPC bridge
+
+### ✅ Projects & API Keys (v0.1)
+
+- Organization & Project schema with Drizzle
+- Org membership roles: owner, admin, editor, viewer
+- Role-based dashboard rendering
+- Create/select organization flow
+- Create/manage projects
+- API key management (create, revoke, reveal, copy)
+- One-time token display with masked UI
+
+### 🧠 State Management
+
+- Zustand store for orgs, projects, and active session
+- Fast local navigation without refetch delay
 
 ---
 
-## 🧩 Contributing
+## 🔮 Upcoming
 
-Contributions are welcome!  
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, style, and PR guidelines.
-
----
-
-## 📜 License
-
-[MIT](./LICENSE)
+- Audit logs for key/project/org actions
+- Tag manager runtime (event ingestion & execution engine)
+- Workspace-level analytics
+- Public API docs
+- Cron cleanup for expired sessions/verifications
 
 ---
 
-## 💬 Community
+## 🛠️ Setup
 
-- 🧠 Discussions: Coming soon on GitHub Discussions
-- 🐞 Issues: [GitHub Issues](https://github.com/opentagmanager/opentagmanager/issues)
+1. Install dependencies
+    bun install
+
+2. Copy `.env.example` and fill required keys
+    cp .env.example .env
+
+3. Run database migrations
+    bun run db:migrate
+
+4. Start all apps
+    bun run dev
+
+Dashboard → [http://localhost:3000](http://localhost:3000)
+Docs → [http://localhost:3001](http://localhost:3001)
+
+---
+
+## 💡 Philosophy
+
+"Tag management should be open, transparent, and privacy-first."
+
+OSSTag empowers developers and teams to self-host a tag manager that’s
+faster, safer, and more auditable than any black-box alternative.
+
+---
+
+## 🌐 Links
+
+- Website (coming soon)
+- Docs: /apps/docs
+- Dashboard: /apps/dashboard
+- Repo: github.com/opentagmanager/osstag
+
+---
+
+© 2025 OSS Tag. Open Source under the MIT License.
+
+---
