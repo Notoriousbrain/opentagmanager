@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { trpc } from "@/lib/trpc/react";
+import { useActiveOrg } from "@/hooks/use-active-org";
 import {
   Card,
   CardHeader,
@@ -11,7 +13,7 @@ import {
   Skeleton,
   Separator,
 } from "@otm/ui";
-import { useActiveOrg } from "@/hooks/use-active-org";
+import { CreateProjectCard } from "./create-project-dialog";
 
 type Project = {
   id: string;
@@ -21,7 +23,9 @@ type Project = {
 };
 
 export function ProjectsPanel() {
-  const { activeOrgId, activeOrg, canCreateProject } = useActiveOrg("/org");
+  const { hydrated, activeOrgId, activeOrg, canCreateProject } =
+    useActiveOrg("/org");
+  const [creating, setCreating] = useState(false);
 
   const q = trpc.projects.list.useQuery(
     { orgId: activeOrgId ?? "" },
@@ -44,22 +48,26 @@ export function ProjectsPanel() {
 
         {canCreateProject && (
           <Button
-            onClick={() => (window.location.href = "/dashboard/projects/new")}
-            className="rounded-lg"
+            onClick={() => setCreating((v) => !v)}
+            className="rounded-lg bg-white text-black hover:bg-white/90"
           >
-            New project
+            {creating ? "Close" : "New project"}
           </Button>
         )}
       </CardHeader>
 
-      <CardContent className="px-6 pb-6 mt-6 space-y-4">
-        {!activeOrgId && (
-          <p className="text-sm text-zinc-400">
-            No active organization selected. Choose one first.
-          </p>
+      <CardContent className="px-6 pb-6 mt-6 space-y-6">
+        {/* Inline create card (re-uses component; no redundant logic) */}
+        {creating && <CreateProjectCard onCreated={() => setCreating(false)} />}
+
+        {!hydrated && (
+          <div className="space-y-2">
+            <Skeleton className="h-12 w-full rounded-lg" />
+            <Skeleton className="h-12 w-2/3 rounded-lg" />
+          </div>
         )}
 
-        {activeOrgId && q.isLoading && (
+        {hydrated && activeOrgId && q.isLoading && (
           <div className="space-y-2">
             <Skeleton className="h-12 w-full rounded-lg" />
             <Skeleton className="h-12 w-full rounded-lg" />
@@ -67,22 +75,26 @@ export function ProjectsPanel() {
           </div>
         )}
 
-        {activeOrgId && q.isError && (
+        {hydrated && activeOrgId && q.isError && (
           <p className="text-sm text-red-400">
             Failed to load projects. Please try again.
           </p>
         )}
 
-        {activeOrgId && q.isSuccess && projects.length === 0 && (
-          <div className="rounded-xl border border-dashed border-white/15 p-6 text-sm text-zinc-400">
-            No projects yet.{" "}
-            {canCreateProject
-              ? "Create your first project."
-              : "Ask an admin to create one."}
-          </div>
-        )}
+        {hydrated &&
+          activeOrgId &&
+          q.isSuccess &&
+          projects.length === 0 &&
+          !creating && (
+            <div className="rounded-xl border border-dashed border-white/15 p-6 text-sm text-zinc-400">
+              No projects yet.{" "}
+              {canCreateProject
+                ? "Create your first project."
+                : "Ask an admin to create one."}
+            </div>
+          )}
 
-        {activeOrgId && projects.length > 0 && (
+        {hydrated && activeOrgId && projects.length > 0 && (
           <>
             <ul className="divide-y divide-white/10 rounded-xl border border-white/10">
               {projects.map((p) => (
