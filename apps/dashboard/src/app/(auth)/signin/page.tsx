@@ -25,15 +25,15 @@ export default function SignInPage() {
           <header className="flex items-center gap-3">
             <div className="grid size-10 place-items-center rounded-xl border border-white/20 bg-black/40 backdrop-blur">
               <span className="text-[10px] font-semibold tracking-widest text-white">
-                OTM
+                OSS Tag
               </span>
             </div>
             <div className="h-5 w-px bg-white/30" aria-hidden="true" />
-            <span className="text-white/80">Open Tag Manager</span>
+            <span className="text-white/80">OSS Tag</span>
           </header>
 
           <footer className="text-white/60 text-sm">
-            © {new Date().getFullYear()} OTM. All rights reserved.
+            © {new Date().getFullYear()} OSS Tag. All rights reserved.
           </footer>
         </div>
       </aside>

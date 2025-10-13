@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Open Tag Manager",
+  title: "OSS Tag",
   description: "Open Source Alternative of Google Tag Manager",
 };
 

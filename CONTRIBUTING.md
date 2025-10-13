@@ -1,6 +1,6 @@
-# 🤝 Contributing to OTM
+# 🤝 Contributing to OSS Tag
 
-Thanks for your interest in improving **Open Tag Manager (OTM)**!  
+Thanks for your interest in improving **OSS Tag**!  
 We’re building this project in **tiny, high-quality steps** — your help makes that possible.
 
 ---
@@ -108,5 +108,5 @@ bun test
 
 ## 🧡 Thank You
 
-Your contribution — even a single typo fix — helps make OTM a better open-source tool for everyone.  
+Your contribution — even a single typo fix — helps make OSS Tag a better open-source tool for everyone.  
 We’re excited to build this with you 🚀

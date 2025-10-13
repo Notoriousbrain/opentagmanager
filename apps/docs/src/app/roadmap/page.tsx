@@ -96,7 +96,7 @@ const phases: Phase[] = [
     ],
     monetization: {
       summary:
-        "Launch OTM Cloud (Beta): hosted convenience with usage telemetry (opt-in).",
+        "Launch OSS Tag Cloud (Beta): hosted convenience with usage telemetry (opt-in).",
       levers: ["SaaS (Cloud Beta)", "Consulting"],
     },
     growth: {
@@ -137,7 +137,7 @@ const phases: Phase[] = [
     ],
     monetization: {
       summary:
-        "OTM Cloud 1.0 GA with usage-based metering; begin private enterprise contracts.",
+        "OSS Tag Cloud 1.0 GA with usage-based metering; begin private enterprise contracts.",
       levers: ["SaaS (GA)", "Usage-based", "Enterprise"],
     },
     growth: {
@@ -389,7 +389,7 @@ export default function RoadmapPage() {
             Back
           </button>
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Open Tag Manager — Unified Roadmap
+            OSS Tag — Unified Roadmap
           </h1>
           <p className="mt-3 text-sm text-zinc-300">
             Product, AI, <span className="font-semibold">monetization</span>,

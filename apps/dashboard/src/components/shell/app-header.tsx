@@ -11,7 +11,7 @@ export function AppHeader() {
         <div className="flex items-center gap-3">
           <div className="grid size-8 place-items-center rounded-xl border border-black/15">
             <span className="text-[10px] font-semibold tracking-widest">
-              OTM
+              OSS Tag
             </span>
           </div>
           <Separator orientation="vertical" className="h-5" />

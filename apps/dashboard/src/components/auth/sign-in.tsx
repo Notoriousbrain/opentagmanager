@@ -8,7 +8,7 @@ export default function SignInComponent() {
         <div className="mb-8 flex items-center gap-3 justify-center lg:justify-start">
           <div className="grid size-9 place-items-center rounded-lg border border-border">
             <span className="text-[10px] font-semibold tracking-widest">
-              OTM
+              OSS Tag
             </span>
           </div>
           <div className="h-5 w-px bg-border" aria-hidden="true" />
