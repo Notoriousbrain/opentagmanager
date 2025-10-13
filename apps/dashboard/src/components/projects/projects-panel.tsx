@@ -52,7 +52,7 @@ export function ProjectsPanel() {
         )}
       </CardHeader>
 
-      <CardContent className="px-6 pb-6 space-y-4">
+      <CardContent className="px-6 pb-6 mt-6 space-y-4">
         {!activeOrgId && (
           <p className="text-sm text-zinc-400">
             No active organization selected. Choose one first.
