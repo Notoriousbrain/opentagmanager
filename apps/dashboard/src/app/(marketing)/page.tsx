@@ -4,6 +4,7 @@ import Image from "next/image";
 import { GithubLogoIcon, XLogoIcon } from "@phosphor-icons/react";
 import WaitlistForm from "@/components/landing/waitlist-form";
 import NavbarLanding from "@/components/landing/navbar";
+import Link from "next/link";
 
 const MarketingPage = () => {
   return (
@@ -34,8 +35,16 @@ const MarketingPage = () => {
           </div>
         </div>
         <div className="absolute bottom-8 right-8 flex flex-col items-center gap-8">
-          <GithubLogoIcon size={28} className="cursor-pointer" />
-          <XLogoIcon size={28} className="cursor-pointer" />
+          <Link href="https://github.com/opentagmanager/osstag" target="_blank" rel="noopener noreferrer">
+            <GithubLogoIcon size={28} className="cursor-pointer" />
+          </Link>
+          <Link
+            href="https://x.com/osstagdotcom"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <XLogoIcon size={28} className="cursor-pointer" />
+          </Link>
         </div>
       </div>
     </main>
