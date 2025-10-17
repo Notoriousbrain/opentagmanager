@@ -11,12 +11,14 @@ const BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 function toBase62(buf: Buffer): string {
   let x = BigInt("0x" + buf.toString("hex"));
-  const base = BigInt(62);
+  const BASE = BigInt(62);
+  const ZERO = BigInt(0);
+
   let out = "";
-  while (x > 0n) {
-    const r = Number(x % base);
+  while (x > ZERO) {
+    const r = Number(x % BASE);
     out = BASE62[r] + out;
-    x = x / base;
+    x = x / BASE;
   }
   return out.padStart(43, "0");
 }

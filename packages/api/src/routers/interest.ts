@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { db, schema } from "@otm/db";
 import { createIpRateLimiter } from "@otm/core";
-import { bumpInterestCounter } from "../services/interest";
+import { bumpInterestCounter, getInterestCount } from "../services/interest";
 
 function getClientInfoFromCtx(ctx: {
   session?: {
@@ -24,11 +25,24 @@ const limiter = createIpRateLimiter({
 });
 
 export const interestRouter = createTRPCRouter({
+  count: publicProcedure.query(async () => {
+    const count = await getInterestCount();
+    return { count };
+  }),
+
   register: publicProcedure
     .input(z.object({ email: z.string().trim().email() }))
     .mutation(async ({ ctx, input }) => {
       const { ip, ua } = getClientInfoFromCtx(ctx);
-      await limiter(ip);
+
+      try {
+        await limiter(ip);
+      } catch {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Rate limited",
+        });
+      }
 
       const email = input.email.toLowerCase();
 
@@ -42,12 +56,14 @@ export const interestRouter = createTRPCRouter({
       } catch (e: any) {
         const msg = String(e?.message || "").toLowerCase();
         if (!msg.includes("duplicate") && !msg.includes("unique")) {
-          throw e;
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Insert failed",
+          });
         }
       }
 
       await bumpInterestCounter();
-
       return { ok: true };
     }),
 });
