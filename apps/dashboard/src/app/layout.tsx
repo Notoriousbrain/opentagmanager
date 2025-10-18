@@ -16,7 +16,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "OSS Tag",
   description: "Projects & API Keys dashboard",
-  viewport: { width: "device-width", initialScale: 1 },
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

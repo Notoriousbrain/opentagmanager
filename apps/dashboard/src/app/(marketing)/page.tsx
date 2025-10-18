@@ -1,5 +1,4 @@
-"use client";
-import React from "react";
+import React, { Suspense } from "react";
 import Image from "next/image";
 import { GithubLogoIcon, XLogoIcon } from "@phosphor-icons/react";
 import WaitlistForm from "@/components/landing/waitlist-form";
@@ -31,11 +30,17 @@ const MarketingPage = () => {
               </p>
             </div>
 
-            <WaitlistForm />
+            <Suspense fallback={null}>
+              <WaitlistForm />
+            </Suspense>
           </div>
         </div>
         <div className="absolute bottom-8 right-8 flex flex-col items-center gap-8">
-          <Link href="https://github.com/opentagmanager/osstag" target="_blank" rel="noopener noreferrer">
+          <Link
+            href="https://github.com/opentagmanager/osstag"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <GithubLogoIcon size={28} className="cursor-pointer" />
           </Link>
           <Link
