@@ -3,11 +3,11 @@ import type { inferAsyncReturnType } from "@trpc/server";
 import { auth } from "@otm/auth";
 import superjson from "superjson";
 
-export async function createContext(opts: { headers: Headers }) {
+export async function createTRPCContext(opts: { headers: Headers }) {
   const session = await auth.api.getSession({ headers: opts.headers });
   return { session };
 }
-export type Context = inferAsyncReturnType<typeof createContext>;
+export type Context = inferAsyncReturnType<typeof createTRPCContext>;
 
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
