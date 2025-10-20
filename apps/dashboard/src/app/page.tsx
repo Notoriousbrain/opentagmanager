@@ -1,3 +1,5 @@
+import HeroSection from "@/components/landing/hero-section";
+
 export default function Home() {
-  return <div>Hi </div>;
+  return <HeroSection />;
 }
