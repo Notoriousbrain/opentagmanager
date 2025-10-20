@@ -21,6 +21,7 @@
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "react-icons": "^5.5.0",
     "superjson": "catalog:",
     "zustand": "^5.0.8"
   },
