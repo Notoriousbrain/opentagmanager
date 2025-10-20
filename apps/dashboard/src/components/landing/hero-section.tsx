@@ -3,7 +3,6 @@ import React from "react";
 import NavbarLanding from "./navbar";
 import WaitlistForm from "./waitlist-form";
 import Link from "next/link";
-import { GithubLogoIcon, XLogoIcon } from "@phosphor-icons/react";
 
 const HeroSection = () => {
   return (
@@ -39,14 +38,14 @@ const HeroSection = () => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <GithubLogoIcon size={28} className="cursor-pointer" />
+            {/* <GithubLogoIcon size={28} className="cursor-pointer" /> */}
           </Link>
           <Link
             href="https://x.com/osstagdotcom"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <XLogoIcon size={28} className="cursor-pointer" />
+            {/* <XLogoIcon size={28} className="cursor-pointer" /> */}
           </Link>
         </div>
       </div>
