@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/trpc/:path*",
+      "destination": "https://osstag-api.vercel.app/trpc/:path*"
+    }
+  ]
+}
