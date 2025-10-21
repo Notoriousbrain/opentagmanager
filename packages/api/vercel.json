@@ -2,15 +2,15 @@
   "version": 2,
   "builds": [
     {
-      "src": "src/index.ts",
+      "src": "dist/index.js",
       "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["../../packages/**"]
-      }
-    }
+      "config": { "includeFiles": ["../../packages/**"] }
+    },
+    { "src": "dist/health.js", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/api/trpc(?:/.*)?", "dest": "src/index.ts" }
+    { "src": "/api/health", "dest": "dist/health.js" },
+    { "src": "/api/trpc(?:/.*)?", "dest": "dist/index.js" }
   ],
   "env": {
     "NODE_ENV": "production"

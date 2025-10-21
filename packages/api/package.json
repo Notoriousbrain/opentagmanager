@@ -8,6 +8,10 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "bun build ./src/index.ts ./src/health.ts --outdir ./dist --target=node --format=esm"
+  },
   "dependencies": {
     "@trpc/server": "catalog:",
     "nanoid": "^5.1.6",
