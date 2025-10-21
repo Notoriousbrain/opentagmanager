@@ -3,7 +3,6 @@ import { httpBatchLink, loggerLink } from "@trpc/client";
 import { QueryClient } from "@tanstack/react-query";
 import { trpc } from "./react";
 import superjson from "superjson";
-import { getApiBase } from "../get-api-base";
 
 export function makeQueryClient() {
   return new QueryClient({
@@ -22,7 +21,7 @@ export function makeTrpcClient() {
           (op.direction === "down" && op.result instanceof Error),
       }),
       httpBatchLink({
-        url: `${getApiBase()}/trpc`,
+        url: "/api/trpc",
         transformer: superjson,
         fetch(url, opts) {
           return fetch(url, {
