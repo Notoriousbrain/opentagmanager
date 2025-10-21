@@ -1,10 +1,30 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { inferAsyncReturnType } from "@trpc/server";
+import type { IncomingHttpHeaders } from "http";
 import { auth } from "@otm/auth";
 import superjson from "superjson";
 
-export async function createTRPCContext(opts: { headers: Headers }) {
-  const session = await auth.api.getSession({ headers: opts.headers });
+function toWebHeaders(h: Headers | IncomingHttpHeaders): Headers {
+  // if already a WHATWG Headers
+  if (typeof (h as any)?.get === "function") return h as Headers;
+
+  const out = new Headers();
+  const obj = h as IncomingHttpHeaders;
+  for (const [k, v] of Object.entries(obj)) {
+    if (Array.isArray(v)) {
+      for (const vv of v) out.append(k, vv);
+    } else if (typeof v === "string") {
+      out.set(k, v);
+    }
+  }
+  return out;
+}
+
+export async function createTRPCContext(opts: {
+  headers: Headers | IncomingHttpHeaders;
+}) {
+  const headers = toWebHeaders(opts.headers);
+  const session = await auth.api.getSession({ headers });
   return { session };
 }
 

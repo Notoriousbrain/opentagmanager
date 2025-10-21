@@ -1,3 +1,4 @@
+// packages/api/src/index.ts
 import type { IncomingMessage, ServerResponse } from "http";
 import { nodeHTTPRequestHandler } from "@trpc/server/adapters/node-http";
 import { appRouter } from "./root";
@@ -17,38 +18,29 @@ function setCors(res: ServerResponse) {
   res.setHeader("Vary", "Origin");
 }
 
-function toWhatwgHeaders(req: IncomingMessage): Headers {
-  const h = new Headers();
-  for (const [k, v] of Object.entries(req.headers)) {
-    if (Array.isArray(v)) h.set(k, v.join(","));
-    else if (typeof v === "string") h.set(k, v);
-  }
-  return h;
-}
-
 export default async function handler(
   req: IncomingMessage,
   res: ServerResponse
 ) {
+  setCors(res);
   if (req.method === "OPTIONS") {
-    setCors(res);
     res.statusCode = 204;
     res.end();
     return;
   }
 
-  await nodeHTTPRequestHandler({
+  // derive the tRPC path from the request URL
+  const url = new URL(req.url ?? "/", "http://localhost");
+  const path = url.pathname.replace(/^\/api\/trpc\/?/, "");
+
+  return nodeHTTPRequestHandler({
     req,
     res,
-    path: "/api/trpc",
+    path, // e.g. "account.me" or "interest.add"
     router: appRouter,
-    createContext: () => createTRPCContext({ headers: toWhatwgHeaders(req) }),
+    createContext: () => createTRPCContext({ headers: req.headers }),
     onError({ error, path }) {
-      console.error("tRPC error at", path, error);
+      console.error("[tRPC error]", { path, error: error.message });
     },
   });
-
-  setCors(res);
 }
-export * from "./root"
-export * from "./trpc"
