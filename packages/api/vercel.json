@@ -10,7 +10,7 @@
     }
   ],
   "routes": [
-    { "src": "/trpc(?:/.*)?", "dest": "src/index.ts" }
+    { "src": "/api/trpc(?:/.*)?", "dest": "src/index.ts" }
   ],
   "env": {
     "NODE_ENV": "production"
