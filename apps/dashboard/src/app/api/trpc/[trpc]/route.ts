@@ -1,4 +1,5 @@
-import { appRouter, createTRPCContext } from "@otm/api";
+import { appRouter } from "@otm/api/root";
+import { createTRPCContext } from "@otm/api/trpc";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
 export const runtime = "nodejs";

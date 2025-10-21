@@ -1,5 +1,5 @@
 "use client";
 import { createTRPCReact } from "@trpc/react-query";
-import type { AppRouter } from "@otm/api";
+import type { AppRouter } from "@otm/api/root";
 
 export const trpc = createTRPCReact<AppRouter>();
