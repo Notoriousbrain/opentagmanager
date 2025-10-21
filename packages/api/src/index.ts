@@ -1,7 +1,3 @@
-import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { appRouter } from "./root";
-import { createTRPCContext } from "./trpc";
-
 const ALLOW_ORIGINS = (process.env.OSSTAG_DASHBOARD_ORIGINS ?? "")
   .split(",")
   .map((s) => s.trim())
@@ -23,12 +19,12 @@ function setCors(req: any, res: any) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
   }
-  res.setHeader("Access-Control-Allow-Credentials", "true");
   const reqHeaders =
     (req.headers["access-control-request-headers"] as string | undefined) ??
     "content-type, authorization";
   res.setHeader("Access-Control-Allow-Headers", reqHeaders);
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
 }
 
 export default async function handler(req: any, res: any) {
@@ -38,7 +34,11 @@ export default async function handler(req: any, res: any) {
       return res.status(204).end();
     }
 
-    const host = req.headers.host || "osstag-api.vercel.app"; // fallback
+    const { fetchRequestHandler } = await import("@trpc/server/adapters/fetch");
+    const { appRouter } = await import("./root");
+    const { createTRPCContext } = await import("./trpc");
+
+    const host = req.headers.host || "osstag-api.vercel.app";
     const url = new URL(req.url ?? "/", `https://${host}`);
     const request = new Request(url, {
       method: req.method,
