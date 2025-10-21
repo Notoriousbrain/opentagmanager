@@ -1,11 +1,18 @@
 {
   "version": 2,
-  "functions": {
-    "api/**/*.{js,ts}": {
-      "runtime": "nodejs20.x",
-      "memory": 512,
-      "maxDuration": 10
+  "builds": [
+    {
+      "src": "src/index.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["../../packages/**"]
+      }
     }
-  },
-  "routes": [{ "src": "/api/(.*)", "dest": "/api/$1" }]
+  ],
+  "routes": [
+    { "src": "/trpc(?:/.*)?", "dest": "src/index.ts" }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
