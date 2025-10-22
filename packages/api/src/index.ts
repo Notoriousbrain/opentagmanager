@@ -70,3 +70,6 @@ export default async function handler(
     setCors(req, res);
   }
 }
+
+export * from "./root"
+export * from "./trpc"

@@ -1,8 +1,8 @@
 "use client";
 import { httpBatchLink, loggerLink } from "@trpc/client";
 import { QueryClient } from "@tanstack/react-query";
-import { trpc } from "./react";
 import superjson from "superjson";
+import { trpc } from "./react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
