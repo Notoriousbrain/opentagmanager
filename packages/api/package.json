@@ -10,7 +10,7 @@
   },
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "bun build ./src/index.ts ./src/health.ts --outdir ./dist --target=node --format=esm"
+    "build": "bun build ./src/index.ts --outdir ./dist --target=node --format=esm"
   },
   "dependencies": {
     "@trpc/server": "catalog:",

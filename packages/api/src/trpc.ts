@@ -5,7 +5,6 @@ import { auth } from "@otm/auth";
 import superjson from "superjson";
 
 function toWebHeaders(h: Headers | IncomingHttpHeaders): Headers {
-  // if already a WHATWG Headers
   if (typeof (h as any)?.get === "function") return h as Headers;
 
   const out = new Headers();
