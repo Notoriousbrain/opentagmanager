@@ -1,18 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "dist/index.js",
-      "use": "@vercel/node",
-      "config": { "includeFiles": ["../../packages/**"] }
-    },
-    { "src": "dist/health.js", "use": "@vercel/node" }
-  ],
-  "routes": [
-    { "src": "/api/health", "dest": "dist/health.js" },
-    { "src": "/api/trpc(?:/.*)?", "dest": "dist/index.js" }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "buildCommand": "bun run -C packages/api build",
+  "functions": {
+    "dist/**/*.js": { "runtime": "nodejs20.x" }
+  },
+  "builds": [{ "src": "dist/index.js", "use": "@vercel/node" }],
+  "routes": [{ "src": "/api/trpc(?:/.*)?", "dest": "dist/index.js" }]
 }
