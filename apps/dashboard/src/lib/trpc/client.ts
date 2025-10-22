@@ -28,7 +28,7 @@ export function makeTrpcClient() {
         fetch(url, opts) {
           return fetch(url, {
             ...opts,
-            credentials: "omit",
+            credentials: "include",
           });
         },
       }),
