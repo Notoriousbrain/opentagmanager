@@ -11,7 +11,6 @@ export default async function handler(
 ) {
   applyCors(req, res);
   ensureCorsOnWriteHead(req, res);
-  res.setHeader("X-Handler", "api:index.ts v2");
 
   if (handlePreflight(req, res)) return;
 
