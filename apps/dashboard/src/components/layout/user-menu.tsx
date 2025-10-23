@@ -10,6 +10,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@otm/ui";
+import { appSignOut } from "@/lib/signout";
 
 type UserAccount = {
   email?: string | null;
@@ -21,10 +22,7 @@ export function UserMenu(props: { account: UserAccount }) {
   const label = props.account.email ?? props.account.name ?? "Account";
 
   async function signOut() {
-    try {
-      await fetch("/api/auth/sign-out", { method: "POST" });
-    } catch {}
-    router.push("/auth/signin");
+    await appSignOut("/auth/signin");
   }
 
   return (
