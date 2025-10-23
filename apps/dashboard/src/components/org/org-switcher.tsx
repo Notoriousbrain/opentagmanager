@@ -1,38 +1,104 @@
 "use client";
 
-import { useState } from "react";
-import { Label, Input, Button, Card, CardContent } from "@otm/ui";
+import { useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { trpc } from "@/lib/trpc/react";
+import { useOrgStore } from "@/store/org";
+import {
+  Button,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  RoleBadge,
+  ListSkeleton,
+} from "@otm/ui";
+
+type OrgRole = "owner" | "admin" | "editor" | "viewer";
+
+type OrgItem = {
+  id: string;
+  name: string;
+  role: OrgRole;
+};
 
 export function OrgSwitcher() {
-  const [orgId, setOrgId] = useState<string>("");
+  const router = useRouter();
+  const { activeOrgId, setActiveOrg } = useOrgStore();
 
-  // store selection (localStorage for now). Your TRPC calls will read this.
-  const apply = () => {
-    if (!orgId.trim()) return;
-    localStorage.setItem("otm.orgId", orgId.trim());
-    // Fire a custom event so panels can re-read
-    window.dispatchEvent(new Event("otm:org-changed"));
-  };
+  const orgs = trpc.orgs.mine.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
+
+  const active = useMemo(
+    () => orgs.data?.find((o) => o.id === activeOrgId) ?? null,
+    [orgs.data, activeOrgId]
+  );
+
+  const label = active?.name ?? "Select organization";
+
+  if (orgs.isLoading) {
+    return <ListSkeleton rows={1} />;
+  }
+
+  if (!orgs.data || orgs.data.length === 0) {
+    return (
+      <Button variant="inverse" onClick={() => router.push("/org/new")}>
+        New org
+      </Button>
+    );
+  }
+
+  if (orgs.data.length === 1) {
+    return (
+      <Button variant="outline" onClick={() => router.push("/org")}>
+        {label}
+      </Button>
+    );
+  }
 
   return (
-    <Card className="w-full max-w-xs border-black/10 text-white">
-      <CardContent className="flex items-end gap-2 p-3">
-        <div className="grid w-full gap-1.5">
-          <Label htmlFor="orgId" className="text-xs">
-            Org ID
-          </Label>
-          <Input
-            id="orgId"
-            placeholder="org_123..."
-            value={orgId}
-            onChange={(e) => setOrgId(e.target.value)}
-            className="h-9 rounded-lg"
-          />
-        </div>
-        <Button variant="outline" onClick={apply} className="h-9 rounded-lg">
-          Use
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          aria-label="Switch organization"
+          className="max-w-[220px] truncate"
+        >
+          {label}
         </Button>
-      </CardContent>
-    </Card>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel className="max-w-[240px] truncate">
+          Organizations
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {orgs.data.map((o: OrgItem) => {
+          const isActive = o.id === activeOrgId;
+          return (
+            <DropdownMenuItem
+              key={o.id}
+              onClick={() => {
+                if (!isActive) {
+                  setActiveOrg(o.id);
+                }
+                router.push("/dashboard");
+              }}
+            >
+              <span className="mr-2 inline-flex min-w-0 flex-1 items-center truncate">
+                <span className="truncate">{o.name}</span>
+              </span>
+              <RoleBadge role={o.role} />
+            </DropdownMenuItem>
+          );
+        })}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => router.push("/org/new")}>
+          + Create organization
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

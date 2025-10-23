@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/react";
 import { useOrgStore } from "@/store/org";
 import { Button, Separator, Skeleton } from "@otm/ui";
+import { UserMenu } from "./user-menu";
+import { OrgSwitcher } from "../org/org-switcher";
 
 export function DashboardHeader() {
   const router = useRouter();
@@ -41,9 +43,11 @@ export function DashboardHeader() {
       </div>
 
       <div className="flex items-center gap-3">
-        {manyOrgs && (
+        {manyOrgs ? (
+          <OrgSwitcher />
+        ) : (
           <Button variant="outline" onClick={() => router.push("/org")}>
-            Switch org
+            {activeOrg ? "Organization" : "Select org"}
           </Button>
         )}
 
@@ -52,12 +56,7 @@ export function DashboardHeader() {
         {me.isLoading ? (
           <Skeleton className="h-8 w-28 rounded-md" />
         ) : me.data ? (
-          <div
-            className="truncate rounded-md border border-white/15 px-2 py-1 text-xs text-zinc-200"
-            title={me.data.email ?? ""}
-          >
-            {me.data.email ?? me.data.name ?? "Account"}
-          </div>
+          <UserMenu account={{ email: me.data.email, name: me.data.name }} />
         ) : (
           <Button variant="inverse" onClick={() => router.push("/auth/signin")}>
             Sign in
