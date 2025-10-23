@@ -1,41 +1,73 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useOrgStore, type Org } from "@/store/org";
 import { trpc } from "@/lib/trpc/react";
-import { Card, CardContent, Skeleton } from "@otm/ui";
+import { useOrgStore } from "@/store/org";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  Skeleton,
+} from "@otm/ui";
 
-export default function PostSignin() {
+function sameOrgList(
+  a: { id: string }[] | undefined,
+  b: { id: string }[]
+): boolean {
+  if (!a) return false;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i].id !== b[i].id) return false;
+  }
+  return true;
+}
+
+export default function PostSignInPage() {
   const router = useRouter();
-  const setOrgs = useOrgStore((s) => s.setOrgs);
-  const setActiveOrg = useOrgStore((s) => s.setActiveOrg);
+  const { setActiveOrg, setOrgs } = useOrgStore();
+  const routedRef = useRef(false);
 
-  const q = trpc.orgs.mine.useQuery(undefined, { refetchOnWindowFocus: false });
+  const mine = trpc.orgs.mine.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    staleTime: 30_000,
+    retry: 0,
+  });
 
   useEffect(() => {
-    if (!q.isSuccess) return;
-    const orgs: Org[] = q.data ?? [];
-    setOrgs(orgs);
+    if (mine.status !== "success" || routedRef.current) return;
 
+    const orgs = mine.data ?? [];
+    setOrgs((prev) => (sameOrgList(prev, orgs) ? prev : orgs));
+
+    if (orgs.length === 0) {
+      routedRef.current = true;
+      router.replace("/org/new");
+      return;
+    }
     if (orgs.length === 1) {
+      routedRef.current = true;
       setActiveOrg(orgs[0].id);
       router.replace("/dashboard");
-    } else {
-      setActiveOrg(null);
-      router.replace("/org");
+      return;
     }
-  }, [q.isSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
+    routedRef.current = true;
+    router.replace("/org");
+  }, [mine.status, mine.data, router, setActiveOrg, setOrgs]);
 
   return (
-    <main className="min-h-dvh grid place-items-center px-4">
-      <Card className="w-full max-w-sm border-white/10">
-        <CardContent className="space-y-3 p-6">
-          <Skeleton className="h-6 w-1/3 rounded" />
-          <Skeleton className="h-10 w-full rounded" />
-          <Skeleton className="h-10 w-2/3 rounded" />
-        </CardContent>
-      </Card>
-    </main>
+    <Card className="border-white/10 text-zinc-100">
+      <CardHeader className="px-6 pt-6">
+        <CardTitle className="text-lg">Signing you in…</CardTitle>
+        <CardDescription className="text-zinc-400">
+          Preparing your dashboard.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="px-6 pb-6">
+        <Skeleton className="h-10 w-full rounded-lg" />
+      </CardContent>
+    </Card>
   );
 }

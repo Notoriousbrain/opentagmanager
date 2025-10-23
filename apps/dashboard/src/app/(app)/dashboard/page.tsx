@@ -1,11 +1,11 @@
+"use client";
+
 import { ProjectsPanel } from "@/components/projects/projects-panel";
+import { useActiveOrg } from "@/hooks/use-active-org";
+import { ListSkeleton } from "@otm/ui";
 
 export default function DashboardPage() {
-  return (
-    <main className="min-h-dvh">
-      <div className="mx-auto w-full max-w-5xl px-4 py-8">
-        <ProjectsPanel />
-      </div>
-    </main>
-  );
+  const { status } = useActiveOrg();
+  if (status === "loading") return <ListSkeleton rows={3} />;
+  return <ProjectsPanel />;
 }
