@@ -7,6 +7,7 @@ import { useOrgStore } from "@/store/org";
 import { Button, Separator, Skeleton } from "@otm/ui";
 import { UserMenu } from "./user-menu";
 import { OrgSwitcher } from "../org/org-switcher";
+import Image from "next/image";
 
 export function DashboardHeader() {
   const router = useRouter();
@@ -29,7 +30,14 @@ export function DashboardHeader() {
 
   return (
     <header className="flex items-center justify-between border-b border-white/10 px-6 py-3">
-      <div className="min-w-0">
+      <div className="min-w-0 flex items-center gap-4 ">
+        <Image
+          src="/logo.svg"
+          priority
+          width={100}
+          height={100}
+          alt="Oss Tag"
+        />
         {orgs.isLoading ? (
           <Skeleton className="h-5 w-40" />
         ) : activeOrg ? (

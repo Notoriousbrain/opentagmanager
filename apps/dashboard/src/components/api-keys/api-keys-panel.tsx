@@ -41,6 +41,7 @@ export function ApiKeysPanel({ projectId }: { projectId: string }) {
   const newKeyBtnRef = useRef<HTMLButtonElement | null>(null);
 
   const { activeOrgId, orgs } = useOrgStore();
+  const [revokingId, setRevokingId] = useState<string | null>(null);
   const role: OrgRole | undefined = useMemo(
     () => orgs.find((o) => o.id === activeOrgId)?.role as OrgRole | undefined,
     [orgs, activeOrgId]
@@ -54,7 +55,11 @@ export function ApiKeysPanel({ projectId }: { projectId: string }) {
   );
 
   const utils = trpc.useUtils();
+
   const revoke = trpc.projects.apiKeysRevoke.useMutation({
+    onMutate: ({ keyId }) => {
+      setRevokingId(keyId);
+    },
     onSuccess: async () => {
       await utils.projects.apiKeysList.invalidate({ projectId });
       push("success", "API key revoked.");
@@ -63,6 +68,9 @@ export function ApiKeysPanel({ projectId }: { projectId: string }) {
     onError: (err) => {
       push("error", err.message || "Failed to revoke API key.");
       setLiveMsg("Failed to revoke API key.");
+    },
+    onSettled: () => {
+      setRevokingId(null);
     },
   });
 
@@ -165,6 +173,7 @@ export function ApiKeysPanel({ projectId }: { projectId: string }) {
             <ul className="rounded-xl border border-white/10 divide-y divide-white/10">
               {keys.map((k) => {
                 const revoked = !!k.revokedAt;
+                const isThisRevoking = revokingId === k.id && revoke.isPending;
                 return (
                   <li
                     key={k.id}
@@ -179,15 +188,17 @@ export function ApiKeysPanel({ projectId }: { projectId: string }) {
                       revokedAt={k.revokedAt}
                     />
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                       <StatusBadge status={revoked ? "revoked" : "active"} />
                       {canRevoke && !revoked && (
                         <Button
-                          variant="destructiveOutline"
+                          variant="outline"
+                          className="rounded-lg border-white/20 text-zinc-100 hover:bg-white/5"
                           onClick={() => revoke.mutate({ keyId: k.id })}
-                          disabled={revoke.isPending}
+                          disabled={isThisRevoking}
+                          aria-disabled={isThisRevoking}
                         >
-                          {revoke.isPending ? "Revoking..." : "Revoke"}
+                          {isThisRevoking ? "Revoking…" : "Revoke"}
                         </Button>
                       )}
                     </div>

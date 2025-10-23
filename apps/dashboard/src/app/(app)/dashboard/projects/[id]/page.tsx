@@ -105,8 +105,8 @@ export default function ProjectPage() {
 
           <Separator className="my-6 bg-white/10" />
           <p className="text-xs text-zinc-500">
-            Tip: Switch organizations from the header if you&apos;re looking for a
-            project elsewhere.
+            Tip: Switch organizations from the header if you&apos;re looking for
+            a project elsewhere.
           </p>
         </CardContent>
       </Card>
