@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/react";
-import { useOrgStore } from "@/store/org";
+import { useOrgStore, type Role } from "@/store/org";
 import {
   Button,
   Separator,
@@ -12,13 +12,12 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  Skeleton,
+  ListSkeleton,
   formatDateWithRelative,
 } from "@otm/ui";
 import { ApiKeysPanel } from "@/components/api-keys/api-keys-panel";
 
-type OrgRole = "owner" | "admin" | "editor" | "viewer";
-function canCreateProjects(role: OrgRole | undefined): boolean {
+function canCreateProjects(role: Role | undefined): boolean {
   return role === "owner" || role === "admin" || role === "editor";
 }
 
@@ -35,10 +34,12 @@ export default function ProjectPage() {
   const projectId = params.id;
 
   const { activeOrgId, orgs } = useOrgStore();
-  const role: OrgRole | undefined = useMemo(
-    () => orgs.find((o) => o.id === activeOrgId)?.role as OrgRole | undefined,
+
+  const role: Role | undefined = useMemo(
+    () => orgs.find((o) => o.id === activeOrgId)?.role,
     [orgs, activeOrgId]
   );
+
   const canCreate = canCreateProjects(role);
 
   const projects = trpc.projects.list.useQuery(
@@ -51,27 +52,26 @@ export default function ProjectPage() {
     [projects.data, projectId]
   );
 
-  if (projects.isLoading) {
+  if (!activeOrgId) {
     return (
       <Card className="border-white/10 text-zinc-100">
-        <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
-          <div className="w-full max-w-xl space-y-2">
-            <Skeleton className="h-6 w-56" />
-            <Skeleton className="h-4 w-80" />
-          </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-9 w-24 rounded-md" />
-            <Skeleton className="h-9 w-28 rounded-md" />
-          </div>
+        <CardHeader className="px-6 pt-6">
+          <CardTitle className="text-lg">Select an organization</CardTitle>
+          <CardDescription className="text-zinc-400">
+            Choose an organization first to view project details.
+          </CardDescription>
         </CardHeader>
         <CardContent className="px-6 pb-6">
-          <Separator className="bg-white/10" />
-          <div className="mt-6">
-            <Skeleton className="h-10 w-full rounded-lg" />
-          </div>
+          <Button variant="outline" onClick={() => router.push("/org")}>
+            Go to Organizations
+          </Button>
         </CardContent>
       </Card>
     );
+  }
+
+  if (projects.isLoading) {
+    return <ListSkeleton rows={3} />;
   }
 
   if (projects.isSuccess && !project) {
