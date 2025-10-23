@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/react";
-import { useActiveOrg } from "@/hooks/use-active-org";
+import { useOrgStore } from "@/store/org";
 import {
   Card,
   CardHeader,
@@ -10,129 +11,149 @@ import {
   CardDescription,
   CardContent,
   Button,
-  Skeleton,
   Separator,
+  ListSkeleton,
+  formatDateWithRelative,
 } from "@otm/ui";
-import { CreateProjectCard } from "./create-project-dialog";
+
+type OrgRole = "owner" | "admin" | "editor" | "viewer";
+
+function canCreateProjects(role: OrgRole | undefined): boolean {
+  return role === "owner" || role === "admin" || role === "editor";
+}
 
 type Project = {
   id: string;
   name: string;
   slug: string;
-  status: "active" | "disabled" | "archived";
+  createdAt?: string | Date | null;
 };
 
 export function ProjectsPanel() {
-  const { hydrated, activeOrgId, activeOrg, canCreateProject } =
-    useActiveOrg("/org");
-  const [creating, setCreating] = useState(false);
+  const router = useRouter();
+  const { activeOrgId, orgs } = useOrgStore();
 
-  const q = trpc.projects.list.useQuery(
-    { orgId: activeOrgId ?? "" },
-    { enabled: !!activeOrgId, refetchOnWindowFocus: false }
+  const role: OrgRole | undefined = useMemo(
+    () => orgs.find((o) => o.id === activeOrgId)?.role as OrgRole | undefined,
+    [orgs, activeOrgId]
   );
 
-  const projects: Project[] = q.data ?? [];
+  const canCreate = canCreateProjects(role);
+
+  const projects = trpc.projects.list.useQuery(
+    { orgId: activeOrgId ?? "" },
+    {
+      enabled: !!activeOrgId,
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  const goProject = (id: string) => {
+    router.push(`/dashboard/projects/${id}`);
+  };
+
+  const goNewProject = () => {
+    router.push("/dashboard/new-project"); // adjust to your actual route/dialog
+  };
 
   return (
     <Card className="border-white/10 text-zinc-100">
       <CardHeader className="flex flex-row items-center justify-between gap-4 px-6 pt-6">
         <div className="space-y-1">
-          <CardTitle className="text-xl">Projects</CardTitle>
+          <CardTitle className="text-lg">Projects</CardTitle>
           <CardDescription className="text-zinc-400">
-            {activeOrg
-              ? `Organization: ${activeOrg.name} (${activeOrg.role})`
-              : "Select an organization to continue."}
+            Manage and switch projects within your current organization.
           </CardDescription>
         </div>
 
-        {canCreateProject && (
+        <div className="flex flex-col items-end">
           <Button
-            onClick={() => setCreating((v) => !v)}
-            className="rounded-lg bg-white text-black hover:bg-white/90"
+            variant="inverse"
+            onClick={goNewProject}
+            disabled={!canCreate}
+            aria-disabled={!canCreate}
+            title={
+              !canCreate ? "Requires Editor or higher" : "Create a new project"
+            }
           >
-            {creating ? "Close" : "New project"}
+            New project
           </Button>
-        )}
+          {!canCreate && (
+            <span className="mt-1 text-[11px] text-zinc-500">
+              Requires <strong>Editor</strong> or higher
+            </span>
+          )}
+        </div>
       </CardHeader>
 
-      <CardContent className="px-6 pb-6 mt-6 space-y-6">
-        {/* Inline create card (re-uses component; no redundant logic) */}
-        {creating && <CreateProjectCard onCreated={() => setCreating(false)} />}
+      <CardContent className="mt-6 space-y-6 px-6 pb-6">
+        {/* Loading skeleton */}
+        {projects.isLoading && <ListSkeleton rows={4} />}
 
-        {!hydrated && (
-          <div className="space-y-2">
-            <Skeleton className="h-12 w-full rounded-lg" />
-            <Skeleton className="h-12 w-2/3 rounded-lg" />
+        {/* Error state */}
+        {projects.isError && (
+          <div className="rounded-xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-200">
+            Failed to load projects.
           </div>
         )}
 
-        {hydrated && activeOrgId && q.isLoading && (
-          <div className="space-y-2">
-            <Skeleton className="h-12 w-full rounded-lg" />
-            <Skeleton className="h-12 w-full rounded-lg" />
-            <Skeleton className="h-12 w-2/3 rounded-lg" />
-          </div>
-        )}
-
-        {hydrated && activeOrgId && q.isError && (
-          <p className="text-sm text-red-400">
-            Failed to load projects. Please try again.
-          </p>
-        )}
-
-        {hydrated &&
-          activeOrgId &&
-          q.isSuccess &&
-          projects.length === 0 &&
-          !creating && (
-            <div className="rounded-xl border border-dashed border-white/15 p-6 text-sm text-zinc-400">
-              No projects yet.{" "}
-              {canCreateProject
-                ? "Create your first project."
-                : "Ask an admin to create one."}
-            </div>
-          )}
-
-        {hydrated && activeOrgId && projects.length > 0 && (
-          <>
-            <ul className="divide-y divide-white/10 rounded-xl border border-white/10">
-              {projects.map((p) => (
-                <li
-                  key={p.id}
-                  className="flex items-center justify-between gap-3 p-4"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-medium">{p.name}</div>
-                    <div className="truncate text-xs text-zinc-400">
-                      {p.slug}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="rounded-full border border-white/15 px-2 py-0.5 text-xs text-zinc-400">
-                      {p.status}
-                    </span>
-                    <Button
-                      variant="outline"
-                      className="rounded-lg border-white/20 text-zinc-100 hover:bg-white/5"
-                      onClick={() =>
-                        (window.location.href = `/dashboard/projects/${p.id}`)
-                      }
-                    >
-                      Open
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            <Separator className="bg-white/10" />
-
-            <p className="text-xs text-zinc-500">
-              RBAC enforced on the server; UI only shows allowed actions.
+        {/* Empty state */}
+        {projects.isSuccess && (projects.data?.length ?? 0) === 0 && (
+          <div className="flex min-h-[72px] items-center justify-between rounded-xl border border-dashed border-white/15 p-6">
+            <p className="text-sm text-zinc-400">
+              No projects yet.
+              {canCreate
+                ? " Create your first project to get started."
+                : " Ask an editor or admin to create one for you."}
             </p>
-          </>
+            <Button
+              variant="inverse"
+              onClick={goNewProject}
+              disabled={!canCreate}
+              aria-disabled={!canCreate}
+            >
+              New project
+            </Button>
+          </div>
         )}
+
+        {/* List */}
+        {projects.isSuccess && (projects.data?.length ?? 0) > 0 && (
+          <ul className="divide-y divide-white/10 rounded-xl border border-white/10">
+            {projects.data!.map((p: Project) => (
+              <li
+                key={p.id}
+                className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium leading-6">
+                    {p.name}{" "}
+                    <span className="text-xs text-zinc-500">({p.slug})</span>
+                  </div>
+                  <div className="truncate text-xs leading-5 text-zinc-500">
+                    created {formatDateWithRelative(p.createdAt)}
+                  </div>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => goProject(p.id)}
+                    aria-label={`Open project ${p.name}`}
+                  >
+                    Open
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <Separator className="bg-white/10" />
+        <p className="text-xs text-zinc-500">
+          Projects group API keys and settings. You can switch organizations
+          from the header.
+        </p>
       </CardContent>
     </Card>
   );
