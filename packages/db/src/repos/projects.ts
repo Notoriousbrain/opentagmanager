@@ -152,3 +152,15 @@ export async function listActiveApiKeys(projectId: string) {
     )
     .orderBy(desc(schema.apiKey.createdAt));
 }
+
+export async function getProjectIdByKeyId(keyId: string): Promise<string> {
+  const rows = await db
+    .select({ projectId: schema.apiKey.projectId })
+    .from(schema.apiKey)
+    .where(eq(schema.apiKey.id, keyId))
+    .limit(1);
+
+  const pid = rows[0]?.projectId;
+  if (!pid) throw new Error("API key not found");
+  return pid;
+}
