@@ -16,6 +16,20 @@ function getLastVisitedProjectId(orgId: string) {
   }
 }
 
+function getVisitedFlag(orgId: string) {
+  try {
+    return sessionStorage.getItem(`otm.smartDash.visited.${orgId}`) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function setVisitedFlag(orgId: string) {
+  try {
+    sessionStorage.setItem(`otm.smartDash.visited.${orgId}`, "1");
+  } catch {}
+}
+
 export function SmartProjectsGate({ activeOrgId }: Props) {
   const router = useRouter();
   const pathname = usePathname();
@@ -33,8 +47,10 @@ export function SmartProjectsGate({ activeOrgId }: Props) {
   const projects = data ?? [];
   const projectCount = projects.length;
 
+  const alreadyVisited = getVisitedFlag(activeOrgId);
+
   let targetProjectId: string | null = null;
-  if (isFetched && !isRefetching && !isLoading) {
+  if (!alreadyVisited && isFetched && !isRefetching && !isLoading) {
     if (projectCount === 1) {
       targetProjectId = projects[0].id;
     } else if (projectCount > 1) {
@@ -46,18 +62,14 @@ export function SmartProjectsGate({ activeOrgId }: Props) {
   }
 
   useEffect(() => {
-    if (targetProjectId) {
-      router.prefetch(`/dashboard/projects/${targetProjectId}`);
-    }
-  }, [router, targetProjectId]);
-
-  useEffect(() => {
     if (!targetProjectId) return;
     const dest = `/dashboard/projects/${targetProjectId}`;
     if (pathname !== dest) {
+      router.prefetch(dest);
+      setVisitedFlag(activeOrgId);
       router.replace(dest);
     }
-  }, [pathname, router, targetProjectId]);
+  }, [pathname, router, activeOrgId, targetProjectId]);
 
   if (isLoading || isRefetching || !!targetProjectId) {
     return <ListSkeleton rows={3} />;
