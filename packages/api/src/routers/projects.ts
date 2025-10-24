@@ -6,6 +6,7 @@ import {
   listActiveApiKeys,
   createApiKey as repoCreateApiKey,
   revokeApiKey as repoRevokeApiKey,
+  getProjectIdByKeyId,
 } from "@otm/db/repos";
 import { CreateProjectInput, CreateApiKeyInput } from "@otm/core";
 import { makeApiKey } from "@otm/core";
@@ -76,6 +77,8 @@ export const projectsRouter = createTRPCRouter({
   apiKeysRevoke: protectedProcedure
     .input(z.object({ keyId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      const projectId = await getProjectIdByKeyId(input.keyId);
+      await assertProjectRole(ctx, projectId, ["owner", "admin", "editor"]);
       await repoRevokeApiKey(input.keyId, ctx.session.user.id);
       return { ok: true };
     }),

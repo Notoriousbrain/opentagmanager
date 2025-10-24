@@ -1,9 +1,10 @@
 import { db, schema } from "@otm/db";
 import { sql } from "drizzle-orm";
+import { INTEREST_COUNTER_KEY } from "@otm/core";
 
 const UPSTASH_URL = process.env.OSSTAG_UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.OSSTAG_UPSTASH_REDIS_REST_TOKEN;
-const COUNTER_KEY = "interest:count";
+const COUNTER_KEY = INTEREST_COUNTER_KEY;
 
 function upstashHeaders() {
   return { Authorization: `Bearer ${UPSTASH_TOKEN!}` };

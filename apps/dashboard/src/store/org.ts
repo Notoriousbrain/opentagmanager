@@ -20,6 +20,10 @@ interface OrgState {
   reset: () => void;
 }
 
+const PERSIST_KEY = "otm.org";
+const LEGACY_KEYS = ["org-store"];
+
+
 export const useOrgStore = create<OrgState>()(
   persist(
     (set) => ({
@@ -30,14 +34,35 @@ export const useOrgStore = create<OrgState>()(
       setActiveOrg: (id) => set({ activeOrgId: id }),
       setOrgs: (list) =>
         set((s) => ({
-          orgs: typeof list === "function" ? list(s.orgs) : list,
+          orgs:
+            typeof list === "function"
+              ? (list as (prev: Org[]) => Org[])(s.orgs)
+              : list,
         })),
-      reset: () => set({ activeOrgId: null, orgs: [] }),
+      reset: () =>
+        set(() => {
+          if (typeof window !== "undefined") {
+            try {
+              window.localStorage.removeItem(PERSIST_KEY);
+              for (const k of LEGACY_KEYS) window.localStorage.removeItem(k);
+            } catch {
+            }
+          }
+          return { activeOrgId: null, orgs: [] };
+        }),
     }),
     {
-      name: "otm.org",
+      name: PERSIST_KEY,
+      partialize: (state) => ({
+        activeOrgId: state.activeOrgId,
+        orgs: state.orgs,
+      }),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated?.();
+      },
+      version: 1,
+      migrate: (persisted) => {
+        return persisted;
       },
     }
   )

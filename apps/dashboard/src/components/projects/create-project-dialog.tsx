@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/react";
-import { useOrgStore } from "@/store/org";
+import { useOrgStore, type Role } from "@/store/org";
 import {
   Card,
   CardHeader,
@@ -11,117 +11,205 @@ import {
   CardDescription,
   CardContent,
   Button,
-  Label,
   Input,
+  Separator,
 } from "@otm/ui";
 
-function slugify(v: string) {
-  return v
+type CreateProjectInput = {
+  name: string;
+  slug: string;
+};
+
+function slugify(input: string): string {
+  return input
     .toLowerCase()
-    .replace(/[^a-z0-9-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .replace(/--+/g, "-");
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 48);
 }
 
-export function CreateProjectCard({
-  onCreated,
-}: {
-  onCreated?: (project: { id: string; name: string; slug: string }) => void;
-}) {
-  const router = useRouter();
-  const activeOrgId = useOrgStore((s) => s.activeOrgId);
+function canCreateProjects(role: Role | undefined): boolean {
+  return role === "owner" || role === "admin" || role === "editor";
+}
 
-  const [name, setName] = useState("");
-  const slug = useMemo(() => slugify(name), [name]);
+export function CreateProjectCard() {
+  const router = useRouter();
+  const { activeOrgId, orgs } = useOrgStore();
+
+  const role: Role | undefined = useMemo(
+    () => orgs.find((o) => o.id === activeOrgId)?.role,
+    [orgs, activeOrgId]
+  );
+  const allowed = canCreateProjects(role);
+
+  const [form, setForm] = useState<CreateProjectInput>({ name: "", slug: "" });
+  const [touched, setTouched] = useState<{ name: boolean; slug: boolean }>({
+    name: false,
+    slug: false,
+  });
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const userTypedSlugRef = useRef(false);
+  const derivedSlug = useMemo(() => slugify(form.name), [form.name]);
+  const effectiveSlug = userTypedSlugRef.current ? form.slug : derivedSlug;
+
+  const utils = trpc.useUtils();
 
   const create = trpc.projects.create.useMutation({
-    onSuccess: (p) => {
-      onCreated?.({
-        id: p.id,
-        name: "",
-        slug: "",
-      });
-      router.replace(`/dashboard/projects/${p.id}`);
+    onSuccess: async (proj) => {
+      await utils.projects.list.invalidate({ orgId: activeOrgId ?? "" });
+      router.replace(`/dashboard/projects/${proj.id}`);
+    },
+    onError: (err) => {
+      const msg = err.message || "Failed to create project.";
+      setServerError(
+        /unique|exists|duplicate|taken|slug/i.test(msg)
+          ? "This project slug already exists in your org."
+          : msg
+      );
     },
   });
 
-  const disabled = !activeOrgId || !name.trim() || !slug || create.isPending;
+  const nameError =
+    touched.name && form.name.trim().length < 2
+      ? "Name must be at least 2 characters."
+      : null;
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (disabled || !activeOrgId) return;
-    create.mutate({ orgId: activeOrgId, name: name.trim(), slug });
-  };
+  const slugErrorBase =
+    touched.slug || touched.name
+      ? effectiveSlug.length === 0
+        ? "Slug is required."
+        : effectiveSlug.length < 2
+          ? "Slug must be at least 2 characters."
+          : null
+      : null;
+
+  const slugError = slugErrorBase ?? serverError;
+
+  const canSubmit =
+    !!activeOrgId &&
+    allowed &&
+    !nameError &&
+    !slugErrorBase &&
+    form.name.trim().length >= 2 &&
+    effectiveSlug.length >= 2 &&
+    !create.isPending;
 
   return (
     <Card className="border-white/10 text-zinc-100">
-      <CardHeader className="px-6 pt-6 space-y-2">
-        <CardTitle className="text-xl">Create project</CardTitle>
+      <CardHeader className="px-6 pt-6">
+        <CardTitle className="text-lg">Create project</CardTitle>
         <CardDescription className="text-zinc-400">
-          Names are editable. Slug is used in URLs and must be unique within the
-          org.
+          Projects group API keys and settings within your organization.
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="px-6 pb-6">
-        <form onSubmit={submit} className="space-y-4">
-          <div className="grid gap-1.5">
-            <Label htmlFor="proj-name" className="text-zinc-300">
-              Name
-            </Label>
-            <Input
-              id="proj-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Backend"
-              className="
-                h-10 w-full rounded-lg border border-white/10
-                bg-transparent px-3 text-sm text-zinc-100
-                placeholder:text-zinc-500
-                focus:border-white/20 focus:ring-0
-              "
-              autoFocus
-            />
+      <CardContent className="space-y-6 px-6 pb-6">
+        {!activeOrgId && (
+          <div className="rounded-md border border-yellow-400/30 bg-yellow-400/10 p-3 text-xs text-yellow-200">
+            Select an organization first.
           </div>
-
-          <div className="grid gap-1.5">
-            <Label htmlFor="proj-slug" className="text-zinc-300">
-              Slug
-            </Label>
-            <Input
-              id="proj-slug"
-              value={slug}
-              readOnly
-              disabled
-              className="
-                h-10 w-full rounded-lg border border-white/10
-                bg-zinc-900/50 px-3 text-sm text-zinc-500
-                cursor-not-allowed opacity-70
-              "
-            />
+        )}
+        {!allowed && (
+          <div className="rounded-md border border-white/15 p-3 text-xs text-zinc-300">
+            You need <strong>Editor</strong> or higher to create a project.
           </div>
+        )}
 
-          {create.isError && (
-            <p className="text-xs text-red-400">
-              {String(create.error?.message ?? "Failed to create project.")}
+        <div className="space-y-2">
+          <label htmlFor="proj-name" className="text-sm text-zinc-200">
+            Name
+          </label>
+          <Input
+            id="proj-name"
+            value={form.name}
+            placeholder="My App"
+            onChange={(e) => {
+              const name = e.target.value;
+              setServerError(null);
+              setForm((f) => ({
+                ...f,
+                name,
+                slug: userTypedSlugRef.current ? f.slug : slugify(name),
+              }));
+            }}
+            onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+            aria-invalid={!!nameError || undefined}
+            aria-describedby={nameError ? "proj-name-error" : undefined}
+          />
+          {nameError && (
+            <p id="proj-name-error" className="text-xs text-red-300">
+              {nameError}
             </p>
           )}
+        </div>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="rounded-lg border-white/20 text-zinc-100 hover:bg-white/5"
-              onClick={() => router.back()}
-              disabled={create.isPending}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" className="rounded-lg bg-white text-black hover:bg-white/95 cursor-pointer" disabled={disabled}>
-              {create.isPending ? "Creating..." : "Create"}
-            </Button>
+        <div className="space-y-2">
+          <label htmlFor="proj-slug" className="text-sm text-zinc-200">
+            Slug
+          </label>
+          <Input
+            id="proj-slug"
+            value={userTypedSlugRef.current ? form.slug : derivedSlug}
+            onChange={(e) => {
+              const raw = e.target.value;
+              userTypedSlugRef.current = true;
+              setServerError(null);
+              setForm((f) => ({ ...f, slug: slugify(raw) }));
+            }}
+            onBlur={() => setTouched((t) => ({ ...t, slug: true }))}
+            aria-invalid={!!slugError || undefined}
+            aria-describedby={slugError ? "proj-slug-error" : "proj-slug-hint"}
+          />
+          <div id="proj-slug-hint" className="text-xs text-zinc-500/80">
+            Will be accessible as{" "}
+            <span className="text-zinc-300">{`/${effectiveSlug}`}</span>
           </div>
-        </form>
+          {slugError && (
+            <p id="proj-slug-error" className="text-xs text-red-300">
+              {slugError}
+            </p>
+          )}
+        </div>
+
+        <Separator className="bg-white/10" />
+
+        <div className="flex items-center gap-3">
+          <Button
+            variant="inverse"
+            onClick={() => {
+              setServerError(null);
+              create.mutate({
+                orgId: activeOrgId ?? "",
+                name: form.name.trim(),
+                slug: effectiveSlug,
+              });
+            }}
+            disabled={!canSubmit}
+          >
+            {create.isPending ? "Creating…" : "Create project"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              userTypedSlugRef.current = false;
+              setServerError(null);
+              setForm({ name: "", slug: "" });
+              setTouched({ name: false, slug: false });
+            }}
+          >
+            Reset
+          </Button>
+          <Button variant="outline" onClick={() => history.back()}>
+            Cancel
+          </Button>
+        </div>
+
+        <p className="text-xs text-zinc-500">
+          Slugs are unique per organization. You can change them later if
+          needed.
+        </p>
       </CardContent>
     </Card>
   );

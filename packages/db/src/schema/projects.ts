@@ -1,4 +1,3 @@
-// packages/db/src/schema/projects.ts
 import {
   pgEnum,
   pgTable,
@@ -7,6 +6,7 @@ import {
   jsonb,
   index,
   unique,
+  uniqueIndex,
   integer,
   check,
 } from "drizzle-orm/pg-core";
@@ -57,7 +57,9 @@ export const organization = pgTable(
       .defaultNow(),
   },
   (t) => ({
-    slugUnique: unique("organization_slug_unique").on(t.slug),
+    slugActiveUnique: uniqueIndex("organization_slug_active_unique")
+      .on(t.slug)
+      .where(sql`${t.archivedAt} IS NULL`),
     ownerIdx: index("organization_owner_id_idx").on(t.ownerId),
     slugFormatCheck: check(
       "organization_slug_format_chk",
@@ -118,7 +120,9 @@ export const project = pgTable(
       .defaultNow(),
   },
   (t) => ({
-    orgSlugUnique: unique("project_org_slug_unique").on(t.orgId, t.slug),
+    orgSlugActiveUnique: uniqueIndex("project_org_slug_active_unique")
+      .on(t.orgId, t.slug)
+      .where(sql`${t.archivedAt} IS NULL`),
     orgIdx: index("project_org_id_idx").on(t.orgId),
     slugFormatCheck: check(
       "project_slug_format_chk",
@@ -135,12 +139,12 @@ export const apiKey = pgTable(
       .notNull()
       .references(() => project.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
-    type: apiKeyType("type").notNull(), 
-    prefix: text("prefix").notNull(), 
+    type: apiKeyType("type").notNull(),
+    prefix: text("prefix").notNull(),
     keyHash: text("key_hash").notNull(),
 
     lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
-    revokedAt: timestamp("revoked_at", { withTimezone: true }), 
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
 
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -190,11 +194,15 @@ export const auditEvent = pgTable(
       .defaultNow(),
   },
   (t) => ({
-    createdIdx: index("audit_event_created_at_idx").on(t.createdAt),
+    createdBrinIdx: index("audit_event_created_at_brin_idx").using(
+      "brin",
+      t.createdAt
+    ),
     orgIdx: index("audit_event_org_id_idx").on(t.orgId),
     projectIdx: index("audit_event_project_id_idx").on(t.projectId),
     actorIdx: index("audit_event_actor_user_id_idx").on(t.actorUserId),
     actorKeyIdx: index("audit_event_actor_api_key_id_idx").on(t.actorApiKeyId),
+    dataGinIdx: index("audit_event_data_gin_idx").using("gin", t.data),
   })
 );
 
