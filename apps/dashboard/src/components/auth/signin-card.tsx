@@ -16,7 +16,12 @@ const SignInCard = () => {
     null
   );
 
-  const callbackURL = "/post-signin";
+  const params = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : ""
+  );
+  const next = params.get("next");
+
+  const callbackURL = next?.startsWith("/") ? next : "/dashboard";
 
   async function signInWith(provider: "github" | "google") {
     try {
