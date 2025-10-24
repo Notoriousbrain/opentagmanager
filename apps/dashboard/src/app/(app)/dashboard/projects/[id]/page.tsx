@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/react";
 import { useOrgStore, type Role } from "@/store/org";
@@ -51,6 +51,14 @@ export default function ProjectPage() {
     () => projects.data?.find((p) => p.id === projectId),
     [projects.data, projectId]
   );
+
+  useEffect(() => {
+    if (activeOrgId && projectId) {
+      try {
+        localStorage.setItem(`otm.lastProject.${activeOrgId}`, projectId);
+      } catch {}
+    }
+  }, [activeOrgId, projectId]);
 
   if (!activeOrgId) {
     return (
