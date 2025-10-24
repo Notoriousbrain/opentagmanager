@@ -33,7 +33,12 @@ export default function PostSignInPage() {
   const mine = trpc.orgs.mine.useQuery(undefined, {
     refetchOnWindowFocus: false,
     staleTime: 30_000,
-    retry: 0,
+    retry(failureCount, err) {
+      const is401 =
+        typeof err?.message === "string" &&
+        /unauthorized|401/i.test(err.message);
+      return is401 ? failureCount < 2 : failureCount < 3;
+    },
   });
 
   useEffect(() => {

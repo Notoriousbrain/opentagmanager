@@ -1,8 +1,15 @@
 import { useOrgStore } from "@/store/org";
+import { authClient } from "./auth-client";
+import { redirect } from "next/navigation";
 
-export async function appSignOut(redirectTo = "/auth/signin"): Promise<void> {
+export async function appSignOut(redirectTo = "/signin"): Promise<void> {
   try {
-    await fetch("/api/auth/sign-out", {
+    await authClient.signOut();
+  } catch (err) {
+    console.warn("Sign-out error:", err);
+  }
+  try {
+    await fetch("/api/auth/cleanup", {
       method: "POST",
       credentials: "include",
     });
@@ -10,9 +17,8 @@ export async function appSignOut(redirectTo = "/auth/signin"): Promise<void> {
 
   try {
     useOrgStore.getState().reset();
+    localStorage.removeItem("otm.org");
   } catch {}
 
-  if (typeof window !== "undefined") {
-    window.location.assign(redirectTo);
-  }
+  redirect(redirectTo);
 }

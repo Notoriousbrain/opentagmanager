@@ -23,6 +23,7 @@ interface OrgState {
 const PERSIST_KEY = "otm.org";
 const LEGACY_KEYS = ["org-store"];
 
+
 export const useOrgStore = create<OrgState>()(
   persist(
     (set) => ({

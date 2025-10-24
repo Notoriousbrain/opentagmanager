@@ -25,7 +25,7 @@ export const auth = betterAuth({
   advanced: {
     cookiePrefix: "otm",
     useSecureCookies: process.env.NODE_ENV === "production",
-    defaultCookieAttributes: { sameSite: "lax" },
+    defaultCookieAttributes: { sameSite: "lax", path: "/" },
   },
   user: {
     additionalFields: {
