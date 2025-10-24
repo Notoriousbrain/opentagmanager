@@ -1,17 +1,23 @@
 export const runtime = "nodejs";
 
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@otm/auth";
 import { assertProjectRole } from "@otm/api";
 import { getClientUrl } from "@otm/env/utils";
 
-export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
+export async function GET(req: Request) {
+  // Auth (server-side)
   const session = await auth.api.getSession({ headers: req.headers });
   if (!session) return new NextResponse("Unauthorized", { status: 401 });
 
-  const projectId = ctx.params?.id;
+  // Extract :id from the pathname to avoid the typed ctx param
+  // Example path: /api/projects/<id>/snippet
+  const pathname = new URL(req.url).pathname;
+  const match = pathname.match(/\/api\/projects\/([^/]+)\/snippet$/);
+  const projectId = match?.[1];
   if (!projectId) return new NextResponse("Bad Request", { status: 400 });
 
+  // RBAC
   await assertProjectRole({ session }, projectId, [
     "viewer",
     "editor",
@@ -58,7 +64,7 @@ window.osstag = osstag;
 // Auto page_view + flush on hide
 osstag.track('page_view', { path: location.pathname, title: document.title });
 addEventListener('visibilitychange', ()=> { if(document.visibilityState==='hidden') flush(); });
-`;
+`.trim();
 
   return new NextResponse(js, {
     status: 200,
