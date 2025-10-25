@@ -8,3 +8,4 @@ export * from "./hmac";
 export * from "./verify";
 export * from "./ratelimit";
 export * from "./ratelimit-mw";
+export * from "./handler";

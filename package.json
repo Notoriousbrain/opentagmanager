@@ -17,7 +17,6 @@
     "bun": ">=1.2.19"
   },
   "license": "MIT",
-  "packageManager": "bun@1.2.19",
   "private": true,
   "scripts": {
     "dev": "bun --env-file=.env turbo run dev",

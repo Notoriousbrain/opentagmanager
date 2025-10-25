@@ -5,6 +5,7 @@ import {
   assertActiveProject,
   enforceRateLimitOrThrow,
   makeIngestBatchSchema,
+  handleIngestRequest,
 } from "@otm/relay-core";
 
 export const relayApp = new Hono();
@@ -31,7 +32,8 @@ const limiter = {
 
 relayApp.post("/api/ingest", async (c) => {
   try {
-    const rawBody = await c.req.text();
+    const json = await c.req.json();
+    const rawBody = JSON.stringify(json);
     const ip = c.req.header("x-forwarded-for") ?? "unknown";
 
     const verifyResult = await verifyIngressRequest({
@@ -40,7 +42,7 @@ relayApp.post("/api/ingest", async (c) => {
       body: rawBody,
       headers: Object.fromEntries(c.req.raw.headers),
       skewMs: 5_000,
-      getSecretForKey: async () => "test_secret", 
+      getSecretForKey: async () => "test_secret",
     });
 
     const projectResolution = await resolveProject(verifyResult.key);
@@ -53,15 +55,22 @@ relayApp.post("/api/ingest", async (c) => {
       ip,
     });
 
-    const json = JSON.parse(rawBody);
     const batchSchema = makeIngestBatchSchema({
       maxEventsPerBatch: 100,
       maxBodyKB: 512,
       maxSkewMs: 5000,
     });
-    batchSchema.parse(json);
+    const batch = batchSchema.parse(json);
 
-    return c.json({ status: "accepted", projectId: project.projectId }, 200);
+    const result = await handleIngestRequest(batch, project);
+    return c.json(
+      {
+        status: "accepted",
+        accepted: result.accepted,
+        rejected: result.rejected,
+      },
+      200
+    );
   } catch (err) {
     console.error("Ingress error:", err);
     return c.json(
