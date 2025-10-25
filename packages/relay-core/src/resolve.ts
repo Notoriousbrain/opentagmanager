@@ -1,5 +1,5 @@
-import { UnauthorizedError, ForbiddenError } from "./errors";
-import { type PublicKeyParts } from "./auth";
+import { UnauthorizedError, ForbiddenError } from "./errors.js";
+import { type PublicKeyParts } from "./auth.js";
 
 export interface TenantCfg {
   allowedHosts?: string[];

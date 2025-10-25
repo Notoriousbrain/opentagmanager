@@ -1,6 +1,6 @@
 import { createHmac, createHash, timingSafeEqual } from "node:crypto";
-import { Header } from "./types";
-import { SignatureInvalidError, SkewExceededError } from "./errors";
+import { Header } from "./types.js";
+import { SignatureInvalidError, SkewExceededError } from "./errors.js";
 
 export interface CanonicalInput {
   method: string;
