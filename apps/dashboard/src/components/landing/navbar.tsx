@@ -5,7 +5,7 @@ import React from "react";
 
 const NavbarLanding = () => {
   return (
-    <nav className="p-6 md:p-8 fixed w-full flex justify-between items-center h-[10dvh]">
+    <nav className="p-6 md:p-8 fixed w-full flex justify-between bg-black items-center h-[10dvh]">
       <Link href="/" className="">
         <Image
           alt="OSS Tag"

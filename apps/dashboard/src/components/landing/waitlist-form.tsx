@@ -21,22 +21,12 @@ export default function WaitlistForm() {
     trpc.interest.count.useQuery(undefined, { refetchOnWindowFocus: false });
 
   const { mutate: register, isPending } = trpc.interest.register.useMutation({
-    onMutate: async () => {
-      await utils.interest.count.cancel();
-      const prev = utils.interest.count.getData();
-      utils.interest.count.setData(undefined, (curr) => ({
-        count: (curr?.count ?? 0) + 1,
-      }));
-      return { prev };
-    },
     onSuccess: async () => {
       setMsg({ type: "ok", text: "You're in. We'll be in touch soon." });
       setEmail("");
-      await utils.interest.count.invalidate();
+      await utils.interest.count.invalidate(); 
     },
-    onError: (err, _input, ctx) => {
-      if (ctx?.prev) utils.interest.count.setData(undefined, ctx.prev);
-
+    onError: (err) => {
       const code = err.data?.code;
 
       if (code === "TOO_MANY_REQUESTS") {
@@ -47,8 +37,10 @@ export default function WaitlistForm() {
       } else if (code === "BAD_REQUEST") {
         setMsg({ type: "err", text: "Please enter a valid email." });
       } else if (code === "CONFLICT") {
-        // 👇 new case: already in list
-        setMsg({ type: "ok", text: "You're already in the list." });
+        setMsg({
+          type: "ok",
+          text: "You're already in the list.",
+        });
       } else {
         setMsg({
           type: "err",
