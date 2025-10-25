@@ -4,8 +4,6 @@ import { QueryClient } from "@tanstack/react-query";
 import superjson from "superjson";
 import { trpc } from "./react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
-
 export function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
@@ -23,12 +21,12 @@ export function makeTrpcClient() {
           (op.direction === "down" && op.result instanceof Error),
       }),
       httpBatchLink({
-        url: `${API_BASE}/api/trpc`,
+        url: "/api/trpc",
         transformer: superjson,
         fetch(url, opts) {
           return fetch(url, {
             ...opts,
-            credentials: "omit",
+            credentials: "include",
           });
         },
       }),

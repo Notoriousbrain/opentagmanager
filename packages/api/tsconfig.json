@@ -1,14 +1,4 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "preserve",
-    "outDir": "dist",
-    "rootDir": "src",
-    "moduleResolution": "bundler",
-    "declaration": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "strict": true
-  },
-  "include": ["src/**/*"]
+  "extends": "@otm/typescript-config/base.json",
+  "include": ["**/*.ts", "**/*.tsx"]
 }
