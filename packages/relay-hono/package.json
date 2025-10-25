@@ -8,6 +8,10 @@
   },
   "dependencies": {
     "@otm/relay-core": "workspace:*",
-    "hono": "^3.0.4"
+    "hono": "catalog:"
+  },
+  "scripts": {
+    "build": "bunx tsc --project tsconfig.json",
+    "clean": "rm -rf dist"
   }
 }

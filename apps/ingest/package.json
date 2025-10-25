@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@otm/relay-hono": "workspace:*",
-    "hono": "^4.4.3"
+    "hono": "catalog:"
   },
   "exports": {
     ".": "./dist/index.js"

@@ -1,12 +1,12 @@
-import { Hono } from "hono";
 import {
-  verifyIngressRequest,
-  createInMemoryResolver,
   assertActiveProject,
+  createInMemoryResolver,
   enforceRateLimitOrThrow,
-  makeIngestBatchSchema,
   handleIngestRequest,
+  makeIngestBatchSchema,
+  verifyIngressRequest,
 } from "@otm/relay-core";
+import { Hono } from "hono";
 
 export const relayApp = new Hono();
 
