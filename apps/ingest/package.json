@@ -5,5 +5,14 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@otm/relay-hono": "workspace:*",
+    "hono": "^4.4.3"
+  },
+  "scripts": {
+    "dev": "bun --watch api/ingest.ts",
+    "start": "vercel dev --listen 4000",
+    "build": "vercel build"
   }
 }
