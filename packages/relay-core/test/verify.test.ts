@@ -11,7 +11,7 @@ describe("verifyIngressRequest", () => {
   const nowMs = 1_700_000_000_000;
   const skewMs = 300_000;
 
-  const keyId = "abc123def456ghi789jkl0ab"; // 24 chars base36
+  const keyId = "abc123def456ghi789jkl0ab";
   const publicKey = `${PUBLIC_KEY_PREFIX}_${keyId}_9z8y7x`;
   const secret = "super-secret";
 
@@ -46,7 +46,7 @@ describe("verifyIngressRequest", () => {
         method,
         path,
         body,
-        headers: { ...headersBase }, // missing ts/sig
+        headers: { ...headersBase }, 
         nowMs,
         skewMs,
         getSecretForKey: () => secret,
@@ -82,7 +82,7 @@ describe("verifyIngressRequest", () => {
       [Header.Timestamp]: String(ts),
       [Header.Signature]: signature,
     };
-    await expect(
+     expect(
       verifyIngressRequest({
         method,
         path,
