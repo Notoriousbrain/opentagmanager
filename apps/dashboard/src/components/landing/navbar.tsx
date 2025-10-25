@@ -2,6 +2,7 @@ import { Button } from "@otm/ui";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import { BiStar } from "react-icons/bi";
 
 const NavbarLanding = () => {
   return (
@@ -15,11 +16,18 @@ const NavbarLanding = () => {
           className=""
         />
       </Link>
-      <Link href="/roadmap">
-        <Button className="font-bold cursor-pointer border border-gray-500 py-2 px-4 rounded-sm">
-          Roadmap
-        </Button>
-      </Link>
+      <div className="flex items-center gap-4">
+        <Link href="https://github.com/opentagmanager/osstag">
+          <Button className="font-bold cursor-pointer border border-gray-500 py-2 px-4 rounded-sm">
+           <BiStar size={16}/> Star
+          </Button>
+        </Link>
+        <Link href="/roadmap">
+          <Button className="font-bold cursor-pointer border border-gray-500 py-2 px-4 rounded-sm">
+            Roadmap
+          </Button>
+        </Link>
+      </div>
     </nav>
   );
 };
