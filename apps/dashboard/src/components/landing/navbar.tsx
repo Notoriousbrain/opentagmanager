@@ -16,7 +16,7 @@ const NavbarLanding = () => {
         />
       </Link>
       <Link href="/roadmap">
-        <Button className="font-bold cursor-pointer border border-gray-500 py-1 px-4 rounded-sm">
+        <Button className="font-bold cursor-pointer border border-gray-500 py-2 px-4 rounded-sm">
           Roadmap
         </Button>
       </Link>

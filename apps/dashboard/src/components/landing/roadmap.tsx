@@ -43,12 +43,28 @@ const phases: Phase[] = [
     focus:
       "Make tracking accurate and hard to block by running tags from your own domain with privacy by default.",
     items: [
-      { label: "Tiny ESM snippet (async, ≤6 KB, non-blocking)" },
-      { label: "First-party delivery (custom domain) to reduce blocking" },
-      { label: "Simple event capture + clean data layer (no jargon)" },
-      { label: "Consent handling built in (opt-in / opt-out)" },
-      { label: "Self-host via NPM or Docker" },
-      { label: "Early block detection signals (basic)" },
+      {
+        label: "Tiny ESM snippet (async, ≤6 KB, non-blocking)",
+        done: true,
+        note: "core SDK scaffolded",
+      },
+      {
+        label: "First-party delivery (custom domain) to reduce blocking",
+        done: true,
+        note: "relay @ Fluid groundwork",
+      },
+      {
+        label: "Simple event capture + clean data layer (no jargon)",
+        done: true,
+        note: "relay-core schema & types",
+      },
+      { label: "Consent handling built in (opt-in / opt-out)", done: false },
+      {
+        label: "Self-host via NPM or Docker",
+        done: true,
+        note: "monorepo + Bun/Turbo base",
+      },
+      { label: "Early block detection signals (basic)", done: false },
     ],
     monetization: {
       summary:
@@ -73,11 +89,21 @@ const phases: Phase[] = [
     focus:
       "Give non-technical teams a simple place to add, pause, and trust tags without code changes.",
     items: [
-      { label: "Clean dashboard to add/pause tags quickly" },
-      { label: "Prebuilt integrations: GA4, Meta, LinkedIn (simple presets)" },
-      { label: "Tag status and validation (did it load, is it blocked)" },
-      { label: "Consent settings made simple (plain language)" },
-      { label: "Lightweight activity log for changes" },
+      {
+        label: "Clean dashboard to add/pause tags quickly",
+        done: true,
+        note: "Projects + API Keys UI complete",
+      },
+      {
+        label: "Prebuilt integrations: GA4, Meta, LinkedIn (simple presets)",
+        done: false,
+      },
+      {
+        label: "Tag status and validation (did it load, is it blocked)",
+        done: false,
+      },
+      { label: "Consent settings made simple (plain language)", done: false },
+      { label: "Lightweight activity log for changes", done: false },
     ],
     monetization: {
       summary:
@@ -111,11 +137,17 @@ const phases: Phase[] = [
     focus:
       "Keep data flowing even when offline and surface where tracking is blocked or broken.",
     items: [
-      { label: "Offline queue + retry + idempotency" },
-      { label: "Block detection and recovery paths (first-party fallback)" },
-      { label: "Simple insights panel: conversions, reliability score" },
-      { label: "Weekly Tracking Health Report (email)" },
-      { label: "SDK & API for advanced teams (optional)" },
+      { label: "Offline queue + retry + idempotency", done: false },
+      {
+        label: "Block detection and recovery paths (first-party fallback)",
+        done: false,
+      },
+      {
+        label: "Simple insights panel: conversions, reliability score",
+        done: false,
+      },
+      { label: "Weekly Tracking Health Report (email)", done: false },
+      { label: "SDK & API for advanced teams (optional)", done: false },
     ],
     monetization: {
       summary:
@@ -149,12 +181,18 @@ const phases: Phase[] = [
     focus:
       "Become the daily control center for tracking with first-party delivery guaranteed and faster websites.",
     items: [
-      { label: "Full visual dashboard (no code editing)" },
-      { label: "Template library for common events and pixels" },
-      { label: "First-party domain setup wizard" },
-      { label: "Custom event builder with plain-language labels" },
-      { label: "Roles for marketers and developers (collaboration)" },
-      { label: "Performance-friendly loading (only what’s needed)" },
+      { label: "Full visual dashboard (no code editing)", done: false },
+      { label: "Template library for common events and pixels", done: false },
+      { label: "First-party domain setup wizard", done: false },
+      { label: "Custom event builder with plain-language labels", done: false },
+      {
+        label: "Roles for marketers and developers (collaboration)",
+        done: false,
+      },
+      {
+        label: "Performance-friendly loading (only what’s needed)",
+        done: false,
+      },
     ],
     monetization: {
       summary:
@@ -188,10 +226,16 @@ const phases: Phase[] = [
     focus:
       "Let marketers describe what to track in simple words and automate the setup safely.",
     items: [
-      { label: "Prompt-based tag setup: “Track sign-ups and purchases”" },
-      { label: "Auto-mapping for common events and platforms" },
-      { label: "Change explanations and approvals (human in the loop)" },
-      { label: "Auto-generated weekly summaries" },
+      {
+        label: "Prompt-based tag setup: “Track sign-ups and purchases”",
+        done: false,
+      },
+      { label: "Auto-mapping for common events and platforms", done: false },
+      {
+        label: "Change explanations and approvals (human in the loop)",
+        done: false,
+      },
+      { label: "Auto-generated weekly summaries", done: false },
     ],
     monetization: {
       summary: "AI add-on via monthly fee or credits; bundled in higher tiers.",
@@ -224,11 +268,11 @@ const phases: Phase[] = [
     focus:
       "Scale with governance, data residency, and advanced compliance while staying first-party and fast.",
     items: [
-      { label: "Advanced permissions, audit trails, approvals" },
-      { label: "Data residency controls and edge relays" },
-      { label: "Custom domain certificates and policy templates" },
-      { label: "Partner integrations and agency tooling" },
-      { label: "Marketplace for verified templates" },
+      { label: "Advanced permissions, audit trails, approvals", done: false },
+      { label: "Data residency controls and edge relays", done: false },
+      { label: "Custom domain certificates and policy templates", done: false },
+      { label: "Partner integrations and agency tooling", done: false },
+      { label: "Marketplace for verified templates", done: false },
     ],
     monetization: {
       summary:
