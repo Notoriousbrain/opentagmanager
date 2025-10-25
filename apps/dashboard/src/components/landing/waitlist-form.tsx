@@ -37,13 +37,18 @@ export default function WaitlistForm() {
     onError: (err, _input, ctx) => {
       if (ctx?.prev) utils.interest.count.setData(undefined, ctx.prev);
 
-      if (err.data?.code === "TOO_MANY_REQUESTS") {
+      const code = err.data?.code;
+
+      if (code === "TOO_MANY_REQUESTS") {
         setMsg({
           type: "err",
           text: "Too many attempts. Please try again in a bit.",
         });
-      } else if (err.data?.code === "BAD_REQUEST") {
+      } else if (code === "BAD_REQUEST") {
         setMsg({ type: "err", text: "Please enter a valid email." });
+      } else if (code === "CONFLICT") {
+        // 👇 new case: already in list
+        setMsg({ type: "ok", text: "You're already in the list." });
       } else {
         setMsg({
           type: "err",

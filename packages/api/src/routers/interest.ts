@@ -53,14 +53,32 @@ export const interestRouter = createTRPCRouter({
           ip,
           userAgent: ua,
         });
-      } catch (e: any) {
-        const msg = String(e?.message || "").toLowerCase();
-        if (!msg.includes("duplicate") && !msg.includes("unique")) {
+      } catch (err: any) {
+        // Extract the Postgres error code safely
+        const pgCode =
+          err?.code ||
+          err?.cause?.code ||
+          err?.originalError?.code ||
+          err?.error?.code;
+        const msg = String(err?.message || "").toLowerCase();
+
+        if (
+          pgCode === "23505" ||
+          msg.includes("duplicate") ||
+          msg.includes("unique")
+        ) {
+          // ✅ handle duplicate email
           throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Insert failed",
+            code: "CONFLICT",
+            message: "Already in list",
           });
         }
+
+        console.error("interest.register insert error:", err);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Insert failed",
+        });
       }
 
       await bumpInterestCounter();
