@@ -1,4 +1,14 @@
 {
-  "extends": "@otm/typescript-config/base.json",
-  "include": ["**/*.ts", "**/*.tsx"]
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "nodenext",
+    "outDir": "dist",
+    "rootDir": "src",
+    "moduleResolution": "bundler",
+    "declaration": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true
+  },
+  "include": ["src/**/*"]
 }
