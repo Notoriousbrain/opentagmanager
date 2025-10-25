@@ -1,9 +1,17 @@
 {
   "name": "@otm/ingest",
   "version": "0.1.0",
-  "private": false,
-  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@otm/relay-hono": "workspace:*",
+    "hono": "catalog:"
+  },
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "bunx tsc --project tsconfig.json",
+    "start": "vercel dev --listen 4000"
   }
 }

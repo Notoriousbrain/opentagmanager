@@ -1,9 +1,22 @@
 {
   "name": "@otm/relay-hono",
   "version": "0.1.0",
-  "private": false,
+  "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@otm/relay-core": "workspace:*",
+    "hono": "catalog:"
+  },
+  "scripts": {
+    "build": "bunx tsc --project tsconfig.json",
+    "clean": "rm -rf dist"
   }
 }

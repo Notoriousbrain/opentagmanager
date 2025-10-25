@@ -1,5 +1,5 @@
-import { UnauthorizedError, ForbiddenError } from "./errors";
-import { type PublicKeyParts } from "./auth";
+import { UnauthorizedError, ForbiddenError } from "./errors.js";
+import { type PublicKeyParts } from "./auth.js";
 
 export interface TenantCfg {
   allowedHosts?: string[];
@@ -27,7 +27,8 @@ export function assertActiveProject(
   r: ProjectResolution
 ): asserts r is { ok: true; project: ProjectInfo } {
   if (r.ok) return;
-  switch (r.reason) {
+  const reason = (r as Exclude<ProjectResolution, { ok: true }>).reason;
+  switch (reason) {
     case "INVALID_KEY":
     case "NOT_FOUND":
       throw new UnauthorizedError("Invalid API key");
