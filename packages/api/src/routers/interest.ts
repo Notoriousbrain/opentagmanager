@@ -54,7 +54,6 @@ export const interestRouter = createTRPCRouter({
           userAgent: ua,
         });
       } catch (err: any) {
-        // Extract the Postgres error code safely
         const pgCode =
           err?.code ||
           err?.cause?.code ||
@@ -67,7 +66,6 @@ export const interestRouter = createTRPCRouter({
           msg.includes("duplicate") ||
           msg.includes("unique")
         ) {
-          // ✅ handle duplicate email
           throw new TRPCError({
             code: "CONFLICT",
             message: "Already in list",

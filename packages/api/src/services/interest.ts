@@ -11,13 +11,16 @@ function upstashHeaders() {
 }
 
 export async function bumpInterestCounter(): Promise<void> {
-  if (UPSTASH_URL && UPSTASH_TOKEN) {
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) return;
+
+  try {
     await fetch(`${UPSTASH_URL}/incr/${encodeURIComponent(COUNTER_KEY)}`, {
       method: "POST",
       headers: upstashHeaders(),
       cache: "no-store",
-    }).catch(() => {});
-    return;
+    });
+  } catch (err) {
+    console.warn("⚠️ bumpInterestCounter failed (non-fatal):", err);
   }
 }
 
@@ -27,21 +30,33 @@ export async function getInterestCount(): Promise<number> {
       const res = await fetch(
         `${UPSTASH_URL}/get/${encodeURIComponent(COUNTER_KEY)}`,
         {
-          method: "GET",
           headers: upstashHeaders(),
           cache: "no-store",
         }
       );
+
       if (res.ok) {
         const text = await res.text();
         const n = Number(text);
         if (!Number.isNaN(n)) return n;
       }
-    } catch {}
+    } catch (err) {
+      console.warn("⚠️ getInterestCount fallback:", err);
+    }
   }
 
   const rows = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(schema.interest);
-  return rows[0]?.count ?? 0;
+
+  const count = rows[0]?.count ?? 0;
+
+  if (UPSTASH_URL && UPSTASH_TOKEN) {
+    fetch(`${UPSTASH_URL}/set/${encodeURIComponent(COUNTER_KEY)}/${count}`, {
+      method: "POST",
+      headers: upstashHeaders(),
+    }).catch(() => {});
+  }
+
+  return count;
 }
