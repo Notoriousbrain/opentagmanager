@@ -1,2 +1,30 @@
-// @otm/relay-core — S0.1 scaffold
-export const RELAY_CORE_VERSION = "0.1.0";
+export type {
+  MsTimestamp,
+  IngestEvent,
+  IngestBatch,
+  NormalizedEvent,
+  EnqueueBatch,
+  IngestResponse,
+  Result,
+  HttpStatus,
+  CallerIdentity,
+} from "./types";
+export { Header } from "./types";
+
+export {
+  RelayError,
+  BadRequestError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+  RateLimitError,
+  PayloadTooLargeError,
+  RequestTimeoutError,
+  SchemaInvalidError,
+  SignatureInvalidError,
+  SkewExceededError,
+  KafkaUnavailableError,
+  UpstreamUnavailableError,
+  InternalError,
+  toHttp,
+} from "./errors";
