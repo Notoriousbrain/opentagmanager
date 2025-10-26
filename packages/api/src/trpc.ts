@@ -21,10 +21,18 @@ function toWebHeaders(h: Headers | IncomingHttpHeaders): Headers {
 
 export async function createTRPCContext(opts: {
   headers: Headers | IncomingHttpHeaders;
+  req?: Request;
 }) {
   const headers = toWebHeaders(opts.headers);
+
+  const ip =
+    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    headers.get("x-real-ip") ??
+    "unknown";
+
   const session = await auth.api.getSession({ headers });
-  return { session };
+
+  return { session, ip };
 }
 
 export type Context = inferAsyncReturnType<typeof createTRPCContext>;
