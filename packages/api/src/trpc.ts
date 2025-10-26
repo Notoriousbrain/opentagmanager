@@ -30,7 +30,12 @@ export async function createTRPCContext(opts: {
     headers.get("x-real-ip") ||
     headers.get("x-vercel-forwarded-for");
 
-  const ip = forwardedFor?.split(",")[0]?.trim() || "unknown";
+  let ip = forwardedFor?.split(",")[0]?.trim();
+
+  if (!ip || ip === "unknown" || ip === "") {
+    const ua = headers.get("user-agent") ?? "unknown";
+    ip = `ua:${ua.slice(0, 50)}`;
+  }
 
   const session = await auth.api.getSession({ headers });
 
