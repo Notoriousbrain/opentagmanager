@@ -2,16 +2,13 @@
   "name": "@otm/ingest",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@otm/relay-hono": "workspace:*",
-    "hono": "catalog:"
+    "hono": "catalog:",
+    "@hono/node-server": "catalog:"
   },
-  "exports": {
-    ".": "./dist/index.js"
-  },
-  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "bunx tsc --project tsconfig.json",
-    "start": "vercel dev --listen 4000"
+    "dev": "bun run api/dev-ingest.ts"
   }
 }

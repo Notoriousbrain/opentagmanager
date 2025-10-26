@@ -1,7 +1,7 @@
-import { BadRequestError, UnauthorizedError } from "./errors.js";
-import { Header } from "./types.js";
-import { parsePublicKey, type PublicKeyParts } from "./auth.js";
-import { verifySignatureOrThrow } from "./hmac.js";
+import { BadRequestError, UnauthorizedError } from "./errors";
+import { Header } from "./types";
+import { parsePublicKey, type PublicKeyParts } from "./auth";
+import { verifySignatureOrThrow } from "./hmac";
 
 export interface VerifyHeadersInput {
   method: string;
