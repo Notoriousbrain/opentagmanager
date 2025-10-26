@@ -1,6 +1,6 @@
-import type { IngestBatchInput } from "./schema.js";
-import type { ProjectInfo } from "./resolve.js";
-import type { NormalizedEvent } from "./types.js";
+import type { IngestBatchInput } from "./schema";
+import type { ProjectInfo } from "./resolve";
+import type { NormalizedEvent } from "./types";
 import { randomUUID } from "node:crypto";
 
 export async function handleIngestRequest(

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { RelayLimits } from "./limits.js";
+import type { RelayLimits } from "./limits";
 
 export const ingestEventSchema = z.object({
   eventId: z.string().min(1, "eventId is required"),

@@ -1,5 +1,5 @@
-import { RateLimitError } from "./errors.js";
-import type { RateLimiter } from "./ratelimit.js";
+import { RateLimitError } from "./errors";
+import type { RateLimiter } from "./ratelimit";
 
 export interface EnforceRateLimitInput {
   limiter: RateLimiter;

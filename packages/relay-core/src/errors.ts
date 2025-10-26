@@ -1,4 +1,4 @@
-import type { HttpStatus } from "./types.js";
+import type { HttpStatus } from "./types";
 
 export type RelayErrorCode =
   | "BAD_REQUEST"
