@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db, schema } from "@otm/db";
 import { and, eq, isNull } from "drizzle-orm";
 import { env } from "@otm/env";
-import { verifyScrypt, createIpRateLimiter } from "@otm/core";
+import { verifyScrypt, baseRateLimit } from "@otm/core";
 
 const Body = z.object({
   key: z.string().min(1),
@@ -19,12 +19,6 @@ const Body = z.object({
     .min(1),
 });
 
-const rl = createIpRateLimiter({
-  prefix: "ingest",
-  windowSeconds: 10,
-  max: 60,
-});
-
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
@@ -34,11 +28,11 @@ export async function POST(req: Request) {
     const ip =
       (ipHeader ? ipHeader.split(",")[0]?.trim() : "") ||
       (typeof ipFromReq === "string" ? ipFromReq : "") ||
-      "";
+      req.headers.get("user-agent")?.slice(0, 64) ||
+      "anonymous";
 
-    try {
-      await rl(ip);
-    } catch {
+    const { success } = await baseRateLimit.limit(`ingest:${ip}`);
+    if (!success) {
       return new NextResponse("Too Many Requests", { status: 429 });
     }
 
