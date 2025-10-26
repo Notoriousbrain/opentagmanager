@@ -36,7 +36,7 @@ export const interestRouter = createTRPCRouter({
       const { ip, ua } = getClientInfoFromCtx(ctx);
 
       try {
-        await limiter(ip);
+        await limiter(ctx.ip);
       } catch {
         throw new TRPCError({
           code: "TOO_MANY_REQUESTS",
