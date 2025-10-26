@@ -14,3 +14,10 @@ export const baseRateLimit = new Ratelimit({
   analytics: true,
   prefix: "rate-limit",
 });
+
+export const interestRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(1, "1 m"),
+  analytics: true,
+  prefix: "rl:interest",
+});

@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { db, schema } from "@otm/db";
 import { bumpInterestCounter, getInterestCount } from "../services/interest";
-import { baseRateLimit } from "@otm/core";
+import { interestRateLimit } from "@otm/core";
 
 function getClientInfoFromCtx(ctx: {
   session?: {
@@ -33,7 +33,7 @@ export const interestRouter = createTRPCRouter({
         ip && ip !== "" ? `ip:${ip}` : ua ? `ua:${ua.slice(0, 64)}` : "anon";
 
       try {
-        const { success } = await baseRateLimit.limit(key);
+        const { success } = await interestRateLimit.limit(key);
         if (!success) {
           throw new TRPCError({
             code: "TOO_MANY_REQUESTS",
