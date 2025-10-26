@@ -17,7 +17,7 @@ const HeroSection = () => {
           className="object-cover"
         />
       </div>
-      <div className="z-10">
+      <div className="z-10 text-white">
         <NavbarLanding />
         <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 text-center">
           <div className="max-w-3xl mx-auto space-y-8">
