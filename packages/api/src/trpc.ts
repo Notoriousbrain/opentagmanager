@@ -25,10 +25,12 @@ export async function createTRPCContext(opts: {
 }) {
   const headers = toWebHeaders(opts.headers);
 
-  const ip =
-    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    headers.get("x-real-ip") ??
-    "unknown";
+  const forwardedFor =
+    headers.get("x-forwarded-for") ||
+    headers.get("x-real-ip") ||
+    headers.get("x-vercel-forwarded-for");
+
+  const ip = forwardedFor?.split(",")[0]?.trim() || "unknown";
 
   const session = await auth.api.getSession({ headers });
 
