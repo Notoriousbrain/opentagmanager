@@ -175,6 +175,9 @@
     "packages/relay-core": {
       "name": "@otm/relay-core",
       "version": "0.1.0",
+      "dependencies": {
+        "@otm/env": "workspace:*",
+      },
     },
     "packages/relay-hono": {
       "name": "@otm/relay-hono",
