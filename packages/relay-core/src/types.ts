@@ -51,6 +51,7 @@ export interface IngestResponse {
   requestId: string;
   eventsAccepted: number;
   receivedAt: MsTimestamp;
+  ts: number
 }
 
 export type Result<T, E = Error> =

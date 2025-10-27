@@ -1,16 +1,37 @@
+import { randomUUID } from "node:crypto";
 import type { IngestBatchInput } from "./schema";
 import type { ProjectInfo } from "./resolve";
-import type { NormalizedEvent } from "./types";
-import { randomUUID } from "node:crypto";
+import type { NormalizedEvent, IngestResponse } from "./types";
+import { getLimitsFromEnv } from "./limits";
+import { BadRequestError, PayloadTooLargeError } from "./errors";
 
 export async function handleIngestRequest(
   batch: IngestBatchInput,
   project: ProjectInfo
-): Promise<{ accepted: number; rejected: number; events: NormalizedEvent[] }> {
+): Promise<IngestResponse & { events: NormalizedEvent[] }> {
+  const limits = getLimitsFromEnv();
+  const requestId = randomUUID();
+  const now = Date.now();
+
+  const bodySizeKB = Buffer.byteLength(JSON.stringify(batch), "utf8") / 1024;
+  if (bodySizeKB > limits.maxBodyKB) {
+    throw new PayloadTooLargeError("Payload exceeds allowed size", {
+      detail: { requestId, bodySizeKB, limitKB: limits.maxBodyKB },
+    });
+  }
+
+  if (batch.events.length > limits.maxEventsPerBatch) {
+    throw new BadRequestError("Too many events in batch", {
+      detail: {
+        requestId,
+        count: batch.events.length,
+        limit: limits.maxEventsPerBatch,
+      },
+    });
+  }
+
   const events: NormalizedEvent[] = [];
   let rejected = 0;
-
-  const now = Date.now();
 
   for (const e of batch.events) {
     try {
@@ -36,7 +57,7 @@ export async function handleIngestRequest(
 
         ip: null,
         ua: null,
-        requestId: randomUUID(),
+        requestId,
       };
 
       events.push(normalized);
@@ -45,5 +66,12 @@ export async function handleIngestRequest(
     }
   }
 
-  return { accepted: events.length, rejected, events };
+  // Align with IngestResponse type
+  return {
+    requestId,
+    eventsAccepted: events.length,
+    receivedAt: now,
+    ts: now,
+    events,
+  };
 }
