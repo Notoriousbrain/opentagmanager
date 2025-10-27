@@ -1,4 +1,3 @@
-
 export interface PublicKeyParts {
   raw: string;
   prefix: "OTM_PK";
@@ -21,7 +20,7 @@ export function parsePublicKey(input: string): PublicKeyParts {
     throw new Error("invalid public key prefix");
   }
 
-  const rest = raw.slice(PUBLIC_KEY_PREFIX.length + 1); 
+  const rest = raw.slice(PUBLIC_KEY_PREFIX.length + 1);
   const parts = rest.split("_");
   if (parts.length < 1 || parts.length > 2) {
     throw new Error("invalid public key structure");
@@ -61,4 +60,8 @@ export function maskPublicKey(raw: string): string {
   const keep = 3;
   if (s.length <= keep * 2) return `${PUBLIC_KEY_PREFIX}_***`;
   return `${s.slice(0, keep)}***${s.slice(-keep)}`;
+}
+
+export async function getSecretForKey(projectKeyId: string): Promise<string> {
+  return "test_secret_for_demo";
 }
