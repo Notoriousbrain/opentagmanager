@@ -28,7 +28,7 @@ export function sha256Base64Url(input: string | Uint8Array): string {
 }
 
 export function canonicalString(i: CanonicalInput): string {
-  const bhash = sha256Base64Url(i.body);
+  const bhash = sha256Base64Url(i.body ?? "");
   return `${i.ts}.${i.method.toUpperCase()}.${i.path}.${bhash}`;
 }
 
@@ -51,7 +51,9 @@ export interface VerifyInput extends CanonicalInput {
 }
 
 export function verifySignatureOrThrow(v: VerifyInput): void {
-  const delta = Math.abs(v.nowMs - v.ts);
+  const tsMs = v.ts > 1e12 ? v.ts : v.ts * 1000;
+  const delta = Math.abs(v.nowMs - tsMs);
+
   if (delta > v.skewMs) {
     throw new SkewExceededError("timestamp outside allowed skew window", {
       detail: { deltaMs: delta, skewMs: v.skewMs, ts: v.ts, nowMs: v.nowMs },
@@ -68,8 +70,8 @@ export function verifySignatureOrThrow(v: VerifyInput): void {
 
   const a = Buffer.from(expected);
   const b = Buffer.from(v.signature);
-  const match = a.length === b.length && timingSafeEqual(a, b);
 
+  const match = a.length === b.length && timingSafeEqual(a, b);
   if (!match) {
     throw new SignatureInvalidError("signature mismatch", {
       detail: { header: Header.Signature },
