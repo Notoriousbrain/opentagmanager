@@ -2,9 +2,10 @@ import { Kafka } from "kafkajs";
 import { createWriteStream, existsSync, statSync } from "node:fs";
 import { rename, mkdir } from "node:fs/promises";
 import { join } from "node:path";
-import { uploadToS3 } from "./s3"; // 👈 new import
+import { uploadToS3 } from "./s3";
+import { env } from "@otm/env";
+import { getRotatedFilename, DEFAULT_FILE_LIMIT_BYTES } from "@otm/relay-core";
 
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const OUT_DIR = "/tmp";
 const UPLOADED_DIR = join(OUT_DIR, "uploaded");
 const BASE_NAME = "osstag-ingest";
@@ -16,8 +17,8 @@ async function rotateIfNeeded() {
   if (!existsSync(currentFile)) return;
 
   const stats = statSync(currentFile);
-  if (stats.size >= MAX_FILE_BYTES) {
-    const rotatedName = join(OUT_DIR, `${BASE_NAME}-${Date.now()}.ndjson`);
+  if (stats.size >= DEFAULT_FILE_LIMIT_BYTES) {
+    const rotatedName = getRotatedFilename(BASE_NAME, OUT_DIR);
 
     stream.end();
     stream = createWriteStream(rotatedName, { flags: "a" });
@@ -44,8 +45,11 @@ async function appendToFile(line: string) {
 }
 
 async function startConsumer() {
-  const brokers = process.env.KAFKA_BROKERS?.split(",") ?? ["localhost:9092"];
-  const topic = process.env.KAFKA_TOPIC_INGEST ?? "osstag.ingest";
+  const brokers =
+    Array.isArray(env.KAFKA_BROKERS) && env.KAFKA_BROKERS.length > 0
+      ? env.KAFKA_BROKERS
+      : (env.KAFKA_BROKERS as unknown as string).split(",").filter(Boolean);
+  const topic = env.KAFKA_TOPIC_INGEST ?? "osstag.ingest";
 
   const kafka = new Kafka({ clientId: "osstag-consumer", brokers });
   const consumer = kafka.consumer({ groupId: "osstag-relay-group" });
