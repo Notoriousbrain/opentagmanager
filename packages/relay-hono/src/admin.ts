@@ -1,6 +1,5 @@
 import { Hono } from "hono";
-import { triggerReplayFromS3 } from "@otm/relay-db";
-import { flushPendingBatch, getPipelineStats } from "@otm/relay-consumer";
+import { flushPendingBatch, getPipelineStats, triggerReplayFromS3 } from "@otm/relay-db";
 
 export const adminRouter = new Hono();
 
