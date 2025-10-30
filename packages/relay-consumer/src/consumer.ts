@@ -1,8 +1,8 @@
 import { Kafka } from "kafkajs";
 import http from "node:http";
-import { env } from "@otm/env";
 import { insertBatchToClickhouse } from "./insert-batch-to-clickhouse";
 import { getMetrics, recordBatchFailure, recordBatchSuccess } from "./metrics";
+import { env } from "@otm/env";
 
 const FLUSH_INTERVAL_MS = 5000;
 const MAX_BATCH_SIZE = 1000;
@@ -35,7 +35,10 @@ async function flushBatch(force = false) {
 }
 
 async function startConsumer() {
-  const brokers = env.KAFKA_BROKERS ?? ["localhost:9092"];
+  const brokersEnv = process.env.KAFKA_BROKERS;
+  const brokers = brokersEnv
+    ? brokersEnv.split(",").map((s) => s.trim()).filter(Boolean)
+    : ["localhost:9092"];
   const topic = env.KAFKA_TOPIC_INGEST ?? "osstag.ingest";
 
   const kafka = new Kafka({ clientId: "osstag-consumer", brokers });

@@ -173,6 +173,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@aws-sdk/client-s3": "catalog:",
+        "@otm/env": "workspace:*",
         "@otm/relay-core": "workspace:*",
         "kafkajs": "catalog:",
       },

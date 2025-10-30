@@ -9,6 +9,6 @@
     "@hono/node-server": "catalog:"
   },
   "scripts": {
-    "dev": "bun run api/dev-ingest.ts"
+    "dev": "bun --env-file=../../.env run api/dev-ingest.ts"
   }
 }

@@ -3,6 +3,9 @@ import { z } from "zod/v4";
 
 const isProd = process.env.NODE_ENV === "production";
 
+const runtimeEnv =
+  typeof Bun !== "undefined" && Bun.env ? Bun.env : process.env;
+
 export const env = createEnv({
   server: {
     NODE_ENV: z
@@ -24,19 +27,11 @@ export const env = createEnv({
 
     GITHUB_TOKEN: z.string().min(1),
 
-    KAFKA_BROKERS: z
-      .string()
-      .transform((s) => s.split(",").map((x) => x.trim()))
-      .pipe(z.array(z.string()).min(isProd ? 1 : 0)),
-    KAFKA_SECURITY_PROTOCOL: z
-      .enum(["SASL_SSL", "SSL", "PLAINTEXT"])
-      .default("SASL_SSL"),
-    KAFKA_SASL_MECHANISM: z
-      .enum(["scram-sha-512", "scram-sha-256", "plain"])
-      .default("scram-sha-512"),
-    KAFKA_SASL_USERNAME: isProd ? z.string().min(1) : z.string().optional(),
-    KAFKA_SASL_PASSWORD: isProd ? z.string().min(1) : z.string().optional(),
+    KAFKA_BROKERS: z.string().min(1),
     KAFKA_TOPIC_INGEST: z.string().default("osstag.ingest"),
+    KAFKA_SASL_USERNAME: z.string().optional(),
+    KAFKA_SASL_PASSWORD: z.string().optional(),
+    KAFKA_SECURITY_PROTOCOL: z.string().optional(),
 
     S3_REGION: isProd ? z.string().min(1) : z.string().optional(),
     S3_BUCKET: isProd ? z.string().min(1) : z.string().optional(),
@@ -58,7 +53,7 @@ export const env = createEnv({
       message: "BETTER_AUTH_SECRET must be at least 32 characters long.",
     }),
   },
-  experimental__runtimeEnv: process.env,
+  experimental__runtimeEnv: runtimeEnv,
   skipValidation: process.env.NODE_ENV !== "production",
 });
 
