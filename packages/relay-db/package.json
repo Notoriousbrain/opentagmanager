@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@clickhouse/client": "catalog:",
-    "@otm/env": "workspace:*"
+    "@otm/env": "workspace:*",
+    "@otm/relay-consumer": "workspace:*"
   }
 }

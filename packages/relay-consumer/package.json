@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/consumer.ts"
+    ".": "./src/index.ts"
   },
   "dependencies": {
+    "@otm/env": "workspace:*",
     "@aws-sdk/client-s3": "catalog:",
     "@otm/relay-core": "workspace:*",
     "kafkajs": "catalog:"

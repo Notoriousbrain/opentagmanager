@@ -8,6 +8,7 @@ import { env } from "../../env/src";
 import { NormalizedEvent } from "../../relay-core/src";
 import { insertBatchToClickhouse } from "../../relay-consumer/src/insert-batch-to-clickhouse";
 import { parseNDJSONStream } from "../src/utils/ndjson";
+import { retryWithBackoff } from "@otm/core";
 
 const REGION = env.S3_REGION!;
 const BUCKET = env.S3_BUCKET!;
@@ -31,11 +32,24 @@ async function processObject(Key: string) {
   console.log(`📥 Fetching s3://${BUCKET}/${Key}`);
   const cmd = new GetObjectCommand({ Bucket: BUCKET, Key });
   const res = await s3.send(cmd);
-  const body = await streamToString(res.Body as Readable);
+  const stream = res.Body as Readable;
+  if (!stream) {
+    console.error(`⚠️ No stream found for ${Key}`);
+    return;
+  }
 
-  const events = parseNDJSONStream(body) as NormalizedEvent[];
+  const events: NormalizedEvent[] = [];
+
+  for await (const e of parseNDJSONStream(stream)) {
+    events.push(e as NormalizedEvent);
+  }
+
   console.log(`🧩 Parsed ${events.length} events → inserting...`);
-  await insertBatchToClickhouse(events);
+
+  await retryWithBackoff(() => insertBatchToClickhouse(events), {
+    attempts: 3,
+    baseDelayMs: 1000,
+  });
 }
 
 async function replay() {

@@ -173,6 +173,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@aws-sdk/client-s3": "catalog:",
+        "@otm/env": "workspace:*",
         "@otm/relay-core": "workspace:*",
         "kafkajs": "catalog:",
       },
@@ -191,13 +192,16 @@
       "dependencies": {
         "@clickhouse/client": "catalog:",
         "@otm/env": "workspace:*",
+        "@otm/relay-consumer": "workspace:*",
       },
     },
     "packages/relay-hono": {
       "name": "@otm/relay-hono",
       "version": "0.1.0",
       "dependencies": {
+        "@otm/relay-consumer": "workspace:*",
         "@otm/relay-core": "workspace:*",
+        "@otm/relay-db": "workspace:*",
         "hono": "catalog:",
       },
     },

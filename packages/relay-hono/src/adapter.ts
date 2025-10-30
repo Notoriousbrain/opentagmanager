@@ -9,6 +9,7 @@ import {
   toHttp,
 } from "@otm/relay-core";
 import { Hono } from "hono";
+import { adminRouter } from "./admin";
 
 const LIMITS = getLimitsFromEnv();
 
@@ -74,3 +75,5 @@ relayApp.post("/", async (c) => {
     return c.json(body, status);
   }
 });
+
+relayApp.route("/admin", adminRouter);

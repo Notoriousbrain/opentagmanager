@@ -9,6 +9,8 @@
 
   "dependencies": {
     "@otm/relay-core": "workspace:*",
-    "hono": "catalog:"
+    "hono": "catalog:",
+    "@otm/relay-db": "workspace:*",
+    "@otm/relay-consumer": "workspace:*"
   }
 }
