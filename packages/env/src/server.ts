@@ -49,6 +49,11 @@ export const env = createEnv({
     RELAY_SKEW_MS: z.coerce.number().int().nonnegative().default(300_000),
     RELAY_RPS_PER_KEY_IP: z.coerce.number().int().positive().default(120),
 
+    CLICKHOUSE_URL: z.string().url().default("http://localhost:8123"),
+    CLICKHOUSE_USER: z.string().default("default"),
+    CLICKHOUSE_PASSWORD: z.string().optional(),
+    CLICKHOUSE_DB: z.string().default("osstag"),
+
     BETTER_AUTH_SECRET: z.string().min(32, {
       message: "BETTER_AUTH_SECRET must be at least 32 characters long.",
     }),

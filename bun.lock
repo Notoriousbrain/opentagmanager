@@ -172,7 +172,7 @@
       "name": "@otm/relay-consumer",
       "version": "0.1.0",
       "dependencies": {
-        "@aws-sdk/client-s3": "^3.920.0",
+        "@aws-sdk/client-s3": "catalog:",
         "@otm/relay-core": "workspace:*",
         "kafkajs": "catalog:",
       },
@@ -183,6 +183,14 @@
       "dependencies": {
         "@otm/env": "workspace:*",
         "kafkajs": "catalog:",
+      },
+    },
+    "packages/relay-db": {
+      "name": "@otm/relay-db",
+      "version": "0.1.0",
+      "dependencies": {
+        "@clickhouse/client": "catalog:",
+        "@otm/env": "workspace:*",
       },
     },
     "packages/relay-hono": {
@@ -234,6 +242,8 @@
     },
   },
   "catalog": {
+    "@aws-sdk/client-s3": "^3.920.0",
+    "@clickhouse/client": "^1.12.1",
     "@hono/node-server": "^1.19.5",
     "@tailwindcss/postcss": "^4.1.14",
     "@tanstack/react-query": "^5.90.2",
@@ -378,6 +388,10 @@
     "@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@2.2.5", "", { "os": "win32", "cpu": "arm64" }, "sha512-xaOIad4wBambwJa6mdp1FigYSIF9i7PCqRbvBqtIi9y29QtPVQ13sDGtUnsRoe6SjL10auMzQ6YAe+B3RpZXVg=="],
 
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.2.5", "", { "os": "win32", "cpu": "x64" }, "sha512-F/jhuXCssPFAuciMhHKk00xnCAxJRS/pUzVfXYmOMUp//XW7mO6QeCjsjvnm8L4AO/dG2VOB0O+fJPiJ2uXtIw=="],
+
+    "@clickhouse/client": ["@clickhouse/client@1.12.1", "", { "dependencies": { "@clickhouse/client-common": "1.12.1" } }, "sha512-7ORY85rphRazqHzImNXMrh4vsaPrpetFoTWpZYueCO2bbO6PXYDXp/GQ4DgxnGIqbWB/Di1Ai+Xuwq2o7DJ36A=="],
+
+    "@clickhouse/client-common": ["@clickhouse/client-common@1.12.1", "", {}, "sha512-ccw1N6hB4+MyaAHIaWBwGZ6O2GgMlO99FlMj0B0UEGfjxM9v5dYVYql6FpP19rMwrVAroYs/IgX2vyZEBvzQLg=="],
 
     "@databuddy/sdk": ["@databuddy/sdk@2.2.0", "", { "dependencies": { "jotai": ">=2.0.0" }, "optionalDependencies": { "pino": "^9.0.0" }, "peerDependencies": { "react": ">=18", "vue": ">=3" }, "optionalPeers": ["react", "vue"] }, "sha512-Wrqs8oKF+UdK070FIKrM+hasN3Fv4eFq5ZouuDW5eSddUmi/e827jXNdrdFkilRyPFjulCS2faGn0eTv1GMikA=="],
 
@@ -602,6 +616,8 @@
     "@otm/relay-consumer": ["@otm/relay-consumer@workspace:packages/relay-consumer"],
 
     "@otm/relay-core": ["@otm/relay-core@workspace:packages/relay-core"],
+
+    "@otm/relay-db": ["@otm/relay-db@workspace:packages/relay-db"],
 
     "@otm/relay-hono": ["@otm/relay-hono@workspace:packages/relay-hono"],
 
