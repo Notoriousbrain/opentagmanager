@@ -1,0 +1,13 @@
+{
+  "name": "@otm/relay-db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@clickhouse/client": "catalog:",
+    "@otm/env": "workspace:*"
+  }
+}

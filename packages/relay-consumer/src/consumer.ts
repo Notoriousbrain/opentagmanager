@@ -1,75 +1,61 @@
 import { Kafka } from "kafkajs";
-import { createWriteStream, existsSync, statSync } from "node:fs";
-import { rename, mkdir } from "node:fs/promises";
-import { join } from "node:path";
-import { uploadToS3 } from "./s3";
+import http from "node:http";
 import { env } from "@otm/env";
-import { getRotatedFilename, DEFAULT_FILE_LIMIT_BYTES } from "@otm/relay-core";
+import { insertBatchToClickhouse } from "./insert-batch-to-clickhouse";
+import { getMetrics, recordBatchFailure, recordBatchSuccess } from "./metrics";
 
-const OUT_DIR = "/tmp";
-const UPLOADED_DIR = join(OUT_DIR, "uploaded");
-const BASE_NAME = "osstag-ingest";
+const FLUSH_INTERVAL_MS = 5000;
+const MAX_BATCH_SIZE = 1000;
+let buffer: any[] = [];
+let lastFlush = Date.now();
+const PORT = process.env.METRICS_PORT ? Number(process.env.METRICS_PORT) : 4100;
 
-let currentFile = join(OUT_DIR, `${BASE_NAME}.ndjson`);
-let stream = createWriteStream(currentFile, { flags: "a" });
+async function flushBatch(force = false) {
+  const age = Date.now() - lastFlush;
+  if (!force && buffer.length < MAX_BATCH_SIZE && age < FLUSH_INTERVAL_MS)
+    return;
 
-async function rotateIfNeeded() {
-  if (!existsSync(currentFile)) return;
+  const batch = buffer.splice(0, buffer.length);
+  if (batch.length === 0) return;
 
-  const stats = statSync(currentFile);
-  if (stats.size >= DEFAULT_FILE_LIMIT_BYTES) {
-    const rotatedName = getRotatedFilename(BASE_NAME, OUT_DIR);
-
-    stream.end();
-    stream = createWriteStream(rotatedName, { flags: "a" });
-    console.log(`🌀 Rotated NDJSON file → ${rotatedName}`);
-
-    uploadToS3(rotatedName, "demo123").then(async () => {
-      try {
-        await mkdir(UPLOADED_DIR, { recursive: true });
-
-        const destPath = join(UPLOADED_DIR, rotatedName.split("/").pop()!);
-
-        await rename(rotatedName, destPath);
-        console.log(`📦 Moved ${rotatedName} → ${destPath}`);
-      } catch (err) {
-        console.error(`⚠️ Could not move ${rotatedName} after upload:`, err);
-      }
-    });
+  const start = Date.now();
+  try {
+    await insertBatchToClickhouse(batch);
+    const duration = Date.now() - start;
+    recordBatchSuccess(batch.length, duration);
+    console.log(
+      `✅ Flushed ${batch.length} events → ClickHouse in ${duration}ms`
+    );
+  } catch (err) {
+    recordBatchFailure();
+    console.error(`⚠️ Failed to insert batch (${batch.length} events):`, err);
+  } finally {
+    lastFlush = Date.now();
   }
 }
 
-async function appendToFile(line: string) {
-  await rotateIfNeeded();
-  stream.write(line + "\n");
-}
-
 async function startConsumer() {
-  const brokers =
-    Array.isArray(env.KAFKA_BROKERS) && env.KAFKA_BROKERS.length > 0
-      ? env.KAFKA_BROKERS
-      : (env.KAFKA_BROKERS as unknown as string).split(",").filter(Boolean);
+  const brokers = env.KAFKA_BROKERS ?? ["localhost:9092"];
   const topic = env.KAFKA_TOPIC_INGEST ?? "osstag.ingest";
 
   const kafka = new Kafka({ clientId: "osstag-consumer", brokers });
   const consumer = kafka.consumer({ groupId: "osstag-relay-group" });
 
   await consumer.connect();
-  await consumer.subscribe({ topic, fromBeginning: true });
+  await consumer.subscribe({ topic, fromBeginning: false });
 
-  console.log(
-    `✅ Relay Consumer connected to ${brokers.join(",")} on topic "${topic}"`
-  );
-  console.log(`📁 Writing NDJSON to ${OUT_DIR}`);
+  console.log(`✅ Consumer connected → ${topic}`);
+  setInterval(() => flushBatch(), 1000);
 
   await consumer.run({
     eachMessage: async ({ message }) => {
-      const payload = message.value?.toString() ?? "";
       try {
-        JSON.parse(payload);
-        await appendToFile(payload);
+        const payload = message.value?.toString();
+        if (!payload) return;
+        const event = JSON.parse(payload);
+        buffer.push(event);
       } catch {
-        console.error("⚠️ Skipped invalid JSON message:", payload);
+        console.error("⚠️ Invalid JSON payload skipped");
       }
     },
   });
@@ -79,3 +65,22 @@ startConsumer().catch((err) => {
   console.error("❌ Consumer crashed:", err);
   process.exit(1);
 });
+
+http
+  .createServer((req, res) => {
+    if (req.url === "/metrics") {
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify(getMetrics(), null, 2));
+    } else if (req.url === "/health") {
+      res.setHeader("content-type", "text/plain");
+      res.end("ok");
+    } else {
+      res.statusCode = 404;
+      res.end("not found");
+    }
+  })
+  .listen(PORT, () => {
+    console.log(
+      `📈 Metrics endpoint listening at http://localhost:${PORT}/metrics`
+    );
+  });
