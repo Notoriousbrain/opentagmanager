@@ -66,7 +66,7 @@ export function DashboardHeader() {
         ) : me.data ? (
           <UserMenu account={{ email: me.data.email, name: me.data.name }} />
         ) : (
-          <Button variant="inverse" onClick={() => router.push("/auth/signin")}>
+          <Button variant="inverse" onClick={() => router.push("/signin")}>
             Sign in
           </Button>
         )}
