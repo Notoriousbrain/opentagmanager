@@ -1,9 +1,13 @@
 {
   "name": "@otm/relay-consumer",
   "version": "0.1.0",
-  "private": false,
+  "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/consumer.ts"
+  },
+  "dependencies": {
+    "kafkajs": "catalog:",
+    "@otm/relay-core": "workspace:*"
   }
 }
