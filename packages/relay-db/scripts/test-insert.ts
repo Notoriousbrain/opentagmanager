@@ -30,5 +30,6 @@ const testEvents: NormalizedEvent[] = [
   },
 ];
 
-await insertBatchToClickhouse(testEvents);
-console.log("✅ Test insert complete");
+insertBatchToClickhouse(testEvents).then(() => {
+  console.log("✅ Test insert complete");
+});
