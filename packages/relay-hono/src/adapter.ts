@@ -7,6 +7,7 @@ import {
   verifyIngressRequest,
   getLimitsFromEnv,
   toHttp,
+  getSecretForKey,
 } from "@otm/relay-core";
 import { Hono } from "hono";
 import { adminRouter } from "./admin";
@@ -29,7 +30,7 @@ relayApp.post("/", async (c) => {
       body: rawBody,
       headers: Object.fromEntries(c.req.raw.headers),
       skewMs: LIMITS.maxSkewMs,
-      getSecretForKey: async () => "test_secret",
+      getSecretForKey: async (key) => await getSecretForKey(key.id),
     });
 
     const projectResolution = await createInMemoryResolver([

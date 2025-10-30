@@ -8,6 +8,8 @@
   },
   "dependencies": {
     "@otm/env": "workspace:*",
-    "kafkajs": "catalog:"
+    "@otm/db": "workspace:",
+    "kafkajs": "catalog:",
+    "drizzle-orm": "catalog:"
   }
 }

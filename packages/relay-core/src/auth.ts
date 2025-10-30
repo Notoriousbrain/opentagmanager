@@ -1,3 +1,6 @@
+import { db } from "@otm/db";
+import { and } from "drizzle-orm";
+
 export interface PublicKeyParts {
   raw: string;
   prefix: "OTM_PK";
@@ -63,5 +66,14 @@ export function maskPublicKey(raw: string): string {
 }
 
 export async function getSecretForKey(projectKeyId: string): Promise<string> {
-  return "test_secret_for_demo";
+  const key = await db.query.apiKey.findFirst({
+    where: (k, { eq, isNull }) =>
+      and(eq(k.id, projectKeyId), isNull(k.revokedAt)),
+  });
+
+  if (!key) {
+    throw new Error(`API key ${projectKeyId} not found or revoked`);
+  }
+
+  return key.keyHash;
 }
