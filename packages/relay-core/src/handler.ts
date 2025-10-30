@@ -3,7 +3,12 @@ import type { IngestBatchInput } from "./schema";
 import type { ProjectInfo } from "./resolve";
 import type { NormalizedEvent, IngestResponse } from "./types";
 import { getLimitsFromEnv } from "./limits";
-import { BadRequestError, PayloadTooLargeError } from "./errors";
+import {
+  BadRequestError,
+  KafkaUnavailableError,
+  PayloadTooLargeError,
+} from "./errors";
+import { sendBatchToKafka } from "./producer";
 
 export async function handleIngestRequest(
   batch: IngestBatchInput,
@@ -32,6 +37,7 @@ export async function handleIngestRequest(
 
   const events: NormalizedEvent[] = [];
   let rejected = 0;
+  const receivedAt = now;
 
   for (const e of batch.events) {
     try {
@@ -40,7 +46,7 @@ export async function handleIngestRequest(
           ? Date.parse(e.timestamp)
           : typeof e.timestamp === "number"
             ? e.timestamp
-            : now;
+            : receivedAt;
 
       if (!Number.isFinite(occurredAt)) throw new Error("invalid timestamp");
 
@@ -66,7 +72,15 @@ export async function handleIngestRequest(
     }
   }
 
-  // Align with IngestResponse type
+  try {
+    await sendBatchToKafka(events);
+  } catch (error) {
+    throw new KafkaUnavailableError("Failed to enqueue Kafka batch", {
+      cause: error,
+      detail: { requestId, count: events.length },
+    });
+  }
+
   return {
     requestId,
     eventsAccepted: events.length,
