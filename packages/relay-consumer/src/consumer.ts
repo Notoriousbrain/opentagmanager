@@ -1,4 +1,32 @@
 import { Kafka } from "kafkajs";
+import { createWriteStream, existsSync, statSync } from "node:fs";
+import { join } from "node:path";
+
+const MAX_FILE_BYTES = 10 * 1024 * 1024; 
+const OUT_DIR = "/tmp";
+const BASE_NAME = "osstag-ingest";
+let currentFile = join(OUT_DIR, `${BASE_NAME}.ndjson`);
+let stream = createWriteStream(currentFile, { flags: "a" });
+
+async function rotateIfNeeded() {
+  if (!existsSync(currentFile)) return;
+
+  const stats = statSync(currentFile);
+  if (stats.size >= MAX_FILE_BYTES) {
+    const rotatedName = join(
+      OUT_DIR,
+      `${BASE_NAME}-${Date.now()}.ndjson`
+    );
+    stream.end();
+    stream = createWriteStream(rotatedName, { flags: "a" });
+    console.log(`🌀 Rotated NDJSON file → ${rotatedName}`);
+  }
+}
+
+async function appendToFile(line: string) {
+  await rotateIfNeeded();
+  stream.write(line + "\n");
+}
 
 async function startConsumer() {
   const brokers = process.env.KAFKA_BROKERS?.split(",") ?? ["localhost:9092"];
@@ -14,14 +42,18 @@ async function startConsumer() {
   await consumer.connect();
   await consumer.subscribe({ topic, fromBeginning: true });
 
-  console.log(
-    `✅ Relay Consumer connected to ${brokers.join(",")} on topic "${topic}"`
-  );
+  console.log(`✅ Relay Consumer connected to ${brokers.join(",")} on topic "${topic}"`);
+  console.log(`📁 Writing NDJSON to ${OUT_DIR}`);
 
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
-      const payload = message.value?.toString() || "";
-      console.log(`📦 [${topic}] ${payload}`);
+      const payload = message.value?.toString() ?? "";
+      try {
+        JSON.parse(payload); 
+        await appendToFile(payload);
+      } catch {
+        console.error("⚠️ Skipped invalid JSON message:", payload);
+      }
     },
   });
 }
