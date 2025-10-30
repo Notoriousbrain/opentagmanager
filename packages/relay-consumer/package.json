@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/consumer.ts"
+    ".": "./src/index.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "catalog:",

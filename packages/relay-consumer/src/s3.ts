@@ -9,7 +9,7 @@ const BUCKET = env.S3_BUCKET!;
 const ACCESS_KEY_ID = env.S3_ACCESS_KEY_ID!;
 const SECRET_ACCESS_KEY = env.S3_SECRET_ACCESS_KEY!;
 
-const s3 = new S3Client({
+export const s3 = new S3Client({
   region: REGION,
   credentials: {
     accessKeyId: ACCESS_KEY_ID,
