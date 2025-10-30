@@ -3,8 +3,10 @@ import { createWriteStream, existsSync, statSync } from "node:fs";
 import { rename, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { uploadToS3 } from "./s3";
+import { insertBatchFromFile } from "@otm/relay-db";
 import { env } from "@otm/env";
 import { getRotatedFilename, DEFAULT_FILE_LIMIT_BYTES } from "@otm/relay-core";
+import { retryWithBackoff } from "@otm/core";
 
 const OUT_DIR = "/tmp";
 const UPLOADED_DIR = join(OUT_DIR, "uploaded");
@@ -24,18 +26,22 @@ async function rotateIfNeeded() {
     stream = createWriteStream(rotatedName, { flags: "a" });
     console.log(`🌀 Rotated NDJSON file → ${rotatedName}`);
 
-    uploadToS3(rotatedName, "demo123").then(async () => {
-      try {
-        await mkdir(UPLOADED_DIR, { recursive: true });
-
-        const destPath = join(UPLOADED_DIR, rotatedName.split("/").pop()!);
-
-        await rename(rotatedName, destPath);
-        console.log(`📦 Moved ${rotatedName} → ${destPath}`);
-      } catch (err) {
-        console.error(`⚠️ Could not move ${rotatedName} after upload:`, err);
-      }
+    await retryWithBackoff(async () => {
+      await uploadToS3(rotatedName, "demo123");
+      const result = await insertBatchFromFile(rotatedName);
+      console.log(
+        `📊 ClickHouse insert complete: ${result.rowsInserted} rows in ${result.durationMs}ms`
+      );
     });
+
+    try {
+      await mkdir(UPLOADED_DIR, { recursive: true });
+      const destPath = join(UPLOADED_DIR, rotatedName.split("/").pop()!);
+      await rename(rotatedName, destPath);
+      console.log(`📦 Moved ${rotatedName} → ${destPath}`);
+    } catch (err) {
+      console.error(`⚠️ Could not move ${rotatedName} after upload:`, err);
+    }
   }
 }
 
@@ -49,6 +55,7 @@ async function startConsumer() {
     Array.isArray(env.KAFKA_BROKERS) && env.KAFKA_BROKERS.length > 0
       ? env.KAFKA_BROKERS
       : (env.KAFKA_BROKERS as unknown as string).split(",").filter(Boolean);
+
   const topic = env.KAFKA_TOPIC_INGEST ?? "osstag.ingest";
 
   const kafka = new Kafka({ clientId: "osstag-consumer", brokers });
