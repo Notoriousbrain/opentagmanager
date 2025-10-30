@@ -1,15 +1,19 @@
 import { Kafka } from "kafkajs";
+import http from "node:http";
 import { env } from "@otm/env";
 import { insertBatchToClickhouse } from "./insert-batch-to-clickhouse";
+import { getMetrics, recordBatchFailure, recordBatchSuccess } from "./metrics";
 
 const FLUSH_INTERVAL_MS = 5000;
 const MAX_BATCH_SIZE = 1000;
 let buffer: any[] = [];
 let lastFlush = Date.now();
+const PORT = process.env.METRICS_PORT ? Number(process.env.METRICS_PORT) : 4100;
 
 async function flushBatch(force = false) {
   const age = Date.now() - lastFlush;
-  if (!force && buffer.length < MAX_BATCH_SIZE && age < FLUSH_INTERVAL_MS) return;
+  if (!force && buffer.length < MAX_BATCH_SIZE && age < FLUSH_INTERVAL_MS)
+    return;
 
   const batch = buffer.splice(0, buffer.length);
   if (batch.length === 0) return;
@@ -18,8 +22,12 @@ async function flushBatch(force = false) {
   try {
     await insertBatchToClickhouse(batch);
     const duration = Date.now() - start;
-    console.log(`✅ Flushed ${batch.length} events → ClickHouse in ${duration}ms`);
+    recordBatchSuccess(batch.length, duration);
+    console.log(
+      `✅ Flushed ${batch.length} events → ClickHouse in ${duration}ms`
+    );
   } catch (err) {
+    recordBatchFailure();
     console.error(`⚠️ Failed to insert batch (${batch.length} events):`, err);
   } finally {
     lastFlush = Date.now();
@@ -57,3 +65,22 @@ startConsumer().catch((err) => {
   console.error("❌ Consumer crashed:", err);
   process.exit(1);
 });
+
+http
+  .createServer((req, res) => {
+    if (req.url === "/metrics") {
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify(getMetrics(), null, 2));
+    } else if (req.url === "/health") {
+      res.setHeader("content-type", "text/plain");
+      res.end("ok");
+    } else {
+      res.statusCode = 404;
+      res.end("not found");
+    }
+  })
+  .listen(PORT, () => {
+    console.log(
+      `📈 Metrics endpoint listening at http://localhost:${PORT}/metrics`
+    );
+  });
