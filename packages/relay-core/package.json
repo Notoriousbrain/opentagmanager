@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "@otm/env": "workspace:*",
-    "kafkajs": "^2.2.4"
+    "kafkajs": "catalog:"
   }
 }
