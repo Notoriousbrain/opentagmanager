@@ -15,26 +15,48 @@ const s3 = new S3Client({
   },
 });
 
-/**
- * Upload a rotated NDJSON file to S3.
- * @param filePath Local path to NDJSON file (e.g. /tmp/osstag-ingest-<ts>.ndjson)
- * @param prefix Optional prefix (e.g. "raw/2025/10/30/")
- */
-export async function uploadToS3(filePath: string, prefix = ""): Promise<void> {
-  try {
-    const fileData = await readFile(filePath);
-    const key = `${prefix}${basename(filePath)}`;
+function buildS3Key(filePath: string, projectId?: string) {
+  const date = new Date();
+  const yyyy = date.getUTCFullYear();
+  const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(date.getUTCDate()).padStart(2, "0");
+  const base = basename(filePath);
+  const prefix = projectId
+    ? `ingest/${projectId}/${yyyy}/${mm}/${dd}`
+    : `ingest/${yyyy}/${mm}/${dd}`;
+  return `${prefix}/${base}`;
+}
 
-    const command = new PutObjectCommand({
-      Bucket: BUCKET,
-      Key: key,
-      Body: fileData,
-      ContentType: "application/x-ndjson",
-    });
+export async function uploadToS3(
+  filePath: string,
+  projectId?: string,
+  maxRetries = 3
+): Promise<void> {
+  const key = buildS3Key(filePath, projectId);
 
-    await s3.send(command);
-    console.log(`☁️ Uploaded ${filePath} → s3://${BUCKET}/${key}`);
-  } catch (err) {
-    console.error("❌ Failed to upload to S3:", err);
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const fileData = await readFile(filePath);
+      const command = new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+        Body: fileData,
+        ContentType: "application/x-ndjson",
+      });
+
+      await s3.send(command);
+      console.log(`☁️ Uploaded ${filePath} → s3://${BUCKET}/${key}`);
+      return;
+    } catch (err) {
+      const wait = attempt * 1000;
+      console.error(
+        `❌ Upload attempt ${attempt} failed (${err}), retrying in ${wait}ms...`
+      );
+      await new Promise((res) => setTimeout(res, wait));
+    }
   }
+
+  console.error(
+    `🚨 Failed to upload ${filePath} after ${maxRetries} attempts.`
+  );
 }

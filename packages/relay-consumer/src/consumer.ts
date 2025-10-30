@@ -19,15 +19,12 @@ async function rotateIfNeeded() {
   if (stats.size >= MAX_FILE_BYTES) {
     const rotatedName = join(OUT_DIR, `${BASE_NAME}-${Date.now()}.ndjson`);
 
-    // close and rotate
     stream.end();
     stream = createWriteStream(rotatedName, { flags: "a" });
     console.log(`🌀 Rotated NDJSON file → ${rotatedName}`);
 
-    // async upload
-    uploadToS3(rotatedName).then(async () => {
+    uploadToS3(rotatedName, "demo123").then(async () => {
       try {
-        // ensure /tmp/uploaded exists
         await mkdir(UPLOADED_DIR, { recursive: true });
 
         const destPath = join(UPLOADED_DIR, rotatedName.split("/").pop()!);
