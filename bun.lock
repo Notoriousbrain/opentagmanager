@@ -204,6 +204,7 @@
         "@otm/relay-consumer": "workspace:*",
         "@otm/relay-core": "workspace:*",
         "@otm/relay-db": "workspace:*",
+        "drizzle-orm": "catalog:",
         "hono": "catalog:",
       },
     },
