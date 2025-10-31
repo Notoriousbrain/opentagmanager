@@ -1,6 +1,10 @@
+version: "3.9"
+
 services:
   db:
     image: bitnami/postgresql:15
+    container_name: osstag_postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: otm
       POSTGRES_PASSWORD: omguseotm
@@ -16,13 +20,11 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
-    restart: unless-stopped
 
   kafka:
     image: confluentinc/cp-kafka:7.6.0
-    container_name: kafka
-    ports:
-      - "9092:9092"
+    container_name: osstag_kafka
+    restart: unless-stopped
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
@@ -34,26 +36,34 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       CLUSTER_ID: NmRkZDMyMjE4NDM3NGM4Mz
+      KAFKA_HEAP_OPTS: "-Xmx512M -Xms256M"
+    ports:
+      - "9092:9092"
+      - "9093:9093"
     volumes:
       - kafka_data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "kafka-topics --bootstrap-server localhost:9092 --list || exit 1",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
 
   clickhouse:
-    image: clickhouse/clickhouse-server:latest
-    container_name: clickhouse
-    ports:
-      - "8123:8123" 
-      - "9000:9000" 
+    image: clickhouse/clickhouse-server:24.8-alpine
+    container_name: osstag_clickhouse
+    restart: unless-stopped
     environment:
       CLICKHOUSE_DB: osstag
       CLICKHOUSE_USER: default
       CLICKHOUSE_PASSWORD: ""
       CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    ports:
+      - "8123:8123"
+      - "9000:9000"
     volumes:
       - clickhouse_data:/var/lib/clickhouse
     healthcheck:
@@ -61,7 +71,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
 
 volumes:
   pgdata:
