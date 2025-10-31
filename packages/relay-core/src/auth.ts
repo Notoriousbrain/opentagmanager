@@ -65,14 +65,19 @@ export function maskPublicKey(raw: string): string {
   return `${s.slice(0, keep)}***${s.slice(-keep)}`;
 }
 
-export async function getSecretForKey(projectKeyId: string): Promise<string> {
+export async function getSecretForKey(
+  projectKeyId: string
+): Promise<string | null> {
+  const fullId = projectKeyId.startsWith("OTM_PK_") ? projectKeyId : `OTM_PK_${projectKeyId}`;
+
   const key = await db.query.apiKey.findFirst({
-    where: (k, { eq, isNull }) =>
-      and(eq(k.id, projectKeyId), isNull(k.revokedAt)),
+    where: (k, { eq, and, isNull }) =>
+      and(eq(k.id, fullId), isNull(k.revokedAt)),
   });
 
   if (!key) {
-    throw new Error(`API key ${projectKeyId} not found or revoked`);
+    console.warn("🔍 API key not found in DB:", fullId);
+    return null;
   }
 
   return key.keyHash;

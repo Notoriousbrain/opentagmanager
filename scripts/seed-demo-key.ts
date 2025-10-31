@@ -38,7 +38,7 @@ async function main() {
     .onConflictDoNothing();
 
   // 4️⃣ Seed demo API key
-  const id = "OTM_PK_demo1234567890";
+  const id = "OTM_PK_demo1234567890abcd";
   const keyHash = randomBytes(16).toString("hex");
 
   await db.insert(schema.apiKey).values({
