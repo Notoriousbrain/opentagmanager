@@ -13,9 +13,30 @@ import { adminRouter } from "./admin";
 import { db, schema } from "@otm/db";
 import { eq } from "drizzle-orm";
 
+const metrics = {
+  requests: 0,
+  lastRequestAt: null as string | null,
+  acceptedBatches: 0,
+  acceptedEvents: 0,
+  lastAcceptedAt: null as string | null,
+};
+
 const LIMITS = getLimitsFromEnv();
 
 export const relayApp = new Hono();
+
+relayApp.get("/health", (c) => c.text("ok"));
+
+relayApp.get("/metrics", (c) =>
+  c.json({
+    uptimeSeconds: process.uptime(),
+    requests: metrics.requests,
+    acceptedBatches: metrics.acceptedBatches,
+    acceptedEvents: metrics.acceptedEvents,
+    lastRequestAt: metrics.lastRequestAt,
+    lastAcceptedAt: metrics.lastAcceptedAt,
+  })
+);
 
 relayApp.get("/ping", (c) => c.text("pong 🏓"));
 
