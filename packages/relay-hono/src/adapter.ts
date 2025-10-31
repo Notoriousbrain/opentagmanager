@@ -1,6 +1,5 @@
 import {
   assertActiveProject,
-  createInMemoryResolver,
   enforceRateLimitOrThrow,
   handleIngestRequest,
   makeIngestBatchSchema,
@@ -11,10 +10,33 @@ import {
 } from "@otm/relay-core";
 import { Hono } from "hono";
 import { adminRouter } from "./admin";
+import { db, schema } from "@otm/db";
+import { eq } from "drizzle-orm";
+
+const metrics = {
+  requests: 0,
+  lastRequestAt: null as string | null,
+  acceptedBatches: 0,
+  acceptedEvents: 0,
+  lastAcceptedAt: null as string | null,
+};
 
 const LIMITS = getLimitsFromEnv();
 
 export const relayApp = new Hono();
+
+relayApp.get("/health", (c) => c.text("ok"));
+
+relayApp.get("/metrics", (c) =>
+  c.json({
+    uptimeSeconds: process.uptime(),
+    requests: metrics.requests,
+    acceptedBatches: metrics.acceptedBatches,
+    acceptedEvents: metrics.acceptedEvents,
+    lastRequestAt: metrics.lastRequestAt,
+    lastAcceptedAt: metrics.lastAcceptedAt,
+  })
+);
 
 relayApp.get("/ping", (c) => c.text("pong 🏓"));
 
@@ -33,12 +55,32 @@ relayApp.post("/", async (c) => {
       getSecretForKey: (key) => getSecretForKeyById(key.id),
     });
 
-    const projectResolution = await createInMemoryResolver([
-      {
-        id: "demo123",
-        info: { projectId: "demo123", status: "active" },
+    const apiKeyRecord = await db.query.apiKey.findFirst({
+      where: eq(schema.apiKey.id, verifyResult.key.raw),
+    });
+    if (!apiKeyRecord) {
+      throw new Error("API key not found");
+    }
+
+    const projectRecord = await db.query.project.findFirst({
+      where: eq(schema.project.id, apiKeyRecord.projectId),
+    });
+    if (!projectRecord) {
+      throw new Error("Project not found for API key");
+    }
+
+    const projectResolution = {
+      ok: true,
+      project: {
+        projectId: projectRecord.id,
+        tenantId: null,
+        status:
+          projectRecord.status === "archived"
+            ? "revoked"
+            : projectRecord.status,
       },
-    ])(verifyResult.key);
+    } as const;
+
     assertActiveProject(projectResolution);
 
     await enforceRateLimitOrThrow({

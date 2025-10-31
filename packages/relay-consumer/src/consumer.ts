@@ -8,7 +8,7 @@ const FLUSH_INTERVAL_MS = 5000;
 const MAX_BATCH_SIZE = 1000;
 let buffer: any[] = [];
 let lastFlush = Date.now();
-const PORT = process.env.METRICS_PORT ? Number(process.env.METRICS_PORT) : 4100;
+const PORT = process.env.METRICS_PORT ? Number(process.env.METRICS_PORT) : 4101;
 
 async function flushBatch(force = false) {
   const age = Date.now() - lastFlush;
@@ -20,6 +20,7 @@ async function flushBatch(force = false) {
 
   const start = Date.now();
   try {
+    console.log("🧩 Inserting batch into ClickHouse:", batch.length);
     await insertBatchToClickhouse(batch);
     const duration = Date.now() - start;
     recordBatchSuccess(batch.length, duration);
@@ -37,7 +38,10 @@ async function flushBatch(force = false) {
 async function startConsumer() {
   const brokersEnv = process.env.KAFKA_BROKERS;
   const brokers = brokersEnv
-    ? brokersEnv.split(",").map((s) => s.trim()).filter(Boolean)
+    ? brokersEnv
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
     : ["localhost:9092"];
   const topic = env.KAFKA_TOPIC_INGEST ?? "osstag.ingest";
 
@@ -56,6 +60,7 @@ async function startConsumer() {
         const payload = message.value?.toString();
         if (!payload) return;
         const event = JSON.parse(payload);
+        console.log("📥 Consumed event from Kafka:", event);
         buffer.push(event);
       } catch {
         console.error("⚠️ Invalid JSON payload skipped");
@@ -69,21 +74,23 @@ startConsumer().catch((err) => {
   process.exit(1);
 });
 
-http
-  .createServer((req, res) => {
-    if (req.url === "/metrics") {
-      res.setHeader("content-type", "application/json");
-      res.end(JSON.stringify(getMetrics(), null, 2));
-    } else if (req.url === "/health") {
-      res.setHeader("content-type", "text/plain");
-      res.end("ok");
-    } else {
-      res.statusCode = 404;
-      res.end("not found");
-    }
-  })
-  .listen(PORT, () => {
-    console.log(
-      `📈 Metrics endpoint listening at http://localhost:${PORT}/metrics`
-    );
-  });
+if (import.meta.main) {
+  http
+    .createServer((req, res) => {
+      if (req.url === "/metrics") {
+        res.setHeader("content-type", "application/json");
+        res.end(JSON.stringify(getMetrics(), null, 2));
+      } else if (req.url === "/health") {
+        res.setHeader("content-type", "text/plain");
+        res.end("ok");
+      } else {
+        res.statusCode = 404;
+        res.end("not found");
+      }
+    })
+    .listen(PORT, () => {
+      console.log(
+        `📈 Metrics endpoint listening at http://localhost:${PORT}/metrics`
+      );
+    });
+}

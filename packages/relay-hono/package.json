@@ -11,6 +11,7 @@
     "@otm/relay-core": "workspace:*",
     "hono": "catalog:",
     "@otm/relay-db": "workspace:*",
-    "@otm/relay-consumer": "workspace:*"
+    "@otm/relay-consumer": "workspace:*",
+    "drizzle-orm": "catalog:"
   }
 }

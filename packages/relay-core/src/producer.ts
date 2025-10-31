@@ -7,7 +7,10 @@ const {
   KAFKA_SASL_USERNAME,
   KAFKA_SASL_PASSWORD,
   KAFKA_SASL_MECHANISM,
+  KAFKA_SASL_ENABLED,
   KAFKA_TOPIC_INGEST,
+  KAFKA_CLIENT_ID,
+  KAFKA_SSL,
 } = process.env;
 
 let producer: Producer | null = null;
@@ -21,16 +24,22 @@ export async function getKafkaProducer(): Promise<Producer> {
     });
   }
 
+  const saslEnabled = KAFKA_SASL_ENABLED === "true";
+
   try {
     const kafka = new Kafka({
-      clientId: "osstag-relay",
+      clientId: KAFKA_CLIENT_ID,
       brokers: KAFKA_BROKERS.split(","),
-      ssl: true,
-      sasl: {
-        mechanism: (KAFKA_SASL_MECHANISM ?? "scram-sha-512") as any,
-        username: KAFKA_SASL_USERNAME ?? "",
-        password: KAFKA_SASL_PASSWORD ?? "",
-      },
+      ssl: KAFKA_SSL === "true",
+      ...(saslEnabled
+        ? {
+            sasl: {
+              mechanism: (KAFKA_SASL_MECHANISM ?? "scram-sha-512") as any,
+              username: KAFKA_SASL_USERNAME ?? "",
+              password: KAFKA_SASL_PASSWORD ?? "",
+            },
+          }
+        : {}),
       logLevel: logLevel.ERROR,
     });
 
