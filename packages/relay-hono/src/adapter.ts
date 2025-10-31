@@ -22,12 +22,9 @@ relayApp.get("/ping", (c) => c.text("pong 🏓"));
 relayApp.post("/", async (c) => {
   try {
     const rawBody = await c.req.text();
-    console.log("📥 Raw body:", rawBody);
     const json = JSON.parse(rawBody);
     const ip = c.req.header("x-forwarded-for") ?? "unknown";
-    console.log("🌐 IP:", ip);
 
-    console.log("🔍 Headers:", Object.fromEntries(c.req.raw.headers));
     const verifyResult = await verifyIngressRequest({
       method: c.req.method,
       path: c.req.path,
@@ -37,26 +34,17 @@ relayApp.post("/", async (c) => {
       getSecretForKey: (key) => getSecretForKeyById(key.id),
     });
 
-    console.log("✅ verifyResult:", verifyResult);
-
     const apiKeyRecord = await db.query.apiKey.findFirst({
       where: eq(schema.apiKey.id, verifyResult.key.raw),
     });
-    console.log("🔑 apiKeyRecord:", apiKeyRecord);
     if (!apiKeyRecord) {
-      console.error("❌ API key not found for:", verifyResult.key.raw);
       throw new Error("API key not found");
     }
 
     const projectRecord = await db.query.project.findFirst({
       where: eq(schema.project.id, apiKeyRecord.projectId),
     });
-    console.log("🏗️ projectRecord:", projectRecord);
     if (!projectRecord) {
-      console.error(
-        "❌ Project not found for API key:",
-        apiKeyRecord.projectId
-      );
       throw new Error("Project not found for API key");
     }
 
@@ -71,8 +59,6 @@ relayApp.post("/", async (c) => {
             : projectRecord.status,
       },
     } as const;
-
-    console.log("✅ projectResolution:", projectResolution);
 
     assertActiveProject(projectResolution);
 
@@ -92,11 +78,8 @@ relayApp.post("/", async (c) => {
       maxSkewMs: LIMITS.maxSkewMs,
     });
     const batch = batchSchema.parse(json);
-    console.log("📦 batch:", batch);
 
     const result = await handleIngestRequest(batch, projectResolution.project);
-
-    console.log("✅ Final result:", result);
 
     return c.json(
       {

@@ -20,6 +20,7 @@ async function flushBatch(force = false) {
 
   const start = Date.now();
   try {
+    console.log("🧩 Inserting batch into ClickHouse:", batch.length);
     await insertBatchToClickhouse(batch);
     const duration = Date.now() - start;
     recordBatchSuccess(batch.length, duration);
@@ -59,6 +60,7 @@ async function startConsumer() {
         const payload = message.value?.toString();
         if (!payload) return;
         const event = JSON.parse(payload);
+        console.log("📥 Consumed event from Kafka:", event);
         buffer.push(event);
       } catch {
         console.error("⚠️ Invalid JSON payload skipped");
