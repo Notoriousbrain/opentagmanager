@@ -182,7 +182,9 @@
       "name": "@otm/relay-core",
       "version": "0.1.0",
       "dependencies": {
+        "@otm/db": "workspace:",
         "@otm/env": "workspace:*",
+        "drizzle-orm": "catalog:",
         "kafkajs": "catalog:",
       },
     },

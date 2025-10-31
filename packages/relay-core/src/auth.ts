@@ -1,3 +1,6 @@
+import { db } from "@otm/db";
+import { and } from "drizzle-orm";
+
 export interface PublicKeyParts {
   raw: string;
   prefix: "OTM_PK";
@@ -62,6 +65,20 @@ export function maskPublicKey(raw: string): string {
   return `${s.slice(0, keep)}***${s.slice(-keep)}`;
 }
 
-export async function getSecretForKey(projectKeyId: string): Promise<string> {
-  return "test_secret_for_demo";
+export async function getSecretForKey(
+  projectKeyId: string
+): Promise<string | null> {
+  const fullId = projectKeyId.startsWith("OTM_PK_") ? projectKeyId : `OTM_PK_${projectKeyId}`;
+
+  const key = await db.query.apiKey.findFirst({
+    where: (k, { eq, and, isNull }) =>
+      and(eq(k.id, fullId), isNull(k.revokedAt)),
+  });
+
+  if (!key) {
+    console.warn("🔍 API key not found in DB:", fullId);
+    return null;
+  }
+
+  return key.keyHash;
 }
