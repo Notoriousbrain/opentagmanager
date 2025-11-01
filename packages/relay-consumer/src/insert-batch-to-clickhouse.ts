@@ -1,6 +1,6 @@
 import { getClickhouseClient } from "@otm/relay-db";
-import type { NormalizedEvent } from "@otm/relay-core";
-import { retryWithBackoff } from "@otm/core";
+import { UpstreamUnavailableError, type NormalizedEvent } from "@otm/relay-core";
+import { retryIfRetryable } from "@otm/relay-core";
 
 export async function insertBatchToClickhouse(
   events: NormalizedEvent[]
@@ -29,15 +29,30 @@ export async function insertBatchToClickhouse(
     request_id: e.requestId,
   }));
 
-  await retryWithBackoff(
+  await retryIfRetryable(
     async () => {
-      await client.insert({
-        table: "events_raw",
-        values: rows,
-        format: "JSONEachRow",
-      });
+      try {
+        await client.insert({
+          table: "events_raw",
+          values: rows,
+          format: "JSONEachRow",
+        });
+      } catch (err) {
+        throw new UpstreamUnavailableError("ClickHouse insert failed", {
+          cause: err,
+          detail: { count: rows.length },
+        });
+      }
     },
-    { attempts: 3, baseDelayMs: 1000 }
+    {
+      attempts: 3,
+      baseDelayMs: 500,
+      onRetry: (err, i, delay) => {
+        console.warn(
+          `⚠️ ClickHouse retry #${i} after ${delay}ms → ${(err as Error).message}`
+        );
+      },
+    }
   );
 
   console.log(`📊 Inserted ${rows.length} events into ClickHouse`);

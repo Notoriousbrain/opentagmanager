@@ -3,6 +3,7 @@ import type { IngestBatchInput } from "./schema";
 import type { ProjectInfo } from "./resolve";
 import type { NormalizedEvent, IngestResponse } from "./types";
 import { getLimitsFromEnv } from "./limits";
+import { retryIfRetryable } from "./retry";
 import {
   BadRequestError,
   KafkaUnavailableError,
@@ -72,14 +73,19 @@ export async function handleIngestRequest(
     }
   }
 
-  try {
-    await sendBatchToKafka(events);
-  } catch (error) {
-    throw new KafkaUnavailableError("Failed to enqueue Kafka batch", {
-      cause: error,
-      detail: { requestId, count: events.length },
-    });
-  }
+  await retryIfRetryable(
+    async () => {
+      try {
+        await sendBatchToKafka(events);
+      } catch (error) {
+        throw new KafkaUnavailableError("Failed to enqueue Kafka batch", {
+          cause: error,
+          detail: { requestId, count: events.length },
+        });
+      }
+    },
+    { attempts: 3, baseDelayMs: 500 }
+  );
 
   return {
     requestId,
