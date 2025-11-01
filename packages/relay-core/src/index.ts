@@ -15,3 +15,4 @@ export * from "./dlq";
 export * from "./replay-dlq";
 export * from "./logger";
 export * from "./trace"
+export * from "./log-writer"

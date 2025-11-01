@@ -1,28 +1,13 @@
+import { writeLogLine } from "./log-writer";
 export type LogLevel = "info" | "warn" | "error" | "debug";
 
-function write(level: LogLevel, module: string, msg: string, extra?: Record<string, unknown>) {
-  const log = {
-    level,
-    ts: new Date().toISOString(),
-    module,
-    msg,
-    ...(extra ?? {}),
-  };
-  console.log(JSON.stringify(log));
+function emit(level: LogLevel, msg: string, data?: Record<string, unknown>) {
+  writeLogLine({ level, msg, ...data });
 }
 
 export const logger = {
-  info: (m: string, e?: Record<string, unknown>) => write("info", inferModule(), m, e),
-  warn: (m: string, e?: Record<string, unknown>) => write("warn", inferModule(), m, e),
-  error: (m: string, e?: Record<string, unknown>) => write("error", inferModule(), m, e),
-  debug: (m: string, e?: Record<string, unknown>) => {
-    if (process.env.DEBUG === "true") write("debug", inferModule(), m, e);
-  },
+  debug: (msg: string, data?: Record<string, unknown>) => emit("debug", msg, data),
+  info: (msg: string, data?: Record<string, unknown>) => emit("info", msg, data),
+  warn: (msg: string, data?: Record<string, unknown>) => emit("warn", msg, data),
+  error: (msg: string, data?: Record<string, unknown>) => emit("error", msg, data),
 };
-
-function inferModule(): string {
-  const err = new Error().stack?.split("\n")[3] ?? "";
-  const match = err.match(/at (.*) \((.*):\d+:\d+\)/);
-  const file = match?.[2]?.split("/").slice(-2).join("/") ?? "unknown";
-  return file.replace(/\.js$/, "");
-}
