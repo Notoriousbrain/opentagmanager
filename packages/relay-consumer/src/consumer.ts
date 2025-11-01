@@ -5,7 +5,10 @@ import { insertBatchToClickhouse } from "./insert-batch-to-clickhouse";
 import { getMetrics, recordBatchFailure, recordBatchSuccess } from "./metrics";
 import { env } from "@otm/env";
 import {
+  emitTelemetryLog,
+  logger,
   retryIfRetryable,
+  traceScope,
   UpstreamUnavailableError,
   writeToDLQ,
 } from "@otm/relay-core";
@@ -28,7 +31,7 @@ async function flushBatch(force = false) {
 
   const start = Date.now();
   try {
-    console.log("🧩 Inserting batch into ClickHouse:", batch.length);
+    logger.info("Inserting batch into ClickHouse", { count: batch.length });
     await retryIfRetryable(
       async () => {
         try {
@@ -48,18 +51,26 @@ async function flushBatch(force = false) {
 
     const duration = Date.now() - start;
     recordBatchSuccess(batch.length, duration);
-    console.log(
-      `✅ Flushed ${batch.length} events → ClickHouse in ${duration}ms`
+    logger.info(
+      "Flushing batch to ClickHouse",
+      traceScope("no-trace", {
+        batchSize: batch.length,
+      })
     );
   } catch (err) {
     recordBatchFailure();
-    console.error(`⚠️ Failed to insert batch (${batch.length} events):`, err);
+    logger.error("Failed to insert batch", {
+      count: batch.length,
+      error: (err as Error).message,
+    });
 
     try {
       const projectId = batch[0]?.projectId ?? "unknown_project";
       writeToDLQ(projectId, batch, err);
     } catch (dlqErr) {
-      console.error("❌ Failed to write batch to DLQ:", dlqErr);
+      logger.error("Failed to write batch to DLQ", {
+        error: (dlqErr as Error).message,
+      });
     }
   } finally {
     lastFlush = Date.now();
@@ -78,19 +89,22 @@ async function startConsumer() {
 
   const kafka = new Kafka({ clientId: "osstag-consumer", brokers });
   const consumer = kafka.consumer({
-    groupId: `osstag-relay-group-${process.pid}`, // unique per process
-    heartbeatInterval: 5000, // increase from default (3s)
-    sessionTimeout: 30000, // allows longer ClickHouse flushes
+    groupId: `osstag-relay-group-${process.pid}`,
+    heartbeatInterval: 5000,
+    sessionTimeout: 30000,
   });
 
-  console.log(
-    `⚙️ Relay consumer config → batchSize=${MAX_BATCH_SIZE}, flushInterval=${FLUSH_INTERVAL_MS}ms, retries=${MAX_RETRY_ATTEMPTS}`
-  );
+  logger.info("Relay consumer config", {
+    batchSize: MAX_BATCH_SIZE,
+    flushInterval: FLUSH_INTERVAL_MS,
+    retries: MAX_RETRY_ATTEMPTS,
+  });
 
   await consumer.connect();
   await consumer.subscribe({ topic, fromBeginning: false });
+  emitTelemetryLog(30000);
 
-  console.log(`✅ Consumer connected → ${topic}`);
+  logger.info("Consumer connected", { topic });
   setInterval(() => flushBatch(), 1000);
 
   await consumer.run({
@@ -99,27 +113,38 @@ async function startConsumer() {
         const payload = message.value?.toString();
         if (!payload) return;
         const event = JSON.parse(payload);
-        console.log("📥 Consumed event from Kafka:", event);
+        const traceId = event.traceId ?? "no-trace";
+        logger.info(
+          "Consumed event from Kafka",
+          traceScope(traceId, {
+            projectId: event.projectId,
+            type: event.type,
+          })
+        );
         buffer.push(event);
-      } catch {
-        console.error("⚠️ Invalid JSON payload skipped");
+      } catch (err) {
+        logger.warn("Invalid JSON payload skipped", {
+          error: (err as Error).message,
+        });
       }
     },
   });
 }
 
 startConsumer().catch((err) => {
-  console.error("❌ Consumer crashed:", err);
+  logger.error("Consumer crashed", { error: (err as Error).message });
   process.exit(1);
 });
 
 async function gracefulShutdown() {
-  console.log("\n🛑 Received shutdown signal — flushing remaining buffer...");
+  logger.warn("Received shutdown signal", { action: "flushing buffer" });
   try {
     await flushBatch(true);
-    console.log("✅ Graceful shutdown complete. All pending events flushed.");
+    logger.info("Graceful shutdown complete");
   } catch (err) {
-    console.error("⚠️ Error during graceful shutdown flush:", err);
+    logger.error("Error during graceful shutdown", {
+      error: (err as Error).message,
+    });
   } finally {
     process.exit(0);
   }
@@ -143,8 +168,6 @@ if (import.meta.main) {
       }
     })
     .listen(PORT, () => {
-      console.log(
-        `📈 Metrics endpoint listening at http://localhost:${PORT}/metrics`
-      );
+      logger.info("Metrics endpoint listening", { port: PORT });
     });
 }

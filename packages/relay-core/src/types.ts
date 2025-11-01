@@ -20,6 +20,8 @@ export interface NormalizedEvent {
   type: string;
   data: unknown;
 
+   traceId?: string;
+
   occurredAt?: MsTimestamp | null;
   receivedAt: MsTimestamp;
 

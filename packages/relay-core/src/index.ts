@@ -10,6 +10,10 @@ export * from "./ratelimit";
 export * from "./ratelimit-mw";
 export * from "./handler";
 export * from "./files";
-export * from "./retry"
-export * from "./dlq"
-export * from "./replay-dlq"
+export * from "./retry";
+export * from "./dlq";
+export * from "./replay-dlq";
+export * from "./logger";
+export * from "./trace"
+export * from "./log-writer"
+export * from "./telemetry"

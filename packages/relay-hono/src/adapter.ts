@@ -8,12 +8,17 @@ import {
   toHttp,
   getSecretForKey as getSecretForKeyById,
   replayAllDLQ,
+  logger,
+  createTraceId,
+  traceScope,
+  collectTelemetry,
 } from "@otm/relay-core";
 import { Hono } from "hono";
 import { adminRouter } from "./admin";
 import { db, schema } from "@otm/db";
 import { eq } from "drizzle-orm";
 import { getRelayHealth } from "./health";
+import { formatPrometheusMetrics } from "./metrics-prom";
 
 export const metrics = {
   requests: 0,
@@ -55,6 +60,12 @@ relayApp.get("/metrics", (c) =>
   })
 );
 
+relayApp.get("/metrics/prom", (c) => {
+  const body = formatPrometheusMetrics();
+  c.header("content-type", "text/plain; version=0.0.4");
+  return c.body(body);
+});
+
 relayApp.get("/admin/replay", async (c) => {
   const auth = c.req.header("x-admin-key");
   if (auth !== process.env.RELAY_ADMIN_KEY) {
@@ -63,9 +74,10 @@ relayApp.get("/admin/replay", async (c) => {
 
   try {
     const result = await replayAllDLQ();
+    logger.info("DLQ replay completed", { result });
     return c.json({ status: "ok", ...result });
   } catch (err) {
-    console.error("❌ Replay failed:", err);
+    logger.error("DLQ replay failed", { error: (err as Error).message });
     return c.json(
       { error: "replay_failed", detail: (err as Error).message },
       500
@@ -73,13 +85,29 @@ relayApp.get("/admin/replay", async (c) => {
   }
 });
 
+relayApp.get("/telemetry", async (c) => {
+  const snapshot = await collectTelemetry();
+  return c.json(snapshot);
+});
+
 relayApp.get("/ping", (c) => c.text("pong 🏓"));
 
 relayApp.post("/", async (c) => {
   try {
+    const traceId = createTraceId();
+
     const rawBody = await c.req.text();
     const json = JSON.parse(rawBody);
     const ip = c.req.header("x-forwarded-for") ?? "unknown";
+
+    logger.info(
+      "Incoming ingest request",
+      traceScope(traceId, {
+        method: c.req.method,
+        path: c.req.path,
+        ip,
+      })
+    );
 
     const verifyResult = await verifyIngressRequest({
       method: c.req.method,
@@ -137,6 +165,19 @@ relayApp.post("/", async (c) => {
 
     const result = await handleIngestRequest(batch, projectResolution.project);
 
+    metrics.acceptedBatches++;
+    metrics.acceptedEvents += result.eventsAccepted;
+    metrics.lastAcceptedAt = new Date().toISOString();
+
+    logger.info(
+      "Accepted ingest batch",
+      traceScope(traceId, {
+        requestId: result.requestId,
+        projectId: projectResolution.project.projectId,
+        events: result.eventsAccepted,
+      })
+    );
+
     return c.json(
       {
         status: "accepted",
@@ -148,7 +189,7 @@ relayApp.post("/", async (c) => {
       200
     );
   } catch (err) {
-    console.error("Ingress error:", err);
+    logger.error("Ingress error", { error: (err as Error).message });
     const { status, body } = toHttp(err);
     return c.json(body, status);
   }

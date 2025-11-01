@@ -1,3 +1,5 @@
+import { logger } from "@otm/relay-core";
+
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   opts: { attempts?: number; baseDelayMs?: number } = {}
@@ -10,7 +12,7 @@ export async function retryWithBackoff<T>(
     } catch (err) {
       if (i === attempts - 1) throw err;
       const delay = baseDelayMs * Math.pow(2, i);
-      console.warn(`⚠️ Attempt ${i + 1} failed, retrying in ${delay}ms...`);
+     logger.warn("Retrying operation", { attempt: i + 1, delay });
       await new Promise((res) => setTimeout(res, delay));
     }
   }

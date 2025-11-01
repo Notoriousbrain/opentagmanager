@@ -2,6 +2,8 @@ import { Kafka, logLevel, type Producer } from "kafkajs";
 import { KafkaUnavailableError } from "./errors";
 import type { NormalizedEvent } from "./types";
 import { env } from "@otm/env";
+import { logger } from "./logger";
+import { traceScope } from "./trace";
 
 const {
   KAFKA_BROKERS,
@@ -12,7 +14,7 @@ const {
   KAFKA_TOPIC_INGEST,
   KAFKA_CLIENT_ID,
   KAFKA_SSL,
-} = process.env
+} = process.env;
 
 let producer: Producer | null = null;
 
@@ -58,7 +60,8 @@ export async function getKafkaProducer(): Promise<Producer> {
 }
 
 export async function sendBatchToKafka(
-  events: NormalizedEvent[]
+  events: NormalizedEvent[],
+  traceId?: string
 ): Promise<void> {
   if (!events.length) return;
 
@@ -66,7 +69,7 @@ export async function sendBatchToKafka(
   const producer = await getKafkaProducer();
 
   try {
-    console.log("🚀 Kafka send debug:", { topic, KAFKA_BROKERS });
+    logger.debug("Kafka send", { topic, brokers: KAFKA_BROKERS });
 
     await producer.send({
       topic,
@@ -75,6 +78,13 @@ export async function sendBatchToKafka(
         value: JSON.stringify(event),
       })),
     });
+    logger.info(
+      "Enqueued events to Kafka",
+      traceScope(traceId ?? "no-trace", {
+        topic,
+        count: events.length,
+      })
+    );
   } catch (err) {
     throw new KafkaUnavailableError("Failed to send batch to Kafka", {
       cause: err,
