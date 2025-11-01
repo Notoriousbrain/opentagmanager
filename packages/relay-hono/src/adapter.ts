@@ -13,6 +13,7 @@ import { Hono } from "hono";
 import { adminRouter } from "./admin";
 import { db, schema } from "@otm/db";
 import { eq } from "drizzle-orm";
+import { getRelayHealth } from "./health";
 
 export const metrics = {
   requests: 0,
@@ -23,13 +24,22 @@ export const metrics = {
   dlqWrites: 0,
   replays: 0,
   cleaned: 0,
+  uptimeStart: Date.now(),
 };
 
 const LIMITS = getLimitsFromEnv();
 
 export const relayApp = new Hono();
 
-relayApp.get("/health", (c) => c.text("ok"));
+relayApp.get("/health", async (c) => {
+  const health = await getRelayHealth();
+  return c.json({ status: health.status });
+});
+
+relayApp.get("/status", async (c) => {
+  const health = await getRelayHealth();
+  return c.json(health);
+});
 
 relayApp.get("/metrics", (c) =>
   c.json({
