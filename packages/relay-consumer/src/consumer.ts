@@ -7,6 +7,7 @@ import { env } from "@otm/env";
 import {
   logger,
   retryIfRetryable,
+  traceScope,
   UpstreamUnavailableError,
   writeToDLQ,
 } from "@otm/relay-core";
@@ -49,10 +50,12 @@ async function flushBatch(force = false) {
 
     const duration = Date.now() - start;
     recordBatchSuccess(batch.length, duration);
-    logger.info("Flushed events to ClickHouse", {
-      count: batch.length,
-      durationMs: duration,
-    });
+    logger.info(
+      "Flushing batch to ClickHouse",
+      traceScope("no-trace", {
+        batchSize: batch.length,
+      })
+    );
   } catch (err) {
     recordBatchFailure();
     logger.error("Failed to insert batch", {
@@ -108,7 +111,14 @@ async function startConsumer() {
         const payload = message.value?.toString();
         if (!payload) return;
         const event = JSON.parse(payload);
-        logger.debug("Consumed event", { keys: Object.keys(event) });
+        const traceId = event.traceId ?? "no-trace";
+        logger.info(
+          "Consumed event from Kafka",
+          traceScope(traceId, {
+            projectId: event.projectId,
+            type: event.type,
+          })
+        );
         buffer.push(event);
       } catch (err) {
         logger.warn("Invalid JSON payload skipped", {

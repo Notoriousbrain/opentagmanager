@@ -3,6 +3,7 @@ import { KafkaUnavailableError } from "./errors";
 import type { NormalizedEvent } from "./types";
 import { env } from "@otm/env";
 import { logger } from "./logger";
+import { traceScope } from "./trace";
 
 const {
   KAFKA_BROKERS,
@@ -59,7 +60,8 @@ export async function getKafkaProducer(): Promise<Producer> {
 }
 
 export async function sendBatchToKafka(
-  events: NormalizedEvent[]
+  events: NormalizedEvent[],
+  traceId?: string
 ): Promise<void> {
   if (!events.length) return;
 
@@ -76,7 +78,13 @@ export async function sendBatchToKafka(
         value: JSON.stringify(event),
       })),
     });
-    logger.info("Enqueued events to Kafka", { count: events.length, topic });
+    logger.info(
+      "Enqueued events to Kafka",
+      traceScope(traceId ?? "no-trace", {
+        topic,
+        count: events.length,
+      })
+    );
   } catch (err) {
     throw new KafkaUnavailableError("Failed to send batch to Kafka", {
       cause: err,

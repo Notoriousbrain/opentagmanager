@@ -2,6 +2,7 @@ import { mkdirSync, appendFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { RelayError } from "./errors";
 import { logger } from "./logger";
+import { traceScope } from "./trace";
 
 // 🧩 import metrics from relay-hono (keep it optional)
 let metrics: any;
@@ -50,11 +51,17 @@ export function writeToDLQ(
 
     appendFileSync(fileName, JSON.stringify(record) + "\n");
 
-    logger.warn("DLQ write", {
-      projectId,
-      count: record.count,
-      reason: record.reason,
-    });
+    const first = (events as any[])[0];
+    const traceId = first?.traceId ?? "no-trace";
+
+    logger.warn(
+      "DLQ write",
+      traceScope(traceId, {
+        projectId: record.projectId,
+        count: record.count,
+        reason: record.reason,
+      })
+    );
 
     if (metrics && typeof metrics.dlqWrites === "number") {
       metrics.dlqWrites += 1;

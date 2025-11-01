@@ -9,6 +9,8 @@ import {
   getSecretForKey as getSecretForKeyById,
   replayAllDLQ,
   logger,
+  createTraceId,
+  traceScope,
 } from "@otm/relay-core";
 import { Hono } from "hono";
 import { adminRouter } from "./admin";
@@ -86,14 +88,20 @@ relayApp.get("/ping", (c) => c.text("pong 🏓"));
 
 relayApp.post("/", async (c) => {
   try {
+    const traceId = createTraceId();
+
     const rawBody = await c.req.text();
     const json = JSON.parse(rawBody);
     const ip = c.req.header("x-forwarded-for") ?? "unknown";
 
-    logger.info("Incoming ingest request", {
-      ip,
-      sizeKB: (rawBody.length / 1024).toFixed(1),
-    });
+    logger.info(
+      "Incoming ingest request",
+      traceScope(traceId, {
+        method: c.req.method,
+        path: c.req.path,
+        ip,
+      })
+    );
 
     const verifyResult = await verifyIngressRequest({
       method: c.req.method,
@@ -155,11 +163,14 @@ relayApp.post("/", async (c) => {
     metrics.acceptedEvents += result.eventsAccepted;
     metrics.lastAcceptedAt = new Date().toISOString();
 
-    logger.info("Accepted ingest batch", {
-      requestId: result.requestId,
-      events: result.eventsAccepted,
-      projectId: projectResolution.project.projectId,
-    });
+    logger.info(
+      "Accepted ingest batch",
+      traceScope(traceId, {
+        requestId: result.requestId,
+        projectId: projectResolution.project.projectId,
+        events: result.eventsAccepted,
+      })
+    );
 
     return c.json(
       {
