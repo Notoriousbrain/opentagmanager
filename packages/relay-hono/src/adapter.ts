@@ -13,12 +13,15 @@ import { adminRouter } from "./admin";
 import { db, schema } from "@otm/db";
 import { eq } from "drizzle-orm";
 
-const metrics = {
+export const metrics = {
   requests: 0,
   lastRequestAt: null as string | null,
   acceptedBatches: 0,
   acceptedEvents: 0,
   lastAcceptedAt: null as string | null,
+  dlqWrites: 0,
+  replays: 0,
+  cleaned: 0,
 };
 
 const LIMITS = getLimitsFromEnv();
