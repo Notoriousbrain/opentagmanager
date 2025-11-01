@@ -1,11 +1,19 @@
 import { Kafka } from "kafkajs";
 import http from "node:http";
+import process from "node:process";
 import { insertBatchToClickhouse } from "./insert-batch-to-clickhouse";
 import { getMetrics, recordBatchFailure, recordBatchSuccess } from "./metrics";
 import { env } from "@otm/env";
+import {
+  retryIfRetryable,
+  UpstreamUnavailableError,
+  writeToDLQ,
+} from "@otm/relay-core";
 
-const FLUSH_INTERVAL_MS = 5000;
-const MAX_BATCH_SIZE = 1000;
+const FLUSH_INTERVAL_MS = env.RELAY_FLUSH_INTERVAL_MS;
+const MAX_BATCH_SIZE = env.RELAY_MAX_BATCH_SIZE;
+const MAX_RETRY_ATTEMPTS = env.RELAY_MAX_RETRY_ATTEMPTS;
+
 let buffer: any[] = [];
 let lastFlush = Date.now();
 const PORT = process.env.METRICS_PORT ? Number(process.env.METRICS_PORT) : 4101;
@@ -21,7 +29,23 @@ async function flushBatch(force = false) {
   const start = Date.now();
   try {
     console.log("🧩 Inserting batch into ClickHouse:", batch.length);
-    await insertBatchToClickhouse(batch);
+    await retryIfRetryable(
+      async () => {
+        try {
+          await insertBatchToClickhouse(batch);
+        } catch (err) {
+          throw new UpstreamUnavailableError(
+            "ClickHouse insert failed during flush",
+            {
+              cause: err,
+              detail: { batchSize: batch.length },
+            }
+          );
+        }
+      },
+      { attempts: MAX_RETRY_ATTEMPTS, baseDelayMs: 1000 }
+    );
+
     const duration = Date.now() - start;
     recordBatchSuccess(batch.length, duration);
     console.log(
@@ -30,6 +54,13 @@ async function flushBatch(force = false) {
   } catch (err) {
     recordBatchFailure();
     console.error(`⚠️ Failed to insert batch (${batch.length} events):`, err);
+
+    try {
+      const projectId = batch[0]?.projectId ?? "unknown_project";
+      writeToDLQ(projectId, batch, err);
+    } catch (dlqErr) {
+      console.error("❌ Failed to write batch to DLQ:", dlqErr);
+    }
   } finally {
     lastFlush = Date.now();
   }
@@ -46,7 +77,15 @@ async function startConsumer() {
   const topic = env.KAFKA_TOPIC_INGEST ?? "osstag.ingest";
 
   const kafka = new Kafka({ clientId: "osstag-consumer", brokers });
-  const consumer = kafka.consumer({ groupId: "osstag-relay-group" });
+  const consumer = kafka.consumer({
+    groupId: `osstag-relay-group-${process.pid}`, // unique per process
+    heartbeatInterval: 5000, // increase from default (3s)
+    sessionTimeout: 30000, // allows longer ClickHouse flushes
+  });
+
+  console.log(
+    `⚙️ Relay consumer config → batchSize=${MAX_BATCH_SIZE}, flushInterval=${FLUSH_INTERVAL_MS}ms, retries=${MAX_RETRY_ATTEMPTS}`
+  );
 
   await consumer.connect();
   await consumer.subscribe({ topic, fromBeginning: false });
@@ -73,6 +112,21 @@ startConsumer().catch((err) => {
   console.error("❌ Consumer crashed:", err);
   process.exit(1);
 });
+
+async function gracefulShutdown() {
+  console.log("\n🛑 Received shutdown signal — flushing remaining buffer...");
+  try {
+    await flushBatch(true);
+    console.log("✅ Graceful shutdown complete. All pending events flushed.");
+  } catch (err) {
+    console.error("⚠️ Error during graceful shutdown flush:", err);
+  } finally {
+    process.exit(0);
+  }
+}
+
+process.on("SIGINT", gracefulShutdown);
+process.on("SIGTERM", gracefulShutdown);
 
 if (import.meta.main) {
   http

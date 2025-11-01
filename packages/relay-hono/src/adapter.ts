@@ -7,25 +7,39 @@ import {
   getLimitsFromEnv,
   toHttp,
   getSecretForKey as getSecretForKeyById,
+  replayAllDLQ,
 } from "@otm/relay-core";
 import { Hono } from "hono";
 import { adminRouter } from "./admin";
 import { db, schema } from "@otm/db";
 import { eq } from "drizzle-orm";
+import { getRelayHealth } from "./health";
 
-const metrics = {
+export const metrics = {
   requests: 0,
   lastRequestAt: null as string | null,
   acceptedBatches: 0,
   acceptedEvents: 0,
   lastAcceptedAt: null as string | null,
+  dlqWrites: 0,
+  replays: 0,
+  cleaned: 0,
+  uptimeStart: Date.now(),
 };
 
 const LIMITS = getLimitsFromEnv();
 
 export const relayApp = new Hono();
 
-relayApp.get("/health", (c) => c.text("ok"));
+relayApp.get("/health", async (c) => {
+  const health = await getRelayHealth();
+  return c.json({ status: health.status });
+});
+
+relayApp.get("/status", async (c) => {
+  const health = await getRelayHealth();
+  return c.json(health);
+});
 
 relayApp.get("/metrics", (c) =>
   c.json({
@@ -35,8 +49,29 @@ relayApp.get("/metrics", (c) =>
     acceptedEvents: metrics.acceptedEvents,
     lastRequestAt: metrics.lastRequestAt,
     lastAcceptedAt: metrics.lastAcceptedAt,
+    dlqWrites: metrics.dlqWrites,
+    replays: metrics.replays,
+    cleaned: metrics.cleaned,
   })
 );
+
+relayApp.get("/admin/replay", async (c) => {
+  const auth = c.req.header("x-admin-key");
+  if (auth !== process.env.RELAY_ADMIN_KEY) {
+    return c.json({ error: "unauthorized" }, 401);
+  }
+
+  try {
+    const result = await replayAllDLQ();
+    return c.json({ status: "ok", ...result });
+  } catch (err) {
+    console.error("❌ Replay failed:", err);
+    return c.json(
+      { error: "replay_failed", detail: (err as Error).message },
+      500
+    );
+  }
+});
 
 relayApp.get("/ping", (c) => c.text("pong 🏓"));
 

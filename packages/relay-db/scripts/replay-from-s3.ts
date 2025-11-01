@@ -5,10 +5,9 @@ import {
 } from "@aws-sdk/client-s3";
 import { Readable } from "node:stream";
 import { env } from "../../env/src";
-import { NormalizedEvent } from "../../relay-core/src";
+import { NormalizedEvent, retryIfRetryable, UpstreamUnavailableError, writeToDLQ } from "../../relay-core/src";
 import { insertBatchToClickhouse } from "../../relay-consumer/src/insert-batch-to-clickhouse";
 import { parseNDJSONStream } from "../src/utils/ndjson";
-import { retryWithBackoff } from "@otm/core";
 
 const REGION = env.S3_REGION!;
 const BUCKET = env.S3_BUCKET!;
@@ -46,10 +45,28 @@ async function processObject(Key: string) {
 
   console.log(`🧩 Parsed ${events.length} events → inserting...`);
 
-  await retryWithBackoff(() => insertBatchToClickhouse(events), {
-    attempts: 3,
-    baseDelayMs: 1000,
-  });
+  try {
+    await retryIfRetryable(
+      async () => {
+        try {
+          await insertBatchToClickhouse(events);
+        } catch (err) {
+          throw new UpstreamUnavailableError(
+            "ClickHouse replay insert failed",
+            {
+              cause: err,
+              detail: { count: events.length, source: Key },
+            }
+          );
+        }
+      },
+      { attempts: 3, baseDelayMs: 1000 }
+    );
+  } catch (err) {
+    console.error(`⚠️ Failed to insert replay batch from ${Key}:`, err);
+    const projectId = events[0]?.projectId ?? "unknown_project";
+    writeToDLQ(projectId, events, err);
+  }
 }
 
 async function replay() {
