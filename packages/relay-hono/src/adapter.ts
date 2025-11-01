@@ -7,6 +7,7 @@ import {
   getLimitsFromEnv,
   toHttp,
   getSecretForKey as getSecretForKeyById,
+  replayAllDLQ,
 } from "@otm/relay-core";
 import { Hono } from "hono";
 import { adminRouter } from "./admin";
@@ -43,6 +44,24 @@ relayApp.get("/metrics", (c) =>
     cleaned: metrics.cleaned,
   })
 );
+
+relayApp.get("/admin/replay", async (c) => {
+  const auth = c.req.header("x-admin-key");
+  if (auth !== process.env.RELAY_ADMIN_KEY) {
+    return c.json({ error: "unauthorized" }, 401);
+  }
+
+  try {
+    const result = await replayAllDLQ();
+    return c.json({ status: "ok", ...result });
+  } catch (err) {
+    console.error("❌ Replay failed:", err);
+    return c.json(
+      { error: "replay_failed", detail: (err as Error).message },
+      500
+    );
+  }
+});
 
 relayApp.get("/ping", (c) => c.text("pong 🏓"));
 
