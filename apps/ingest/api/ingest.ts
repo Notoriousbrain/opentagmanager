@@ -1,9 +1,6 @@
 import { relayApp } from "@otm/relay-hono";
+import { handle } from "hono/vercel";
 
 export const runtime = "nodejs22.x";
 
-const handler: (req: Request) => Promise<Response> = async (req) => {
-  return await relayApp.fetch(req);
-};
-
-export default handler;
+export const fetch = handle(relayApp);
