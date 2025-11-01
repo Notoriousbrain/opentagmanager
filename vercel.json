@@ -1,8 +1,19 @@
 {
-  "rewrites": [
+  "functions": {
+    "apps/ingest/api/ingest.ts": {
+      "runtime": "nodejs22.x",
+      "memory": 512,
+      "maxDuration": 10
+    }
+  },
+  "routes": [
     {
-      "source": "/dashboard/:match*",
-      "destination": "/dashboard/:match*"
+      "src": "/api/ingest",
+      "dest": "apps/ingest/api/ingest.ts"
+    },
+    {
+      "src": "/dashboard/:match*",
+      "dest": "/dashboard/:match*"
     }
   ]
 }

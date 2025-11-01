@@ -9,6 +9,8 @@
     "@hono/node-server": "catalog:"
   },
   "scripts": {
-    "dev": "bun --env-file=../../.env run api/dev-ingest.ts"
+    "dev": "bun --env-file=../../.env run api/dev-ingest.ts",
+    "build": "bun build ./api/ingest.ts --outdir dist --target bun",
+    "start": "bun run dist/ingest.js"
   }
 }
