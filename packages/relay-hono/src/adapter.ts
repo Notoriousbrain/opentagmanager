@@ -11,6 +11,7 @@ import {
   logger,
   createTraceId,
   traceScope,
+  collectTelemetry,
 } from "@otm/relay-core";
 import { Hono } from "hono";
 import { adminRouter } from "./admin";
@@ -82,6 +83,11 @@ relayApp.get("/admin/replay", async (c) => {
       500
     );
   }
+});
+
+relayApp.get("/telemetry", async (c) => {
+  const snapshot = await collectTelemetry();
+  return c.json(snapshot);
 });
 
 relayApp.get("/ping", (c) => c.text("pong 🏓"));

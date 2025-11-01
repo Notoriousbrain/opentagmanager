@@ -5,6 +5,7 @@ import { insertBatchToClickhouse } from "./insert-batch-to-clickhouse";
 import { getMetrics, recordBatchFailure, recordBatchSuccess } from "./metrics";
 import { env } from "@otm/env";
 import {
+  emitTelemetryLog,
   logger,
   retryIfRetryable,
   traceScope,
@@ -101,6 +102,7 @@ async function startConsumer() {
 
   await consumer.connect();
   await consumer.subscribe({ topic, fromBeginning: false });
+  emitTelemetryLog(30000);
 
   logger.info("Consumer connected", { topic });
   setInterval(() => flushBatch(), 1000);
