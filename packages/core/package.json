@@ -15,6 +15,7 @@
   "dependencies": {
     "@otm/env": "workspace:*",
     "@upstash/ratelimit": "^2.0.6",
-    "@upstash/redis": "^1.35.4"
+    "@upstash/redis": "^1.35.4",
+    "@otm/relay-core": "workspace:*"
   }
 }

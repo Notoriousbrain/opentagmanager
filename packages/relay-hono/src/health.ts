@@ -14,14 +14,13 @@ export async function getRelayHealth() {
   let clickhouseOk = false;
   let dlqFiles = 0;
 
-  // ✅ Kafka check
   try {
     const brokers = env.KAFKA_BROKERS?.split(",").map((s) => s.trim());
     if (brokers?.length) {
       const kafka = new Kafka({ clientId: "healthcheck", brokers });
       const admin = kafka.admin();
       await admin.connect();
-      await admin.listTopics(); // cheap check
+      await admin.listTopics(); 
       await admin.disconnect();
       kafkaOk = true;
     }
@@ -29,7 +28,6 @@ export async function getRelayHealth() {
     kafkaOk = false;
   }
 
-  // ✅ ClickHouse check
   try {
     const client = getClickhouseClient();
     await client.query({ query: "SELECT 1" });
@@ -38,7 +36,6 @@ export async function getRelayHealth() {
     clickhouseOk = false;
   }
 
-  // ✅ DLQ check
   try {
     dlqFiles = readdirSync(DLQ_DIR).length;
   } catch {

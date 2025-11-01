@@ -8,6 +8,7 @@ import {
   toHttp,
   getSecretForKey as getSecretForKeyById,
   replayAllDLQ,
+  logger,
 } from "@otm/relay-core";
 import { Hono } from "hono";
 import { adminRouter } from "./admin";
@@ -70,9 +71,10 @@ relayApp.get("/admin/replay", async (c) => {
 
   try {
     const result = await replayAllDLQ();
+    logger.info("DLQ replay completed", { result });
     return c.json({ status: "ok", ...result });
   } catch (err) {
-    console.error("❌ Replay failed:", err);
+    logger.error("DLQ replay failed", { error: (err as Error).message });
     return c.json(
       { error: "replay_failed", detail: (err as Error).message },
       500
@@ -87,6 +89,11 @@ relayApp.post("/", async (c) => {
     const rawBody = await c.req.text();
     const json = JSON.parse(rawBody);
     const ip = c.req.header("x-forwarded-for") ?? "unknown";
+
+    logger.info("Incoming ingest request", {
+      ip,
+      sizeKB: (rawBody.length / 1024).toFixed(1),
+    });
 
     const verifyResult = await verifyIngressRequest({
       method: c.req.method,
@@ -144,6 +151,16 @@ relayApp.post("/", async (c) => {
 
     const result = await handleIngestRequest(batch, projectResolution.project);
 
+    metrics.acceptedBatches++;
+    metrics.acceptedEvents += result.eventsAccepted;
+    metrics.lastAcceptedAt = new Date().toISOString();
+
+    logger.info("Accepted ingest batch", {
+      requestId: result.requestId,
+      events: result.eventsAccepted,
+      projectId: projectResolution.project.projectId,
+    });
+
     return c.json(
       {
         status: "accepted",
@@ -155,7 +172,7 @@ relayApp.post("/", async (c) => {
       200
     );
   } catch (err) {
-    console.error("Ingress error:", err);
+    logger.error("Ingress error", { error: (err as Error).message });
     const { status, body } = toHttp(err);
     return c.json(body, status);
   }
