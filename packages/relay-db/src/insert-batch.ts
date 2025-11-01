@@ -1,7 +1,11 @@
 import { createReadStream } from "node:fs";
 import { createInterface } from "node:readline";
 import { getClickhouseClient } from "./client";
-import { retryWithBackoff } from "@otm/core";
+import {
+  writeToDLQ,
+  UpstreamUnavailableError,
+  retryIfRetryable,
+} from "@otm/relay-core";
 
 export interface InsertResult {
   filePath: string;
@@ -36,17 +40,40 @@ export async function insertBatchFromFile(
     console.log(`⚠️ No valid rows found in ${filePath}`);
     return { filePath, rowsInserted: 0, durationMs: Date.now() - start };
   }
-
-  await retryWithBackoff(async () => {
-    await client.insert({
-      table,
-      values: rows,
-      format: "JSONEachRow",
-    });
-  }, { attempts: 3, baseDelayMs: 1000 });
+  try {
+    await retryIfRetryable(
+      async () => {
+        try {
+          await client.insert({
+            table,
+            values: rows,
+            format: "JSONEachRow",
+          });
+        } catch (err) {
+          throw new UpstreamUnavailableError("ClickHouse bulk insert failed", {
+            cause: err,
+            detail: { filePath, rowCount: rows.length },
+          });
+        }
+      },
+      { attempts: 3, baseDelayMs: 1000 }
+    );
+  } catch (err) {
+    console.error(
+      `⚠️ Failed to insert ${rows.length} rows from ${filePath}:`,
+      err
+    );
+    const projectId =
+      typeof rows[0]?.project_id === "string"
+        ? rows[0].project_id
+        : "unknown_project";
+    writeToDLQ(projectId, rows, err);
+  }
 
   const durationMs = Date.now() - start;
-  console.log(`✅ Inserted ${rows.length} rows from ${filePath} in ${durationMs}ms`);
+  console.log(
+    `✅ Inserted ${rows.length} rows from ${filePath} in ${durationMs}ms`
+  );
 
   return { filePath, rowsInserted: rows.length, durationMs };
 }

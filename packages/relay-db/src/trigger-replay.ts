@@ -1,7 +1,11 @@
 import { ListObjectsV2Command, GetObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "@otm/env";
-import type { NormalizedEvent } from "@otm/relay-core";
-import { retryWithBackoff } from "@otm/core";
+import {
+  retryIfRetryable,
+  UpstreamUnavailableError,
+  writeToDLQ,
+  type NormalizedEvent,
+} from "@otm/relay-core";
 import { parseNDJSONStream } from "./utils/ndjson";
 import type { Readable } from "node:stream";
 import { insertBatchToClickhouse, s3 } from "@otm/relay-consumer";
@@ -24,7 +28,6 @@ export async function triggerReplayFromS3(prefix: string) {
       new GetObjectCommand({ Bucket: bucket, Key: key })
     );
 
-    // ✅ Safely convert Body to a Node.js readable stream
     const stream = obj.Body as unknown as Readable;
     if (!stream) {
       console.error(`⚠️ No body stream for ${key}`);
@@ -36,18 +39,44 @@ export async function triggerReplayFromS3(prefix: string) {
     for await (const event of parseNDJSONStream(stream)) {
       events.push(event);
       if (events.length >= 500) {
-        await retryWithBackoff(
-          () => insertBatchToClickhouse(events.splice(0)),
-          {
-            attempts: 3,
-            baseDelayMs: 1000,
-          }
-        );
+        try {
+          await retryIfRetryable(
+            async () => {
+              try {
+                await insertBatchToClickhouse(events.splice(0));
+              } catch (err) {
+                throw new UpstreamUnavailableError(
+                  "ClickHouse insert failed during S3 replay",
+                  {
+                    cause: err,
+                    detail: { sourceKey: key, batchSize: 500 },
+                  }
+                );
+              }
+            },
+            { attempts: 3, baseDelayMs: 1000 }
+          );
+        } catch (err) {
+          console.error(`⚠️ Failed replay batch from ${key}:`, err);
+          const projectId = events[0]?.projectId ?? "unknown_project";
+          writeToDLQ(projectId, events.splice(0), err);
+        }
       }
     }
 
     if (events.length > 0) {
-      await insertBatchToClickhouse(events);
+      try {
+        await retryIfRetryable(
+          async () => {
+            await insertBatchToClickhouse(events);
+          },
+          { attempts: 3, baseDelayMs: 1000 }
+        );
+      } catch (err) {
+        console.error(`⚠️ Failed final replay insert from ${key}:`, err);
+        const projectId = events[0]?.projectId ?? "unknown_project";
+        writeToDLQ(projectId, events, err);
+      }
     }
 
     totalEvents += events.length;

@@ -30,6 +30,13 @@ const testEvents: NormalizedEvent[] = [
   },
 ];
 
-insertBatchToClickhouse(testEvents).then(() => {
-  console.log("✅ Test insert complete");
-});
+insertBatchToClickhouse(testEvents)
+  .then(() => {
+    console.log("✅ Test insert complete (with retry + DLQ safety)");
+  })
+  .catch((err) => {
+    console.error(
+      "❌ Test insert failed (written to DLQ if unrecoverable):",
+      err
+    );
+  });

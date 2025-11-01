@@ -3,6 +3,7 @@ import http from "node:http";
 import { insertBatchToClickhouse } from "./insert-batch-to-clickhouse";
 import { getMetrics, recordBatchFailure, recordBatchSuccess } from "./metrics";
 import { env } from "@otm/env";
+import { writeToDLQ } from "@otm/relay-core";
 
 const FLUSH_INTERVAL_MS = 5000;
 const MAX_BATCH_SIZE = 1000;
@@ -30,6 +31,13 @@ async function flushBatch(force = false) {
   } catch (err) {
     recordBatchFailure();
     console.error(`⚠️ Failed to insert batch (${batch.length} events):`, err);
+
+    try {
+      const projectId = batch[0]?.projectId ?? "unknown_project"; 
+      writeToDLQ(projectId, batch, err);
+    } catch (dlqErr) {
+      console.error("❌ Failed to write batch to DLQ:", dlqErr);
+    }
   } finally {
     lastFlush = Date.now();
   }

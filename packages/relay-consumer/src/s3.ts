@@ -2,7 +2,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { readFile } from "node:fs/promises";
 import { basename } from "node:path";
 import { env } from "@otm/env";
-import { retryWithBackoff } from "@otm/core";
+import { retryIfRetryable, UpstreamUnavailableError } from "@otm/relay-core";
 
 const REGION = env.S3_REGION!;
 const BUCKET = env.S3_BUCKET!;
@@ -36,18 +36,25 @@ export async function uploadToS3(
 ): Promise<void> {
   const key = buildS3Key(filePath, projectId);
 
-  await retryWithBackoff(
+  await retryIfRetryable(
     async () => {
-      const fileData = await readFile(filePath);
-      const command = new PutObjectCommand({
-        Bucket: env.S3_BUCKET,
-        Key: key,
-        Body: fileData,
-        ContentType: "application/x-ndjson",
-      });
+      try {
+        const fileData = await readFile(filePath);
+        const command = new PutObjectCommand({
+          Bucket: env.S3_BUCKET,
+          Key: key,
+          Body: fileData,
+          ContentType: "application/x-ndjson",
+        });
 
-      await s3.send(command);
-      console.log(`☁️ Uploaded ${filePath} → s3://${env.S3_BUCKET}/${key}`);
+        await s3.send(command);
+        console.log(`☁️ Uploaded ${filePath} → s3://${env.S3_BUCKET}/${key}`);
+      } catch (err) {
+        throw new UpstreamUnavailableError("S3 upload failed", {
+          cause: err,
+          detail: { key, filePath },
+        });
+      }
     },
     { attempts: maxRetries, baseDelayMs: 1000 }
   );
