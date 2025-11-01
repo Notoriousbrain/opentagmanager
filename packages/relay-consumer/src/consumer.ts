@@ -1,5 +1,6 @@
 import { Kafka } from "kafkajs";
 import http from "node:http";
+import process from "node:process";
 import { insertBatchToClickhouse } from "./insert-batch-to-clickhouse";
 import { getMetrics, recordBatchFailure, recordBatchSuccess } from "./metrics";
 import { env } from "@otm/env";
@@ -33,7 +34,7 @@ async function flushBatch(force = false) {
     console.error(`⚠️ Failed to insert batch (${batch.length} events):`, err);
 
     try {
-      const projectId = batch[0]?.projectId ?? "unknown_project"; 
+      const projectId = batch[0]?.projectId ?? "unknown_project";
       writeToDLQ(projectId, batch, err);
     } catch (dlqErr) {
       console.error("❌ Failed to write batch to DLQ:", dlqErr);
@@ -81,6 +82,21 @@ startConsumer().catch((err) => {
   console.error("❌ Consumer crashed:", err);
   process.exit(1);
 });
+
+async function gracefulShutdown() {
+  console.log("\n🛑 Received shutdown signal — flushing remaining buffer...");
+  try {
+    await flushBatch(true);
+    console.log("✅ Graceful shutdown complete. All pending events flushed.");
+  } catch (err) {
+    console.error("⚠️ Error during graceful shutdown flush:", err);
+  } finally {
+    process.exit(0);
+  }
+}
+
+process.on("SIGINT", gracefulShutdown);
+process.on("SIGTERM", gracefulShutdown);
 
 if (import.meta.main) {
   http
