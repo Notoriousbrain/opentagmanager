@@ -14,6 +14,7 @@ import { adminRouter } from "./admin";
 import { db, schema } from "@otm/db";
 import { eq } from "drizzle-orm";
 import { getRelayHealth } from "./health";
+import { formatPrometheusMetrics } from "./metrics-prom";
 
 export const metrics = {
   requests: 0,
@@ -54,6 +55,12 @@ relayApp.get("/metrics", (c) =>
     cleaned: metrics.cleaned,
   })
 );
+
+relayApp.get("/metrics/prom", (c) => {
+  const body = formatPrometheusMetrics();
+  c.header("content-type", "text/plain; version=0.0.4");
+  return c.body(body);
+});
 
 relayApp.get("/admin/replay", async (c) => {
   const auth = c.req.header("x-admin-key");
