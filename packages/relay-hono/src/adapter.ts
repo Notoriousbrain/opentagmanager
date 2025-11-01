@@ -38,6 +38,9 @@ relayApp.get("/metrics", (c) =>
     acceptedEvents: metrics.acceptedEvents,
     lastRequestAt: metrics.lastRequestAt,
     lastAcceptedAt: metrics.lastAcceptedAt,
+    dlqWrites: metrics.dlqWrites,
+    replays: metrics.replays,
+    cleaned: metrics.cleaned,
   })
 );
 
