@@ -1,5 +1,8 @@
 import { getClickhouseClient } from "@otm/relay-db";
-import { UpstreamUnavailableError, type NormalizedEvent } from "@otm/relay-core";
+import {
+  UpstreamUnavailableError,
+  type NormalizedEvent,
+} from "@otm/relay-core";
 import { retryIfRetryable } from "@otm/relay-core";
 
 export async function insertBatchToClickhouse(
@@ -9,21 +12,22 @@ export async function insertBatchToClickhouse(
 
   const client = getClickhouseClient();
 
+  const safeDate = (value: any) => {
+    const d = new Date(value);
+    return isNaN(d.getTime())
+      ? new Date().toISOString().replace("T", " ").replace("Z", "")
+      : d.toISOString().replace("T", " ").replace("Z", "");
+  };
+
   const rows = events.map((e) => ({
     event_id: e.eventId,
     project_id: e.projectId,
     tenant_id: e.tenantId ?? null,
     type: e.type,
     data: e.data ?? {},
-    occurred_at: new Date(e.occurredAt ?? Date.now())
-      .toISOString()
-      .replace("T", " ")
-      .replace("Z", ""),
-    received_at: new Date(e.receivedAt)
-      .toISOString()
-      .replace("T", " ")
-      .replace("Z", ""),
-    _ingested_at: new Date().toISOString().replace("T", " ").replace("Z", ""),
+    occurred_at: safeDate(e.occurredAt ?? Date.now()),
+    received_at: safeDate(e.receivedAt ?? Date.now()),
+    _ingested_at: safeDate(Date.now()),
     ip: e.ip ?? null,
     ua: e.ua ?? null,
     request_id: e.requestId,
