@@ -4,10 +4,16 @@ import process from "node:process";
 import { insertBatchToClickhouse } from "./insert-batch-to-clickhouse";
 import { getMetrics, recordBatchFailure, recordBatchSuccess } from "./metrics";
 import { env } from "@otm/env";
-import { writeToDLQ } from "@otm/relay-core";
+import {
+  retryIfRetryable,
+  UpstreamUnavailableError,
+  writeToDLQ,
+} from "@otm/relay-core";
 
-const FLUSH_INTERVAL_MS = 5000;
-const MAX_BATCH_SIZE = 1000;
+const FLUSH_INTERVAL_MS = env.RELAY_FLUSH_INTERVAL_MS;
+const MAX_BATCH_SIZE = env.RELAY_MAX_BATCH_SIZE;
+const MAX_RETRY_ATTEMPTS = env.RELAY_MAX_RETRY_ATTEMPTS;
+
 let buffer: any[] = [];
 let lastFlush = Date.now();
 const PORT = process.env.METRICS_PORT ? Number(process.env.METRICS_PORT) : 4101;
@@ -23,7 +29,23 @@ async function flushBatch(force = false) {
   const start = Date.now();
   try {
     console.log("🧩 Inserting batch into ClickHouse:", batch.length);
-    await insertBatchToClickhouse(batch);
+    await retryIfRetryable(
+      async () => {
+        try {
+          await insertBatchToClickhouse(batch);
+        } catch (err) {
+          throw new UpstreamUnavailableError(
+            "ClickHouse insert failed during flush",
+            {
+              cause: err,
+              detail: { batchSize: batch.length },
+            }
+          );
+        }
+      },
+      { attempts: MAX_RETRY_ATTEMPTS, baseDelayMs: 1000 }
+    );
+
     const duration = Date.now() - start;
     recordBatchSuccess(batch.length, duration);
     console.log(
@@ -56,6 +78,10 @@ async function startConsumer() {
 
   const kafka = new Kafka({ clientId: "osstag-consumer", brokers });
   const consumer = kafka.consumer({ groupId: "osstag-relay-group" });
+
+  console.log(
+    `⚙️ Relay consumer config → batchSize=${MAX_BATCH_SIZE}, flushInterval=${FLUSH_INTERVAL_MS}ms, retries=${MAX_RETRY_ATTEMPTS}`
+  );
 
   await consumer.connect();
   await consumer.subscribe({ topic, fromBeginning: false });
