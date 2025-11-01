@@ -1,6 +1,7 @@
 import { Kafka, logLevel, type Producer } from "kafkajs";
 import { KafkaUnavailableError } from "./errors";
 import type { NormalizedEvent } from "./types";
+import { env } from "@otm/env";
 
 const {
   KAFKA_BROKERS,
@@ -11,7 +12,7 @@ const {
   KAFKA_TOPIC_INGEST,
   KAFKA_CLIENT_ID,
   KAFKA_SSL,
-} = process.env;
+} = process.env
 
 let producer: Producer | null = null;
 
@@ -20,7 +21,10 @@ export async function getKafkaProducer(): Promise<Producer> {
 
   if (!KAFKA_BROKERS || !KAFKA_TOPIC_INGEST) {
     throw new KafkaUnavailableError("Kafka configuration is missing", {
-      detail: { KAFKA_BROKERS, KAFKA_TOPIC_INGEST },
+      detail: {
+        KAFKA_BROKERS: env.KAFKA_BROKERS,
+        KAFKA_TOPIC_INGEST: env.KAFKA_TOPIC_INGEST,
+      },
     });
   }
 
@@ -62,6 +66,8 @@ export async function sendBatchToKafka(
   const producer = await getKafkaProducer();
 
   try {
+    console.log("🚀 Kafka send debug:", { topic, KAFKA_BROKERS });
+
     await producer.send({
       topic,
       messages: events.map((event) => ({

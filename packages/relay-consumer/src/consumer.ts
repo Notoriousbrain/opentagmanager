@@ -77,7 +77,11 @@ async function startConsumer() {
   const topic = env.KAFKA_TOPIC_INGEST ?? "osstag.ingest";
 
   const kafka = new Kafka({ clientId: "osstag-consumer", brokers });
-  const consumer = kafka.consumer({ groupId: "osstag-relay-group" });
+  const consumer = kafka.consumer({
+    groupId: `osstag-relay-group-${process.pid}`, // unique per process
+    heartbeatInterval: 5000, // increase from default (3s)
+    sessionTimeout: 30000, // allows longer ClickHouse flushes
+  });
 
   console.log(
     `⚙️ Relay consumer config → batchSize=${MAX_BATCH_SIZE}, flushInterval=${FLUSH_INTERVAL_MS}ms, retries=${MAX_RETRY_ATTEMPTS}`

@@ -55,18 +55,6 @@ relayApp.post("/", async (c) => {
       getSecretForKey: (key) => getSecretForKeyById(key.id),
     });
 
-    if (process.env.BENCH_MODE === "true") {
-      return c.json(
-        {
-          status: "accepted",
-          requestId: `bench-${Date.now()}`,
-          eventsAccepted: json.length,
-          receivedAt: Date.now(),
-          ts: Date.now(),
-        },
-        200
-      );
-    }
     const apiKeyRecord = await db.query.apiKey.findFirst({
       where: eq(schema.apiKey.id, verifyResult.key.raw),
     });

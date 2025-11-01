@@ -5,11 +5,11 @@ import { verifySignatureOrThrow } from "./hmac";
 
 export interface VerifyHeadersInput {
   method: string;
-  path: string;
-  body: string;
-  headers: Record<string, string | undefined>;
+  path: string; 
+  body: string; 
+  headers: Record<string, string | undefined>; 
   nowMs?: number;
-  skewMs: number;
+  skewMs: number; 
   getSecretForKey: (
     key: PublicKeyParts
   ) => Promise<string | null> | string | null;
@@ -41,12 +41,6 @@ export async function verifyIngressRequest(
   const rawSig = get(i.headers, Header.Signature);
 
   if (!rawKey) throw new BadRequestError(`missing ${Header.Key} header`);
-  if (process.env.BENCH_MODE === "true") {
-    return {
-      key: { id: "bench", raw: "bench" },
-      ts: Date.now(),
-    };
-  }
   if (!rawTs) throw new BadRequestError(`missing ${Header.Timestamp} header`);
   if (!rawSig) throw new BadRequestError(`missing ${Header.Signature} header`);
 
