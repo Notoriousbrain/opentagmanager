@@ -11,5 +11,9 @@
     "@aws-sdk/client-s3": "catalog:",
     "@otm/relay-core": "workspace:*",
     "kafkajs": "catalog:"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "start": "bun run dist/index.js"
   }
 }
