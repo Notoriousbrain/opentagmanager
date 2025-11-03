@@ -1,11 +1,51 @@
-# 🏷️ OSS Tag — The Open-Source Tag Manager
+# 🏷️ **OSSTag — The Open-Source Tag Manager**
 
-**OSS Tag** is an open-source, privacy-first alternative to Google Tag Manager.
-It lets you manage tracking code (tags) securely and dynamically and without touching your production codebase.
+**OSSTag** is a **privacy-first, unblockable, and developer-friendly tag manager**.
+It lets you **collect, route, and analyze events** across your product — **without ads scripts, cookies, or trackers**.
 
-Built for transparency, developer control, and speed.
+It’s an **open alternative to Google Tag Manager**, rebuilt from the ground up for transparency, simplicity, and speed.
 
-## 🚀 Tech Stack
+---
+
+## 💡 **What It Does**
+
+OSSTag helps you:
+
+* 📦 **Manage tracking & analytics tags** without editing your production code
+* 🔒 **Respect privacy laws (GDPR, CCPA)** — no personal data or cookies required
+* ⚡ **Send and process events** in real-time using a fast, server-side relay
+* 🚫 **Bypass ad-blockers** — works at the network level, not via third-party scripts
+* 🧩 **Integrate anywhere** — SDKs for web, React, and server environments
+* 🪶 **Stay lightweight** — no heavy dashboards or hidden analytics vendors
+
+You control your data, your tags, and your infrastructure.
+
+---
+
+## 🌍 **Why OSSTag**
+
+| Feature              | OSSTag               | Google Tag Manager   |
+| -------------------- | -------------------- | -------------------- |
+| Open Source          | ✅ Yes                | ❌ No                 |
+| Privacy-First        | ✅ Built-in           | ⚠️ Ad-centric        |
+| Server-Side Tags     | ✅ Native             | ⚙️ Complex setup     |
+| Unblockable          | ✅ Works via relay    | ❌ Script-based       |
+| Self-Hosted          | ✅ You own it         | ❌ Google Cloud       |
+| Developer Experience | ❤️ Type-safe, modern | 😩 UI-driven, legacy |
+
+---
+
+## 🧠 **Core Principles**
+
+* **Transparency** → Open code, clear data flows
+* **Privacy** → No fingerprinting, no PII
+* **Control** → You decide where events go
+* **Simplicity** → One command to run, one UI to manage
+* **Speed** → Built for modern edge runtimes (Vercel Fluid, Bun, AWS)
+
+---
+
+## 🚀 **Tech Stack**
 
 | Area             | Stack                                          |
 | ---------------- | ---------------------------------------------- |
@@ -15,13 +55,13 @@ Built for transparency, developer control, and speed.
 | Auth             | Better Auth (Email/Password + Google + GitHub) |
 | State            | Zustand                                        |
 | Styling          | Tailwind CSS v4 + shadcn/ui                    |
-| Cache            | Upstash Redis (optional, REST API)             |
+| Cache            | Upstash Redis (optional)                       |
 | Mail             | SMTP + Resend                                  |
 | Linting / Format | Biome                                          |
 
 ---
 
-## 🧩 Monorepo Structure
+## 🧩 **Monorepo Structure**
 
 ```
 apps/
@@ -30,7 +70,7 @@ apps/
 
 packages/
  @osstag/core → Core logic + cache provider (memory / Upstash)
- @osstag/env → Environment schema & validation (Zod + @t3-oss/env-nextjs)
+ @osstag/env → Environment schema & validation
  @osstag/db → Drizzle ORM schema & migrations
  @osstag/ui → Shared shadcn + Tailwind v4 UI system
  @osstag/auth → Central Better Auth instance
@@ -38,86 +78,89 @@ packages/
 
 ---
 
-## 📦 Current Progress — v0.1
+## 🧱 **Current Progress — v0.1**
 
 ### ✅ Core
 
-- Feature-flagged cache with memory + Upstash support
-- Environment schema with all project/env keys
-- Upstash auto-detect (no manual flags)
+* Feature-flagged cache with memory + Upstash support
+* Environment schema with validated keys
+* Upstash auto-detect (no manual flags)
 
 ### ✅ Auth (v0.1)
 
-- Better Auth with Email/Password, Google, GitHub
-- JWT sessions (stateless)
-- SMTP + Resend adapters
-- Secure cookies + hooks to limit session count
-- Centralized auth package with Next.js handler and tRPC bridge
+* Better Auth (Email/Password + Google + GitHub)
+* JWT sessions (stateless)
+* SMTP + Resend adapters
+* Secure cookies + session limiting
+* Centralized auth package with Next.js + tRPC integration
 
-### ✅ Projects & API Keys (v0.1)
+### ✅ Dashboard
 
-- Organization & Project schema with Drizzle
-- Org membership roles: owner, admin, editor, viewer
-- Role-based dashboard rendering
-- Create/select organization flow
-- Create/manage projects
-- API key management (create, revoke, reveal, copy)
-- One-time token display with masked UI
-
-### 🧠 State Management
-
-- Zustand store for orgs, projects, and active session
-- Fast local navigation without refetch delay
+* Organization & Project management
+* Role-based access (owner, admin, editor, viewer)
+* API key creation, reveal, and revocation
+* One-time token display with masked UI
+* Zustand stores for org/project/session state
 
 ---
 
-## 🔮 Upcoming
+## 🔮 **Upcoming**
 
-- Audit logs for key/project/org actions
-- Tag manager runtime (event ingestion & execution engine)
-- Workspace-level analytics
-- Public API docs
-- Cron cleanup for expired sessions/verifications
+* Audit logs for org/project actions
+* Real-time ingestion pipeline (Relay Node)
+* Event replay + analytics dashboard
+* Public API documentation
+* Cron cleanup for expired sessions/verifications
 
 ---
 
-## 🛠️ Setup
+## 🛠️ **Setup**
 
-1. Install dependencies
-    bun install
+1. **Install dependencies**
 
-2. Copy `.env.example` and fill required keys
-    cp .env.example .env
+   ```bash
+   bun install
+   ```
 
-3. Run database migrations
-    bun run db:migrate
+2. **Copy and edit env file**
 
-4. Start all apps
-    bun run dev
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Run migrations**
+
+   ```bash
+   bun run db:migrate
+   ```
+
+4. **Start apps**
+
+   ```bash
+   bun run dev
+   ```
 
 Dashboard → [http://localhost:3000](http://localhost:3000)
 Docs → [http://localhost:3001](http://localhost:3001)
 
 ---
 
-## 💡 Philosophy
+## 💬 **Philosophy**
 
-"Tag management should be open, transparent, and privacy-first."
+> “Tag management should be open, transparent, and privacy-first.”
 
-OSSTag empowers developers and teams to self-host a tag manager that’s
-faster, safer, and more auditable than any black-box alternative.
-
----
-
-## 🌐 Links
-
-- Website (coming soon)
-- Docs: /apps/docs
-- Dashboard: /apps/dashboard
-- Repo: github.com/opentagmanager/osstag
+OSSTag gives teams **full control** of analytics and tracking,
+without relying on third-party scripts or hidden data flows.
 
 ---
 
-© 2025 OSS Tag. Open Source under the MIT License.
+## 🌐 **Links**
+
+* Website (coming soon)
+* Docs → `/apps/docs`
+* Dashboard → `/apps/dashboard`
+* Repo → [github.com/opentagmanager/osstag](https://github.com/opentagmanager/osstag)
 
 ---
+
+© 2025 **OSSTag** — Open Source under the **MIT License**
