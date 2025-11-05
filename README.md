@@ -1,5 +1,12 @@
 # 🏷️ **OSSTag — The Open-Source Tag Manager**
 
+<br />
+<a href="https://vercel.com/oss">
+  <img alt="Vercel OSS Program" src="https://vercel.com/oss/program-badge.svg" />
+</a>
+<br />
+<br />
+
 **OSSTag** is a **privacy-first, unblockable, and developer-friendly tag manager**.
 It lets you **collect, route, and analyze events** across your product — **without ads scripts, cookies, or trackers**.
 
@@ -11,12 +18,12 @@ It’s an **open alternative to Google Tag Manager**, rebuilt from the ground up
 
 OSSTag helps you:
 
-* 📦 **Manage tracking & analytics tags** without editing your production code
-* 🔒 **Respect privacy laws (GDPR, CCPA)** — no personal data or cookies required
-* ⚡ **Send and process events** in real-time using a fast, server-side relay
-* 🚫 **Bypass ad-blockers** — works at the network level, not via third-party scripts
-* 🧩 **Integrate anywhere** — SDKs for web, React, and server environments
-* 🪶 **Stay lightweight** — no heavy dashboards or hidden analytics vendors
+- 📦 **Manage tracking & analytics tags** without editing your production code
+- 🔒 **Respect privacy laws (GDPR, CCPA)** — no personal data or cookies required
+- ⚡ **Send and process events** in real-time using a fast, server-side relay
+- 🚫 **Bypass ad-blockers** — works at the network level, not via third-party scripts
+- 🧩 **Integrate anywhere** — SDKs for web, React, and server environments
+- 🪶 **Stay lightweight** — no heavy dashboards or hidden analytics vendors
 
 You control your data, your tags, and your infrastructure.
 
@@ -26,22 +33,22 @@ You control your data, your tags, and your infrastructure.
 
 | Feature              | OSSTag               | Google Tag Manager   |
 | -------------------- | -------------------- | -------------------- |
-| Open Source          | ✅ Yes                | ❌ No                 |
-| Privacy-First        | ✅ Built-in           | ⚠️ Ad-centric        |
-| Server-Side Tags     | ✅ Native             | ⚙️ Complex setup     |
-| Unblockable          | ✅ Works via relay    | ❌ Script-based       |
-| Self-Hosted          | ✅ You own it         | ❌ Google Cloud       |
+| Open Source          | ✅ Yes               | ❌ No                |
+| Privacy-First        | ✅ Built-in          | ⚠️ Ad-centric        |
+| Server-Side Tags     | ✅ Native            | ⚙️ Complex setup     |
+| Unblockable          | ✅ Works via relay   | ❌ Script-based      |
+| Self-Hosted          | ✅ You own it        | ❌ Google Cloud      |
 | Developer Experience | ❤️ Type-safe, modern | 😩 UI-driven, legacy |
 
 ---
 
 ## 🧠 **Core Principles**
 
-* **Transparency** → Open code, clear data flows
-* **Privacy** → No fingerprinting, no PII
-* **Control** → You decide where events go
-* **Simplicity** → One command to run, one UI to manage
-* **Speed** → Built for modern edge runtimes (Vercel Fluid, Bun, AWS)
+- **Transparency** → Open code, clear data flows
+- **Privacy** → No fingerprinting, no PII
+- **Control** → You decide where events go
+- **Simplicity** → One command to run, one UI to manage
+- **Speed** → Built for modern edge runtimes (Vercel Fluid, Bun, AWS)
 
 ---
 
@@ -82,35 +89,35 @@ packages/
 
 ### ✅ Core
 
-* Feature-flagged cache with memory + Upstash support
-* Environment schema with validated keys
-* Upstash auto-detect (no manual flags)
+- Feature-flagged cache with memory + Upstash support
+- Environment schema with validated keys
+- Upstash auto-detect (no manual flags)
 
 ### ✅ Auth (v0.1)
 
-* Better Auth (Email/Password + Google + GitHub)
-* JWT sessions (stateless)
-* SMTP + Resend adapters
-* Secure cookies + session limiting
-* Centralized auth package with Next.js + tRPC integration
+- Better Auth (Email/Password + Google + GitHub)
+- JWT sessions (stateless)
+- SMTP + Resend adapters
+- Secure cookies + session limiting
+- Centralized auth package with Next.js + tRPC integration
 
 ### ✅ Dashboard
 
-* Organization & Project management
-* Role-based access (owner, admin, editor, viewer)
-* API key creation, reveal, and revocation
-* One-time token display with masked UI
-* Zustand stores for org/project/session state
+- Organization & Project management
+- Role-based access (owner, admin, editor, viewer)
+- API key creation, reveal, and revocation
+- One-time token display with masked UI
+- Zustand stores for org/project/session state
 
 ---
 
 ## 🔮 **Upcoming**
 
-* Audit logs for org/project actions
-* Real-time ingestion pipeline (Relay Node)
-* Event replay + analytics dashboard
-* Public API documentation
-* Cron cleanup for expired sessions/verifications
+- Audit logs for org/project actions
+- Real-time ingestion pipeline (Relay Node)
+- Event replay + analytics dashboard
+- Public API documentation
+- Cron cleanup for expired sessions/verifications
 
 ---
 
@@ -156,10 +163,10 @@ without relying on third-party scripts or hidden data flows.
 
 ## 🌐 **Links**
 
-* Website (coming soon)
-* Docs → `/apps/docs`
-* Dashboard → `/apps/dashboard`
-* Repo → [github.com/opentagmanager/osstag](https://github.com/opentagmanager/osstag)
+- Website (coming soon)
+- Docs → `/apps/docs`
+- Dashboard → `/apps/dashboard`
+- Repo → [github.com/opentagmanager/osstag](https://github.com/opentagmanager/osstag)
 
 ---
 
