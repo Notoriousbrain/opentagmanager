@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   db:
-    image: bitnami/postgresql:15
+    image: postgres:15-alpine
     container_name: osstag_postgres
     restart: unless-stopped
     environment:
@@ -72,7 +72,38 @@ services:
       timeout: 5s
       retries: 5
 
+  minio:
+    image: minio/minio
+    container_name: osstag_minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password
+    command: server /data --console-address ":9001"
+    ports:
+      - "9100:9000"
+      - "9101:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafkaui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: osstag_kafkaui
+    restart: unless-stopped
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
 volumes:
   pgdata:
   kafka_data:
   clickhouse_data:
+  minio_data:
