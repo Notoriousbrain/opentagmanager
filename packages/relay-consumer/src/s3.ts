@@ -11,12 +11,12 @@ const hasS3Config =
 export const s3 = hasS3Config
   ? new S3Client({
       region: env.S3_REGION || "us-east-1",
+      forcePathStyle: true,
       credentials: {
         accessKeyId: env.S3_ACCESS_KEY_ID!,
         secretAccessKey: env.S3_SECRET_ACCESS_KEY!,
       },
       endpoint: env.S3_ENDPOINT || undefined,
-      forcePathStyle: true,
     })
   : null;
 

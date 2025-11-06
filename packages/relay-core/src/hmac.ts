@@ -1,6 +1,7 @@
 import { createHmac, createHash, timingSafeEqual } from "node:crypto";
 import { Header } from "./types";
 import { SignatureInvalidError, SkewExceededError } from "./errors";
+import { logger } from "./logger";
 
 export interface CanonicalInput {
   method: string;
@@ -71,6 +72,18 @@ export function verifySignatureOrThrow(v: VerifyInput): void {
   const a = Buffer.from(expected);
   const b = Buffer.from(v.signature);
 
+  logger.warn("SIGNATURE DEBUG", {
+    expected: signIngest({
+      method: v.method,
+      path: v.path,
+      body: v.body,
+      ts: v.ts,
+      secret: v.secret,
+    }),
+    provided: v.signature,
+    canonical: `${v.ts}.${v.method}.${v.path}.${sha256Base64Url(v.body ?? "")}`,
+    secretSnippet: v.secret.slice(0, 8) + "...",
+  });
   const match = a.length === b.length && timingSafeEqual(a, b);
   if (!match) {
     throw new SignatureInvalidError("signature mismatch", {

@@ -12,6 +12,7 @@ import {
   UpstreamUnavailableError,
   writeToDLQ,
 } from "@otm/relay-core";
+import { uploadToS3 } from "./s3";
 
 const FLUSH_INTERVAL_MS = env.RELAY_FLUSH_INTERVAL_MS;
 const MAX_BATCH_SIZE = env.RELAY_MAX_BATCH_SIZE;
@@ -48,6 +49,11 @@ async function flushBatch(force = false) {
       },
       { attempts: MAX_RETRY_ATTEMPTS, baseDelayMs: 1000 }
     );
+
+    const tmpFile = `/tmp/batch-${Date.now()}.ndjson`;
+    await Bun.write(tmpFile, batch.map((e) => JSON.stringify(e)).join("\n"));
+    await uploadToS3(tmpFile, batch[0]?.projectId);
+    await Bun.$`rm -f ${tmpFile}`;
 
     const duration = Date.now() - start;
     recordBatchSuccess(batch.length, duration);

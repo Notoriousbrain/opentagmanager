@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db, schema } from "../packages/db/src";
+import { createHash } from "node:crypto";
 
 async function ensureUser() {
   const userId = "seed_user_1";
@@ -69,7 +70,8 @@ async function ensureProject(orgId: string) {
 
 async function ensureApiKey(projectId: string) {
   const id = "OTM_PK_demo1234567890abcd";
-  const keyHash = "test_secret_public";
+  const rawSecret = "test_secret_public";
+  const keyHash = createHash("sha256").update(rawSecret).digest("hex");
   const existing = await db.query.apiKey.findFirst({
     where: eq(schema.apiKey.id, id),
   });
