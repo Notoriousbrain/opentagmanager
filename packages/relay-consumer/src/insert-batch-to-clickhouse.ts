@@ -5,13 +5,23 @@ import {
   type NormalizedEvent,
 } from "@otm/relay-core";
 import { retryIfRetryable } from "@otm/relay-core";
+import { env } from "@otm/env"; 
 
 export async function insertBatchToClickhouse(
   events: NormalizedEvent[]
 ): Promise<void> {
   if (!events.length) return;
 
+  if (!env.CLICKHOUSE_URL || !env.CLICKHOUSE_DB) {
+    logger.warn("⚠️ ClickHouse config missing — skipping insert");
+    return;
+  }
+
   const client = getClickhouseClient();
+  if (!client) {
+    logger.warn("⚠️ ClickHouse client unavailable — skipping insert");
+    return;
+  }
 
   const safeDate = (value: any) => {
     const d = new Date(value);

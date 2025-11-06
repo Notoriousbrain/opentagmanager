@@ -36,3 +36,22 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+logs/
+*.log
+*.log.json
+
+# DLQ (Dead Letter Queue) files
+dlq/
+*.dlq.json
+*.dlq.ndjson
+*.failed.json
+
+# Temporary or intermediate batches
+tmp/
+tmp_*
+*.tmp
+*.ndjson
+
+.idea/
+.vscode/

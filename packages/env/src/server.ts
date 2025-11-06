@@ -46,6 +46,7 @@ export const env = createEnv({
     RELAY_FLUSH_INTERVAL_MS: z.coerce.number().default(5000),
     RELAY_MAX_BATCH_SIZE: z.coerce.number().default(1000),
     RELAY_MAX_RETRY_ATTEMPTS: z.coerce.number().default(3),
+    RELAY_S3_MAX_MB: z.coerce.number().default(10),
 
     CLICKHOUSE_URL: z.string().url().default("http://localhost:8123"),
     CLICKHOUSE_USER: z.string().default("default"),
