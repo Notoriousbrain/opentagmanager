@@ -13,22 +13,22 @@ import { insertBatchToClickhouse, s3 } from "@otm/relay-consumer";
 export async function triggerReplayFromS3(prefix: string) {
   const start = Date.now();
   const bucket = env.S3_BUCKET;
-  const listed = await s3.send(
+  const listed = await s3?.send(
     new ListObjectsV2Command({ Bucket: bucket, Prefix: prefix })
   );
 
-  const files = listed.Contents?.map((o) => o.Key!) ?? [];
+  const files = listed?.Contents?.map((o) => o.Key!) ?? [];
   console.log(`🔁 Found ${files.length} files in s3://${bucket}/${prefix}`);
 
   let totalEvents = 0;
 
   for (const key of files) {
     console.log(`📥 Downloading ${key}...`);
-    const obj = await s3.send(
+    const obj = await s3?.send(
       new GetObjectCommand({ Bucket: bucket, Key: key })
     );
 
-    const stream = obj.Body as unknown as Readable;
+    const stream = obj?.Body as unknown as Readable;
     if (!stream) {
       console.error(`⚠️ No body stream for ${key}`);
       continue;

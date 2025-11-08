@@ -6,3 +6,4 @@ export * from "./lib/redis-client";
 export * from "./lib/interest-keys";
 export * from "./lib/rate-limit";
 export * from "./utils/retry";
+export * from "./lib/clickhouse-client";

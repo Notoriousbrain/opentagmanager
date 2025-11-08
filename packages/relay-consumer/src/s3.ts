@@ -1,4 +1,3 @@
-// packages/relay-consumer/src/s3.ts
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { readFile } from "node:fs/promises";
 import { basename } from "node:path";
