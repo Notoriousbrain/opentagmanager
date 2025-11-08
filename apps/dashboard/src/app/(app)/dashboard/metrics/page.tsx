@@ -1,4 +1,5 @@
 import { MetricsHeader } from "@/components/metrics/metrics-header";
+import { RelayMetricsCard } from "@/components/metrics/relay-metrics-card";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -10,10 +11,8 @@ export default function MetricsPage() {
     <main className="flex flex-col gap-6 p-6">
       <MetricsHeader />
 
-      <section className="border rounded-xl p-6 bg-card text-card-foreground shadow-sm">
-        <p className="text-muted-foreground">
-          Metrics data loading will appear here.
-        </p>
+      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <RelayMetricsCard />
       </section>
     </main>
   );
