@@ -2,7 +2,7 @@ import { createClient } from "@clickhouse/client";
 import { env } from "@otm/env";
 
 const client = createClient({
-  host: env.CLICKHOUSE_URL,
+  url: env.CLICKHOUSE_URL,
   database: env.CLICKHOUSE_DB,
   username: env.CLICKHOUSE_USER,
   password: env.CLICKHOUSE_PASSWORD,

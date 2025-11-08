@@ -1,4 +1,4 @@
-import { logger } from "@otm/relay-core";
+import { logger } from "./logger";
 
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
