@@ -20,4 +20,23 @@ export const relayRouter = createTRPCRouter({
     `);
     return rows;
   }),
+
+  countByDay: publicProcedure.query(async () => {
+    const rows = await queryClickHouse<{
+      project_id: string;
+      day: string;
+      total: number;
+    }>(`
+      SELECT
+        project_id,
+        toDate(occurred_at) AS day,
+        count() AS total
+      FROM osstag.events_raw
+      WHERE day >= today() - 14
+      GROUP BY project_id, day
+      ORDER BY project_id, day ASC
+    `);
+
+    return rows;
+  }),
 });
