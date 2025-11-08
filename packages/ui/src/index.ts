@@ -15,3 +15,4 @@ export * from "./components/skeleton/list-skeleton";
 export * from "./components/role-badge";
 export * from "./lib/guards";
 export * from "./components/dropdown-menu"
+export * from "./components/table"

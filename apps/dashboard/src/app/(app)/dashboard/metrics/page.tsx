@@ -1,5 +1,6 @@
 import { EventTrendChart } from "@/components/metrics/event-trend-chart";
 import { MetricsHeader } from "@/components/metrics/metrics-header";
+import { ProjectTotalsTable } from "@/components/metrics/projects-total-table";
 import { RelayMetricsCard } from "@/components/metrics/relay-metrics-card";
 import { Metadata } from "next";
 
@@ -18,6 +19,10 @@ export default function MetricsPage() {
 
       <section>
         <EventTrendChart />
+      </section>
+
+      <section>
+        <ProjectTotalsTable />
       </section>
     </main>
   );
