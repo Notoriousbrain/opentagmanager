@@ -45,7 +45,6 @@ export function ProjectTotalsTable() {
     );
   }
 
-  // Sort projects by total desc
   const sorted = [...data].sort(
     (a, b) => Number(b.total) - Number(a.total)
   );

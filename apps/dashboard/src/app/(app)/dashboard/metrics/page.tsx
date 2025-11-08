@@ -10,18 +10,18 @@ export const metadata: Metadata = {
 
 export default function MetricsPage() {
   return (
-    <main className="flex flex-col gap-6 p-6">
+    <main className="flex flex-col gap-8 p-6 bg-subtle rounded-xl">
       <MetricsHeader />
 
       <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <RelayMetricsCard />
       </section>
 
-      <section>
+      <section className="grid gap-6">
         <EventTrendChart />
       </section>
 
-      <section>
+      <section className="grid gap-6">
         <ProjectTotalsTable />
       </section>
     </main>
