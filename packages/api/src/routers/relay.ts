@@ -110,4 +110,38 @@ export const relayRouter = createTRPCRouter({
       return [] as { project_id: string; day: string; total: number }[];
     }
   }),
+
+  countByType: publicProcedure.query(async () => {
+    try {
+      const rows = await queryClickHouse<{ type: string; total: number }>(`
+      SELECT
+        type,
+        count() AS total
+      FROM osstag.events_raw
+      WHERE occurred_at >= now() - INTERVAL 14 DAY
+      GROUP BY type
+      ORDER BY total DESC
+    `);
+      return rows;
+    } catch {
+      return [];
+    }
+  }),
+
+  countByRegion: publicProcedure.query(async () => {
+    try {
+      const rows = await queryClickHouse<{ region: string; total: number }>(`
+      SELECT
+        data.props.region AS region,
+        count() AS total
+      FROM osstag.events_raw
+      WHERE occurred_at >= now() - INTERVAL 14 DAY
+      GROUP BY data.props.region
+      ORDER BY total DESC
+    `);
+      return rows;
+    } catch {
+      return [];
+    }
+  }),
 });

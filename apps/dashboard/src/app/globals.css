@@ -12,10 +12,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-.bg-subtle {
-  @apply bg-muted/30;
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #000;

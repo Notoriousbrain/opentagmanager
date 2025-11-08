@@ -2,13 +2,14 @@
 
 import { trpc } from "@/lib/trpc/react";
 import {
-  Area,
-  AreaChart,
+  LineChart,
+  Line,
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
+  Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@otm/ui";
 import { Loader2 } from "lucide-react";
@@ -45,19 +46,36 @@ export function EventTrendChart() {
     );
   }
 
-  // Transform: group rows by project_id
+  // --- Group by project_id ---
   const grouped: Record<string, { day: string; total: number }[]> = {};
   for (const row of data) {
     const key = row.project_id;
     if (!grouped[key]) grouped[key] = [];
-    grouped[key].push({
-      day: row.day,
-      total: Number(row.total),
-    });
+    grouped[key].push({ day: row.day, total: Number(row.total) });
   }
 
-  const firstProject = Object.keys(grouped)[0];
-  const chartData = grouped[firstProject] || [];
+  // --- Create combined dataset (day as key, project totals as columns) ---
+  const allDays = Array.from(new Set(data.map((r) => r.day))).sort();
+  const chartData = allDays.map((day) => {
+    const entry: Record<string, number | string> = { day };
+    for (const [project, values] of Object.entries(grouped)) {
+      const found = values.find((v) => v.day === day);
+      entry[project] = found ? found.total : 0;
+    }
+    return entry;
+  });
+
+  // --- Generate consistent colors ---
+  const colors = [
+    "#60a5fa", // blue-400
+    "#34d399", // emerald-400
+    "#f472b6", // pink-400
+    "#facc15", // yellow-400
+    "#a78bfa", // violet-400
+    "#fb923c", // orange-400
+  ];
+
+  const projectIds = Object.keys(grouped);
 
   return (
     <Card className="col-span-full">
@@ -67,25 +85,8 @@ export function EventTrendChart() {
       <CardContent>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="colorEvents" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="hsl(var(--primary))"
-                    stopOpacity={0.8}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="hsl(var(--primary))"
-                    stopOpacity={0}
-                  />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                className="stroke-muted/30"
-              />
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
               <XAxis dataKey="day" fontSize={12} />
               <YAxis fontSize={12} />
               <Tooltip
@@ -94,14 +95,18 @@ export function EventTrendChart() {
                   border: "1px solid hsl(var(--border))",
                 }}
               />
-              <Area
-                type="monotone"
-                dataKey="total"
-                stroke="hsl(var(--primary))"
-                fillOpacity={1}
-                fill="url(#colorEvents)"
-              />
-            </AreaChart>
+              <Legend />
+              {projectIds.map((projectId, i) => (
+                <Line
+                  key={projectId}
+                  type="monotone"
+                  dataKey={projectId}
+                  stroke={colors[i % colors.length]}
+                  strokeWidth={2}
+                  dot={false}
+                />
+              ))}
+            </LineChart>
           </ResponsiveContainer>
         </div>
       </CardContent>
