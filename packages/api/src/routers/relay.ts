@@ -127,4 +127,21 @@ export const relayRouter = createTRPCRouter({
       return [];
     }
   }),
+
+  countByRegion: publicProcedure.query(async () => {
+    try {
+      const rows = await queryClickHouse<{ region: string; total: number }>(`
+      SELECT
+        JSONExtractString(data, 'region') AS region,
+        count() AS total
+      FROM osstag.events_raw
+      WHERE occurred_at >= now() - INTERVAL 14 DAY
+      GROUP BY region
+      ORDER BY total DESC
+    `);
+      return rows;
+    } catch {
+      return [];
+    }
+  }),
 });

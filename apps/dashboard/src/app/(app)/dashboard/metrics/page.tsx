@@ -1,3 +1,4 @@
+import { EventRegionSummary } from "@/components/metrics/event-region-summary";
 import { EventTrendChart } from "@/components/metrics/event-trend-chart";
 import { EventTypeSummary } from "@/components/metrics/event-type-summary";
 import { MetricsHeader } from "@/components/metrics/metrics-header";
@@ -20,6 +21,10 @@ export default function MetricsPage() {
 
       <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <RelayMetricsCard />
+      </section>
+
+      <section>
+        <EventRegionSummary />
       </section>
 
       <section className="grid gap-6">
