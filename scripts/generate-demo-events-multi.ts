@@ -8,13 +8,9 @@ const SECRET = "test_secret_public"; // same as relay verifier
 const PUBLIC_KEY = "OTM_PK_demo1234567890abcd";
 
 // --- CONFIG ---
-const PROJECTS = [
-  "demo_project_1",
-  "demo_project_2",
-  "demo_project_3",
-];
-const EVENTS_PER_PROJECT = 5;    // per cycle
-const CYCLE_DELAY_MS = 2000;     // 2s pause between cycles
+const PROJECTS = ["demo_project_1", "demo_project_2", "demo_project_3"];
+const EVENTS_PER_PROJECT = 5; // per cycle
+const CYCLE_DELAY_MS = 2000; // 2s pause between cycles
 
 function randomEventType() {
   const types = ["page_view", "click", "signup", "purchase", "scroll"];
@@ -75,7 +71,9 @@ async function loopForever() {
   let i = 1;
 
   while (true) {
-    console.log(`▶️ Cycle ${i}: sending ${EVENTS_PER_PROJECT * PROJECTS.length} events...`);
+    console.log(
+      `▶️ Cycle ${i}: sending ${EVENTS_PER_PROJECT * PROJECTS.length} events...`
+    );
 
     for (const project of PROJECTS) {
       for (let j = 0; j < EVENTS_PER_PROJECT; j++) {

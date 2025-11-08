@@ -132,11 +132,11 @@ export const relayRouter = createTRPCRouter({
     try {
       const rows = await queryClickHouse<{ region: string; total: number }>(`
       SELECT
-        JSONExtractString(data, 'region') AS region,
+        data.props.region AS region,
         count() AS total
       FROM osstag.events_raw
       WHERE occurred_at >= now() - INTERVAL 14 DAY
-      GROUP BY region
+      GROUP BY data.props.region
       ORDER BY total DESC
     `);
       return rows;
