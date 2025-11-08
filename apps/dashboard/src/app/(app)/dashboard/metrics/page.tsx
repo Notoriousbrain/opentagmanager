@@ -1,3 +1,4 @@
+import { EventTrendChart } from "@/components/metrics/event-trend-chart";
 import { MetricsHeader } from "@/components/metrics/metrics-header";
 import { RelayMetricsCard } from "@/components/metrics/relay-metrics-card";
 import { Metadata } from "next";
@@ -13,6 +14,10 @@ export default function MetricsPage() {
 
       <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <RelayMetricsCard />
+      </section>
+
+      <section>
+        <EventTrendChart />
       </section>
     </main>
   );
