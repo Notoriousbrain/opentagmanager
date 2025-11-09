@@ -14,7 +14,7 @@ import {
   Input,
   Separator,
 } from "@otm/ui";
-import { Role } from "@/types/org";
+import { Role } from "@otm/types";
 
 type CreateProjectInput = {
   name: string;

@@ -4,33 +4,29 @@ import { useState } from "react";
 import { Button } from "@otm/ui";
 import { Card } from "@otm/ui";
 import { CopyIcon, ChevronDown, ChevronUp } from "lucide-react";
+import { EventRow } from "@otm/types";
 
-type EventRow = {
-  type: string;
-  region: string | null;
-  occurred_at: string;
-  props: Record<string, unknown> | null;
-};
-
-// temporary mocked events
 const MOCK_EVENTS: EventRow[] = [
   {
     type: "page_view",
     region: "IN",
     occurred_at: "2025-11-09T09:32:11.000Z",
     props: { path: "/home", ref: "google" },
+    project_id: "123",
   },
   {
     type: "click",
     region: "US",
     occurred_at: "2025-11-09T09:31:45.000Z",
     props: { button: "signup", color: "blue" },
+    project_id: "123",
   },
   {
     type: "purchase",
     region: "DE",
     occurred_at: "2025-11-09T09:30:02.000Z",
     props: { amount: 199, currency: "USD" },
+    project_id: "123",
   },
 ];
 
@@ -90,7 +86,7 @@ export function EventsTable() {
                 {new Date(e.occurred_at).toLocaleString()}
               </td>
               <td className="p-2">
-                <JsonPreview data={e.props} />
+                <JsonPreview data={e.props ?? null} />
               </td>
             </tr>
           ))}

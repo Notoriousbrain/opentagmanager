@@ -33,7 +33,8 @@
     "sonner": "catalog:",
     "tailwind-merge": "catalog:",
     "tw-animate-css": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@otm/types": "workspace:*"
   },
   "peerDependencies": {
     "next": "catalog:"

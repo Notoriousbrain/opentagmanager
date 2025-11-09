@@ -1,4 +1,4 @@
-import type { EventRow } from "@/types/events";
+import { EventRow } from "@otm/types";
 
 export function normalizeEventRow(row: EventRow) {
   return {
