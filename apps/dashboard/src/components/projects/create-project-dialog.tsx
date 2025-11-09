@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/react";
-import { useOrgStore, type Role } from "@/store/org";
+import { useActiveOrg } from "@/hooks/use-active-org";
 import {
   Card,
   CardHeader,
@@ -14,6 +14,7 @@ import {
   Input,
   Separator,
 } from "@otm/ui";
+import { Role } from "@/types/org";
 
 type CreateProjectInput = {
   name: string;
@@ -35,11 +36,11 @@ function canCreateProjects(role: Role | undefined): boolean {
 
 export function CreateProjectCard() {
   const router = useRouter();
-  const { activeOrgId, orgs } = useOrgStore();
+  const { org, orgs } = useActiveOrg();
 
   const role: Role | undefined = useMemo(
-    () => orgs.find((o) => o.id === activeOrgId)?.role,
-    [orgs, activeOrgId]
+    () => orgs.find((o) => o.id === org?.id)?.role,
+    [orgs, org?.id]
   );
   const allowed = canCreateProjects(role);
 
@@ -58,7 +59,7 @@ export function CreateProjectCard() {
 
   const create = trpc.projects.create.useMutation({
     onSuccess: async (proj) => {
-      await utils.projects.list.invalidate({ orgId: activeOrgId ?? "" });
+      await utils.projects.list.invalidate({ orgId: org?.id ?? "" });
       router.replace(`/dashboard/projects/${proj.id}`);
     },
     onError: (err) => {
@@ -88,7 +89,7 @@ export function CreateProjectCard() {
   const slugError = slugErrorBase ?? serverError;
 
   const canSubmit =
-    !!activeOrgId &&
+    !!org?.id &&
     allowed &&
     !nameError &&
     !slugErrorBase &&
@@ -106,7 +107,7 @@ export function CreateProjectCard() {
       </CardHeader>
 
       <CardContent className="space-y-6 px-6 pb-6">
-        {!activeOrgId && (
+        {!org?.id && (
           <div className="rounded-md border border-yellow-400/30 bg-yellow-400/10 p-3 text-xs text-yellow-200">
             Select an organization first.
           </div>
@@ -181,7 +182,7 @@ export function CreateProjectCard() {
             onClick={() => {
               setServerError(null);
               create.mutate({
-                orgId: activeOrgId ?? "",
+                orgId: org?.id ?? "",
                 name: form.name.trim(),
                 slug: effectiveSlug,
               });

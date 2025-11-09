@@ -13,7 +13,6 @@ import {
   Separator,
 } from "@otm/ui";
 import { useRouter } from "next/navigation";
-import { useOrgStore } from "@/store/org";
 
 type CreateOrgInput = {
   name: string;
@@ -31,7 +30,6 @@ function slugify(input: string): string {
 
 export function CreateOrgCard() {
   const router = useRouter();
-  const { setActiveOrg } = useOrgStore();
   const utils = trpc.useUtils();
 
   const [form, setForm] = useState<CreateOrgInput>({ name: "", slug: "" });
@@ -47,12 +45,12 @@ export function CreateOrgCard() {
 
   const create = trpc.orgs.create.useMutation({
     onSuccess: async (org) => {
-      if (org && typeof org.id === "string") {
-        setActiveOrg(org.id);
-      }
-
       await utils.orgs.mine.invalidate();
-      router.push("/dashboard");
+      if (org && typeof org.id === "string") {
+        router.push(`/dashboard?org=${org.id}`);
+      } else {
+        router.push("/dashboard");
+      }
     },
     onError: (err) => {
       const msg = err.message || "Failed to create organization.";

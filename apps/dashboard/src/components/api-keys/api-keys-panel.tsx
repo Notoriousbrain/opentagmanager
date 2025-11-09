@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc/react";
-import { useOrgStore } from "@/store/org";
+import { useActiveOrg } from "@/hooks/use-active-org";
 import {
   Card,
   CardHeader,
@@ -40,11 +40,11 @@ type ApiKey = {
 export function ApiKeysPanel({ projectId }: { projectId: string }) {
   const newKeyBtnRef = useRef<HTMLButtonElement | null>(null);
 
-  const { activeOrgId, orgs } = useOrgStore();
+  const { org, orgs } = useActiveOrg();
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const role: OrgRole | undefined = useMemo(
-    () => orgs.find((o) => o.id === activeOrgId)?.role as OrgRole | undefined,
-    [orgs, activeOrgId]
+    () => orgs.find((o) => o.id === org?.id)?.role as OrgRole | undefined,
+    [orgs, org?.id]
   );
 
   const { push } = useToasts();

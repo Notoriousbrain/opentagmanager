@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/react";
-import { useOrgStore } from "@/store/org";
+import { useActiveOrg } from "@/hooks/use-active-org";
 import { Button, Separator, Skeleton } from "@otm/ui";
 import { UserMenu } from "./user-menu";
 import { OrgSwitcher } from "../org/org-switcher";
@@ -11,7 +11,7 @@ import Image from "next/image";
 
 export function DashboardHeader() {
   const router = useRouter();
-  const { activeOrgId, orgs: orgStoreOrgs } = useOrgStore();
+  const { org, orgs: orgStoreOrgs } = useActiveOrg();
 
   const me = trpc.account.me.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -21,10 +21,10 @@ export function DashboardHeader() {
   });
 
   const activeOrg = useMemo(() => {
-    const inStore = orgStoreOrgs.find((o) => o.id === activeOrgId);
-    const inQuery = orgs.data?.find((o) => o.id === activeOrgId);
+    const inStore = orgStoreOrgs.find((o) => o.id === org?.id);
+    const inQuery = orgs.data?.find((o) => o.id === org?.id);
     return inStore ?? inQuery ?? null;
-  }, [orgStoreOrgs, activeOrgId, orgs.data]);
+  }, [orgStoreOrgs, org?.id, orgs.data]);
 
   const manyOrgs = (orgs.data?.length ?? 0) > 1;
 

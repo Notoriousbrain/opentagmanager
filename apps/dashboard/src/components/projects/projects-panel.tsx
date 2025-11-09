@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/react";
-import { useOrgStore } from "@/store/org";
+import { useActiveOrg } from "@/hooks/use-active-org";
 import {
   Card,
   CardHeader,
@@ -31,19 +31,19 @@ type Project = {
 
 export function ProjectsPanel() {
   const router = useRouter();
-  const { activeOrgId, orgs } = useOrgStore();
+  const { org, orgs } = useActiveOrg();
 
   const role: OrgRole | undefined = useMemo(
-    () => orgs.find((o) => o.id === activeOrgId)?.role as OrgRole | undefined,
-    [orgs, activeOrgId]
+    () => orgs.find((o) => o.id === org?.id)?.role as OrgRole | undefined,
+    [orgs, org?.id]
   );
 
   const canCreate = canCreateProjects(role);
 
   const projects = trpc.projects.list.useQuery(
-    { orgId: activeOrgId ?? "" },
+    { orgId: org?.id ?? "" },
     {
-      enabled: !!activeOrgId,
+      enabled: !!org?.id,
       refetchOnWindowFocus: false,
     }
   );
