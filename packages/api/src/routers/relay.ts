@@ -1,5 +1,7 @@
+import { EventRow } from "@otm/types";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { queryClickHouse } from "@otm/core";
+import z from "zod";
 
 const METRICS_URL =
   process.env.RELAY_METRICS_URL ?? "http://localhost:4000/metrics";
@@ -144,4 +146,29 @@ export const relayRouter = createTRPCRouter({
       return [];
     }
   }),
+
+  getEventsByProject: publicProcedure
+    .input(z.object({ projectId: z.string() }))
+    .query(async ({ input }) => {
+      const { projectId } = input;
+
+      const rows = await queryClickHouse<EventRow>(`
+  SELECT
+    project_id,
+    type,
+    data:props AS props,
+    data:props:region AS region,
+    occurred_at
+  FROM osstag.events_raw
+  WHERE project_id = '${projectId}'
+  ORDER BY occurred_at DESC
+  LIMIT 100
+`);
+
+      return rows.map((r) => ({
+        ...r,
+        region: r.region ?? "—",
+        props: r.props ?? {},
+      }));
+    }),
 });
