@@ -7,6 +7,7 @@ import { EventsTable } from "@/components/events/events-table";
 import { use, useState } from "react";
 import { EventsStateBar } from "@/components/events/events-state";
 import { usePolling } from "@/hooks/use-polling";
+import { useProjectName } from "@/hooks/use-project-nme";
 
 export default function ProjectEventsPage({
   params,
@@ -15,6 +16,7 @@ export default function ProjectEventsPage({
 }) {
   const { id } = use(params);
   const { org, isLoading } = useActiveOrg();
+  const { name: projectName, isLoading: isProjectLoading } = useProjectName(id);
   const [count, setCount] = useState(0);
   usePolling(() => setCount((c) => c + 1), 3000);
   const [mockState, setMockState] = useState<
@@ -23,11 +25,36 @@ export default function ProjectEventsPage({
 
   if (isLoading) return <div>Loading...</div>;
   if (!org) return notFound();
+  if (!isProjectLoading && !projectName) return notFound();
 
   return (
     <main className="flex flex-col gap-6 p-6">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Recent Events</h1>
+        <div className="flex flex-col">
+          <nav className="text-sm text-muted-foreground mb-1">
+            <Link href="/dashboard" className="hover:underline">
+              Projects
+            </Link>
+            {" › "}
+            {isProjectLoading ? (
+              <span>Loading…</span>
+            ) : (
+              <Link
+                href={`/dashboard/projects/${id}`}
+                className="hover:underline"
+              >
+                {projectName || "Unknown"}
+              </Link>
+            )}
+            {" › "}
+            <span className="text-foreground">Events</span>
+          </nav>
+
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Recent Events
+          </h1>
+        </div>
+
         <div className="flex items-center gap-2">
           <select
             className="rounded border bg-transparent p-1 text-sm"
