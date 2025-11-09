@@ -148,27 +148,37 @@ export const relayRouter = createTRPCRouter({
   }),
 
   getEventsByProject: publicProcedure
-    .input(z.object({ projectId: z.string() }))
+    .input(
+      z.object({
+        projectId: z.string(),
+        type: z.string().optional(),
+        region: z.string().optional(),
+        since: z.string().optional(),
+      })
+    )
     .query(async ({ input }) => {
-      const { projectId } = input;
+      const { projectId, type, region, since } = input;
+
+      const whereParts: string[] = [`project_id = '${projectId}'`];
+      if (type) whereParts.push(`type = '${type}'`);
+      if (region) whereParts.push(`data.props.region = '${region}'`);
+      if (since) whereParts.push(`occurred_at >= toDateTime('${since}')`);
+
+      const whereClause = whereParts.join(" AND ");
 
       const rows = await queryClickHouse<EventRow>(`
-  SELECT
-    project_id,
-    type,
-    data.props AS props,
-    data.props.region AS region,
-    occurred_at
-  FROM osstag.events_raw
-  WHERE project_id = '${projectId}'
-  ORDER BY occurred_at DESC
-  LIMIT 100
-`);
+        SELECT
+          project_id,
+          type,
+          data.props AS props,
+          data.props.region AS region,
+          occurred_at
+        FROM osstag.events_raw
+        WHERE ${whereClause}
+        ORDER BY occurred_at DESC
+        LIMIT 100
+      `);
 
-      return rows.map((r) => ({
-        ...r,
-        region: r.region ?? "—",
-        props: r.props ?? {},
-      }));
+      return rows;
     }),
 });
