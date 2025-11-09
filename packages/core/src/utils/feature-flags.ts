@@ -28,3 +28,4 @@ export async function isFeatureEnabled(name: string): Promise<boolean> {
 export async function clearFeatureFlag(name: string) {
   await cache.del(k(name));
 }
+
