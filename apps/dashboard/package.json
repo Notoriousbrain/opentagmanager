@@ -23,8 +23,7 @@
     "react-dom": "catalog:",
     "react-icons": "^5.5.0",
     "recharts": "^3.3.0",
-    "superjson": "catalog:",
-    "zustand": "^5.0.8"
+    "superjson": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:",

@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/react";
-import { useOrgStore, type Role } from "@/store/org";
+import { useActiveOrg } from "@/hooks/use-active-org";
 import {
   Button,
   Separator,
@@ -16,6 +16,7 @@ import {
   formatDateWithRelative,
 } from "@otm/ui";
 import { ApiKeysPanel } from "@/components/api-keys/api-keys-panel";
+import { Role } from "@/types/org";
 
 function canCreateProjects(role: Role | undefined): boolean {
   return role === "owner" || role === "admin" || role === "editor";
@@ -33,18 +34,18 @@ export default function ProjectPage() {
   const params = useParams<{ id: string }>();
   const projectId = params.id;
 
-  const { activeOrgId, orgs } = useOrgStore();
+  const { org, orgs } = useActiveOrg();
 
   const role: Role | undefined = useMemo(
-    () => orgs.find((o) => o.id === activeOrgId)?.role,
-    [orgs, activeOrgId]
+    () => orgs.find((o) => o.id === org?.id)?.role,
+    [orgs, org?.id]
   );
 
   const canCreate = canCreateProjects(role);
 
   const projects = trpc.projects.list.useQuery(
-    { orgId: activeOrgId ?? "" },
-    { enabled: !!activeOrgId, refetchOnWindowFocus: false }
+    { orgId: org?.id ?? "" },
+    { enabled: !!org?.id, refetchOnWindowFocus: false }
   );
 
   const project: Project | undefined = useMemo(
@@ -53,14 +54,14 @@ export default function ProjectPage() {
   );
 
   useEffect(() => {
-    if (activeOrgId && projectId) {
+    if (org?.id && projectId) {
       try {
-        localStorage.setItem(`otm.lastProject.${activeOrgId}`, projectId);
+        localStorage.setItem(`otm.lastProject.${org?.id}`, projectId);
       } catch {}
     }
-  }, [activeOrgId, projectId]);
+  }, [org?.id, projectId]);
 
-  if (!activeOrgId) {
+  if (!org?.id) {
     return (
       <Card className="border-white/10 text-zinc-100">
         <CardHeader className="px-6 pt-6">

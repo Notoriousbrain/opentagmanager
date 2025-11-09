@@ -1,4 +1,3 @@
-import { useOrgStore } from "@/store/org";
 import { authClient } from "./auth-client";
 import { redirect } from "next/navigation";
 
@@ -16,7 +15,10 @@ export async function appSignOut(redirectTo = "/signin"): Promise<void> {
   } catch {}
 
   try {
-    useOrgStore.getState().reset();
+    await fetch("/api/auth/cleanup", {
+      method: "POST",
+      credentials: "include",
+    });
     localStorage.removeItem("otm.org");
   } catch {}
 

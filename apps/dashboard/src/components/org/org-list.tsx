@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/react";
-import { useOrgStore } from "@/store/org";
+import { useActiveOrg } from "@/hooks/use-active-org";
 import {
   Card,
   CardHeader,
@@ -18,7 +18,7 @@ import {
 
 export function OrgList() {
   const router = useRouter();
-  const { activeOrgId, setActiveOrg } = useOrgStore();
+  const { org } = useActiveOrg();
 
   const orgs = trpc.orgs.mine.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -63,7 +63,7 @@ export function OrgList() {
         {orgs.isSuccess && (orgs.data?.length ?? 0) > 0 && (
           <ul className="divide-y divide-white/10 rounded-xl border border-white/10">
             {orgs.data!.map((o) => {
-              const isActive = o.id === activeOrgId;
+              const isActive = o.id === org?.id;
               return (
                 <li
                   key={o.id}
@@ -88,7 +88,6 @@ export function OrgList() {
                     <Button
                       variant={isActive ? "outline" : "default"}
                       onClick={() => {
-                        setActiveOrg(o.id);
                         router.push("/dashboard");
                       }}
                     >
