@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Separator, Button } from "@otm/ui";
 import { cn } from "@otm/ui/lib/utils";
-import { FEATURES } from "@otm/core";
+import { FEATURES } from "@otm/core/features-flag";
 
 type NavItem = {
   href: string;
