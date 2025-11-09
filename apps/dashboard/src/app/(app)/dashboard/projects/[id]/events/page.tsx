@@ -4,13 +4,16 @@ import { notFound } from "next/navigation";
 import { useActiveOrg } from "@/hooks/use-active-org";
 import Link from "next/link";
 import { EventsTable } from "@/components/events/events-table";
-import { use } from "react";
+import { use, useState } from "react";
+import { usePolling } from "@/hooks/use-polling";
 
 export default function ProjectEventsPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const [count, setCount] = useState(0);
+  usePolling(() => setCount((c) => c + 1), 3000);
   const { id } = use(params);
   const { org, isLoading } = useActiveOrg();
   if (isLoading) return <div>Loading...</div>;
@@ -19,7 +22,12 @@ export default function ProjectEventsPage({
   return (
     <main className="flex flex-col gap-6 p-6">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Recent Events</h1>
+        <div className="flex itc gap-4">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Recent Events
+          </h1>
+          <p className="text-xs text-muted-foreground">Poll tick: {count}</p>
+        </div>
         <Link
           href={`/dashboard/projects/${id}`}
           className="text-sm text-muted-foreground hover:underline"
