@@ -16,9 +16,9 @@ export function EventsTable({ data }: { data: EventRow[] }) {
         </tr>
       </thead>
       <tbody>
-        {data.map((e) => (
+        {data.map((e, i) => (
           <tr
-            key={`${e.project_id}-${e.occurred_at}`}
+            key={`${e.project_id}-${e.occurred_at}-${i}`}
             className="border-b border-white/5"
           >
             <td className="py-2 px-3">{e.type}</td>

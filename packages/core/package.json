@@ -4,7 +4,8 @@
   "private": false,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./features-flag": "./src/feature-flags.ts"
   },
   "types": "./src/index.ts",
   "scripts": {

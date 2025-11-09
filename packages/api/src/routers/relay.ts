@@ -156,8 +156,8 @@ export const relayRouter = createTRPCRouter({
   SELECT
     project_id,
     type,
-    data:props AS props,
-    data:props:region AS region,
+    data.props AS props,
+    data.props.region AS region,
     occurred_at
   FROM osstag.events_raw
   WHERE project_id = '${projectId}'
