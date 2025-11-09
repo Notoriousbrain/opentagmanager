@@ -9,6 +9,7 @@ import { EventsStateBar } from "@/components/events/events-state";
 import { useProjectName } from "@/hooks/use-project-nme";
 import { trpc } from "@/lib/trpc/react";
 import { EventRow } from "@otm/types";
+import { EventsFilterBar } from "@/components/events/events-filter-bar";
 
 export default function ProjectEventsPage({
   params,
@@ -18,9 +19,14 @@ export default function ProjectEventsPage({
   const { id } = use(params);
   const { org, isLoading: orgLoading } = useActiveOrg();
   const { name: projectName, isLoading: projectLoading } = useProjectName(id);
+  const [filters, setFilters] = useState<{
+    type?: string;
+    region?: string;
+    since?: string;
+  }>({});
 
   const eventsQuery = trpc.relay.getEventsByProject.useQuery(
-    { projectId: id },
+    { projectId: id, ...filters },
     {
       refetchInterval: 3000,
       refetchOnWindowFocus: false,
@@ -101,6 +107,7 @@ export default function ProjectEventsPage({
       </header>
 
       <section className="rounded-xl border p-6 space-y-4">
+        <EventsFilterBar onChange={setFilters} />
         <EventsStateBar state={state} onRetry={() => eventsQuery.refetch()} />
 
         {state === "ok" && <EventsTable data={events} />}
