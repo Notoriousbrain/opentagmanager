@@ -1,6 +1,7 @@
 "use client";
 
 import { EventRow } from "@otm/types";
+import { EventPropsViewer } from "./event-props-viewer";
 
 export function EventsTable({ data }: { data: EventRow[] }) {
   if (data.length === 0) return null;
@@ -26,10 +27,8 @@ export function EventsTable({ data }: { data: EventRow[] }) {
             <td className="py-2 px-3 text-zinc-400">
               {new Date(e.occurred_at).toLocaleString()}
             </td>
-            <td className="py-2 px-3">
-              <pre className="text-xs text-zinc-500 overflow-x-auto">
-                {JSON.stringify(e.props, null, 2)}
-              </pre>
+            <td className="py-2 px-3 text-sm text-zinc-300">
+              <EventPropsViewer props={e.props ?? null} />
             </td>
           </tr>
         ))}

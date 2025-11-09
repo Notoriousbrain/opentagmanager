@@ -16,3 +16,4 @@ export * from "./components/role-badge";
 export * from "./lib/guards";
 export * from "./components/dropdown-menu"
 export * from "./components/table"
+export * from "./components/scroll-area"
