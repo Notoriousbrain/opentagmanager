@@ -4,12 +4,14 @@ import { notFound } from "next/navigation";
 import { useActiveOrg } from "@/hooks/use-active-org";
 import Link from "next/link";
 import { EventsTable } from "@/components/events/events-table";
+import { use } from "react";
 
 export default function ProjectEventsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
   const { org, isLoading } = useActiveOrg();
   if (isLoading) return <div>Loading...</div>;
   if (!org) return notFound();
@@ -19,7 +21,7 @@ export default function ProjectEventsPage({
       <header className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Recent Events</h1>
         <Link
-          href={`/dashboard/projects/${params.id}`}
+          href={`/dashboard/projects/${id}`}
           className="text-sm text-muted-foreground hover:underline"
         >
           ← Back to Project
