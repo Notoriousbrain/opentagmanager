@@ -15,10 +15,10 @@ import {
   ListSkeleton,
   formatDateWithRelative,
 } from "@otm/ui";
+import { Role } from "@otm/types";
 
-type OrgRole = "owner" | "admin" | "editor" | "viewer";
 
-function canCreateProjects(role: OrgRole | undefined): boolean {
+function canCreateProjects(role: Role | undefined): boolean {
   return role === "owner" || role === "admin" || role === "editor";
 }
 
@@ -33,8 +33,8 @@ export function ProjectsPanel() {
   const router = useRouter();
   const { org, orgs } = useActiveOrg();
 
-  const role: OrgRole | undefined = useMemo(
-    () => orgs.find((o) => o.id === org?.id)?.role as OrgRole | undefined,
+  const role: Role | undefined = useMemo(
+    () => orgs.find((o) => o.id === org?.id)?.role as Role | undefined,
     [orgs, org?.id]
   );
 

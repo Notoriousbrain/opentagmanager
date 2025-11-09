@@ -3,8 +3,8 @@ import { db, schema } from "@otm/db";
 import { eq, and } from "drizzle-orm";
 import z from "zod";
 import { nanoid } from "nanoid";
+import { Role } from "@otm/types"
 
-type Role = "owner" | "admin" | "editor" | "viewer";
 export type OrgSummary = { id: string; name: string; role: Role };
 
 export const orgsRouter = createTRPCRouter({

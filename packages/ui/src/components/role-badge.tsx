@@ -1,11 +1,11 @@
 "use client";
 
 import { Badge } from "./badge";
+import { Role } from "@otm/types"
 
-export type OrgRole = "owner" | "admin" | "editor" | "viewer";
 
 function variantFor(
-  role: OrgRole
+  role: Role
 ): "success" | "secondary" | "outline" | "muted" {
   switch (role) {
     case "owner":
@@ -19,6 +19,6 @@ function variantFor(
   }
 }
 
-export function RoleBadge(props: { role: OrgRole }) {
+export function RoleBadge(props: { role: Role }) {
   return <Badge variant={variantFor(props.role)}>{props.role}</Badge>;
 }
