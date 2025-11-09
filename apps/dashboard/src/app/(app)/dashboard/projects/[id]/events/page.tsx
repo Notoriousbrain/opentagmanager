@@ -6,8 +6,9 @@ import Link from "next/link";
 import { EventsTable } from "@/components/events/events-table";
 import { use, useState } from "react";
 import { EventsStateBar } from "@/components/events/events-state";
-import { usePolling } from "@/hooks/use-polling";
 import { useProjectName } from "@/hooks/use-project-nme";
+import { trpc } from "@/lib/trpc/react";
+import { EventRow } from "@otm/types";
 
 export default function ProjectEventsPage({
   params,
@@ -15,17 +16,37 @@ export default function ProjectEventsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { org, isLoading } = useActiveOrg();
-  const { name: projectName, isLoading: isProjectLoading } = useProjectName(id);
-  const [count, setCount] = useState(0);
-  usePolling(() => setCount((c) => c + 1), 3000);
+  const { org, isLoading: orgLoading } = useActiveOrg();
+  const { name: projectName, isLoading: projectLoading } = useProjectName(id);
+
+  const eventsQuery = trpc.relay.getEventsByProject.useQuery(
+    { projectId: id },
+    {
+      refetchInterval: 3000,
+      refetchOnWindowFocus: false,
+      enabled: !!org && !orgLoading,
+      retry: false,
+    }
+  );
+
+  // ✅ Derived state machine
+  const state: "loading" | "error" | "empty" | "ok" = eventsQuery.isLoading
+    ? "loading"
+    : eventsQuery.isError
+      ? "error"
+      : (eventsQuery.data?.length ?? 0) === 0
+        ? "empty"
+        : "ok";
+
   const [mockState, setMockState] = useState<
     "loading" | "error" | "empty" | "ok"
   >("ok");
 
-  if (isLoading) return <div>Loading...</div>;
+  if (orgLoading) return <div>Loading organization…</div>;
   if (!org) return notFound();
-  if (!isProjectLoading && !projectName) return notFound();
+  if (!projectLoading && !projectName) return notFound();
+
+  const events = (eventsQuery.data ?? []) as EventRow[];
 
   return (
     <main className="flex flex-col gap-6 p-6">
@@ -36,7 +57,7 @@ export default function ProjectEventsPage({
               Projects
             </Link>
             {" › "}
-            {isProjectLoading ? (
+            {projectLoading ? (
               <span>Loading…</span>
             ) : (
               <Link
@@ -80,11 +101,9 @@ export default function ProjectEventsPage({
       </header>
 
       <section className="rounded-xl border p-6 space-y-4">
-        <h2 className="text-lg font-semibold">Recent Events (mock)</h2>
+        <EventsStateBar state={state} onRetry={() => eventsQuery.refetch()} />
 
-        <EventsStateBar state={mockState} onRetry={() => setMockState("ok")} />
-
-        {mockState === "ok" && <EventsTable />}
+        {state === "ok" && <EventsTable data={events} />}
       </section>
     </main>
   );
