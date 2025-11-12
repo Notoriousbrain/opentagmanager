@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, ScrollArea } from "@otm/ui";
+import { Button } from "@otm/ui";
 
 interface EventPropsViewerProps {
   props: Record<string, unknown> | null;
@@ -25,16 +25,27 @@ export function EventPropsViewer({ props }: EventPropsViewerProps) {
         View
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl p-6 bg-black/90 border border-white/10 text-white">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">Event Props</DialogTitle>
-          </DialogHeader>
-          <ScrollArea className="mt-4 max-h-[400px] rounded-lg border border-white/10 bg-black/40 p-3 text-xs font-mono">
-            <pre>{JSON.stringify(props, null, 2)}</pre>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+      {open && (
+        <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+          <div className="max-w-2xl w-[90%] rounded-lg border border-white/10 bg-black p-6 text-white shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Event Props</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={() => setOpen(false)}
+              >
+                ✕
+              </Button>
+            </div>
+
+            <div className="max-h-[400px] overflow-y-auto rounded-lg border border-white/10 bg-black/40 p-3 text-xs font-mono whitespace-pre-wrap">
+              <pre>{JSON.stringify(props, null, 2)}</pre>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

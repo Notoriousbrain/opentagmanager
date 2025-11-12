@@ -163,14 +163,21 @@ export const relayRouter = createTRPCRouter({
       if (type) whereParts.push(`type = '${type}'`);
       if (region) whereParts.push(`data.props.region = '${region}'`);
       if (since) whereParts.push(`occurred_at >= toDateTime('${since}')`);
-
       const whereClause = whereParts.join(" AND ");
 
-      const rows = await queryClickHouse<EventRow>(`
+      type RawRow = {
+        project_id: string;
+        type: string;
+        region: string | null;
+        props: unknown; // can be object or string
+        occurred_at: string;
+      };
+
+      const rows = await queryClickHouse<RawRow>(`
         SELECT
           project_id,
           type,
-          data.props AS props,
+          JSONExtract(toJSONString(data), 'props', 'JSON') AS props,
           data.props.region AS region,
           occurred_at
         FROM osstag.events_raw
@@ -179,6 +186,17 @@ export const relayRouter = createTRPCRouter({
         LIMIT 100
       `);
 
-      return rows;
+      const normalized: EventRow[] = rows.map((r) => ({
+        project_id: r.project_id,
+        type: r.type,
+        region: r.region ?? "—",
+        occurred_at: r.occurred_at,
+        props:
+          r.props && typeof r.props === "string"
+            ? JSON.parse(r.props)
+            : (r.props ?? {}),
+      }));
+
+      return normalized;
     }),
 });

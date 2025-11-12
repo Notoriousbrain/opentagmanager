@@ -35,7 +35,6 @@ export default function ProjectEventsPage({
     }
   );
 
-  // ✅ Derived state machine
   const state: "loading" | "error" | "empty" | "ok" = eventsQuery.isLoading
     ? "loading"
     : eventsQuery.isError
