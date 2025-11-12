@@ -148,27 +148,55 @@ export const relayRouter = createTRPCRouter({
   }),
 
   getEventsByProject: publicProcedure
-    .input(z.object({ projectId: z.string() }))
+    .input(
+      z.object({
+        projectId: z.string(),
+        type: z.string().optional(),
+        region: z.string().optional(),
+        since: z.string().optional(),
+      })
+    )
     .query(async ({ input }) => {
-      const { projectId } = input;
+      const { projectId, type, region, since } = input;
 
-      const rows = await queryClickHouse<EventRow>(`
-  SELECT
-    project_id,
-    type,
-    data.props AS props,
-    data.props.region AS region,
-    occurred_at
-  FROM osstag.events_raw
-  WHERE project_id = '${projectId}'
-  ORDER BY occurred_at DESC
-  LIMIT 100
-`);
+      const whereParts: string[] = [`project_id = '${projectId}'`];
+      if (type) whereParts.push(`type = '${type}'`);
+      if (region) whereParts.push(`data.props.region = '${region}'`);
+      if (since) whereParts.push(`occurred_at >= toDateTime('${since}')`);
+      const whereClause = whereParts.join(" AND ");
 
-      return rows.map((r) => ({
-        ...r,
+      type RawRow = {
+        project_id: string;
+        type: string;
+        region: string | null;
+        props: unknown; // can be object or string
+        occurred_at: string;
+      };
+
+      const rows = await queryClickHouse<RawRow>(`
+        SELECT
+          project_id,
+          type,
+          JSONExtract(toJSONString(data), 'props', 'JSON') AS props,
+          data.props.region AS region,
+          occurred_at
+        FROM osstag.events_raw
+        WHERE ${whereClause}
+        ORDER BY occurred_at DESC
+        LIMIT 100
+      `);
+
+      const normalized: EventRow[] = rows.map((r) => ({
+        project_id: r.project_id,
+        type: r.type,
         region: r.region ?? "—",
-        props: r.props ?? {},
+        occurred_at: r.occurred_at,
+        props:
+          r.props && typeof r.props === "string"
+            ? JSON.parse(r.props)
+            : (r.props ?? {}),
       }));
+
+      return normalized;
     }),
 });
