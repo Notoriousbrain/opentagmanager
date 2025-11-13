@@ -16,7 +16,7 @@ import {
   formatDateWithRelative,
 } from "@otm/ui";
 import { ApiKeysPanel } from "@/components/api-keys/api-keys-panel";
-import { Role } from "@/types/org";
+import { Role } from "@otm/types";
 
 function canCreateProjects(role: Role | undefined): boolean {
   return role === "owner" || role === "admin" || role === "editor";
@@ -138,6 +138,17 @@ export default function ProjectPage() {
           <Button variant="outline" onClick={() => router.push("/dashboard")}>
             Back to projects
           </Button>
+
+          {project && (
+            <Button
+              variant="outline"
+              onClick={() =>
+                router.push(`/dashboard/projects/${project.id}/events`)
+              }
+            >
+              View events
+            </Button>
+          )}
           <Button
             variant="inverse"
             onClick={() => router.push("/dashboard/new-project")}
