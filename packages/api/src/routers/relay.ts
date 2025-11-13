@@ -169,7 +169,7 @@ export const relayRouter = createTRPCRouter({
         project_id: string;
         type: string;
         region: string | null;
-        props: unknown; // can be object or string
+        props: unknown;
         occurred_at: string;
       };
 
