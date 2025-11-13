@@ -164,8 +164,8 @@ export const relayRouter = createTRPCRouter({
       const whereParts: string[] = [`project_id = '${projectId}'`];
       if (type) whereParts.push(`type = '${type}'`);
       if (region) whereParts.push(`data.props.region = '${region}'`);
-      if (since) whereParts.push(`occurred_at >= toDateTime('${since}')`);
-      if (cursor) whereParts.push(`occurred_at < toDateTime('${cursor}')`);
+      if (since) whereParts.push(`occurred_at >= parseDateTimeBestEffort('${since}')`);
+      if (cursor) whereParts.push(`occurred_at < parseDateTimeBestEffort('${cursor}')`);
 
       const whereClause = whereParts.join(" AND ");
 

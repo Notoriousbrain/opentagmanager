@@ -7,7 +7,12 @@ import { trpc } from "./react";
 export function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
-      queries: { staleTime: 30_000, refetchOnWindowFocus: false },
+      queries: {
+        staleTime: 5_000,
+        gcTime: 60_000,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: true,
+      },
     },
   });
 }

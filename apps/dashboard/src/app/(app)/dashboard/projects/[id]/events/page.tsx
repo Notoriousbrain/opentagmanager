@@ -1,6 +1,7 @@
 "use client";
 
 import { notFound } from "next/navigation";
+import { motion } from "framer-motion";
 import { useActiveOrg } from "@/hooks/use-active-org";
 import Link from "next/link";
 import { EventsTable } from "@/components/events/events-table";
@@ -11,6 +12,7 @@ import { trpc } from "@/lib/trpc/react";
 import { EventRow } from "@otm/types";
 import { EventsFilterBar } from "@/components/events/events-filter-bar";
 import { Button, Card } from "@otm/ui";
+import { EventsSkeleton } from "@/components/events/events-skeleton";
 
 export default function ProjectEventsPage({
   params,
@@ -53,8 +55,8 @@ export default function ProjectEventsPage({
   if (!org) return notFound();
   if (!projectLoading && !projectName) return notFound();
 
-  const events = (eventsQuery.data ?? []) as EventRow[];
-  const nextCursor = eventsQuery.data?.nextCursor;
+  const events: EventRow[] = eventsQuery.data?.items ?? [];
+  const nextCursor: string | null = eventsQuery.data?.nextCursor ?? null;
 
   const total = events.length;
   const uniqueTypes = new Set(events.map((e) => e.type)).size;
@@ -137,7 +139,18 @@ export default function ProjectEventsPage({
         <EventsFilterBar onChange={setFilters} />
         <EventsStateBar state={state} onRetry={() => eventsQuery.refetch()} />
 
-        {state === "ok" && <EventsTable data={events} />}
+        {eventsQuery.isLoading ? (
+          <EventsSkeleton />
+        ) : state === "ok" ? (
+          <motion.div
+            key={cursor ?? "page"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <EventsTable data={events} />
+          </motion.div>
+        ) : null}
         {state === "ok" && nextCursor && (
           <div className="flex justify-center mt-4">
             <Button
