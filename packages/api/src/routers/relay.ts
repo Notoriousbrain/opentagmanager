@@ -154,22 +154,26 @@ export const relayRouter = createTRPCRouter({
         type: z.string().optional(),
         region: z.string().optional(),
         since: z.string().optional(),
+        cursor: z.string().optional(),
+        limit: z.number().default(50),
       })
     )
     .query(async ({ input }) => {
-      const { projectId, type, region, since } = input;
+      const { projectId, type, region, since, cursor, limit } = input;
 
       const whereParts: string[] = [`project_id = '${projectId}'`];
       if (type) whereParts.push(`type = '${type}'`);
       if (region) whereParts.push(`data.props.region = '${region}'`);
-      if (since) whereParts.push(`occurred_at >= toDateTime('${since}')`);
+      if (since) whereParts.push(`occurred_at >= parseDateTimeBestEffort('${since}')`);
+      if (cursor) whereParts.push(`occurred_at < parseDateTimeBestEffort('${cursor}')`);
+
       const whereClause = whereParts.join(" AND ");
 
       type RawRow = {
         project_id: string;
         type: string;
         region: string | null;
-        props: unknown; // can be object or string
+        props: unknown;
         occurred_at: string;
       };
 
@@ -183,7 +187,7 @@ export const relayRouter = createTRPCRouter({
         FROM osstag.events_raw
         WHERE ${whereClause}
         ORDER BY occurred_at DESC
-        LIMIT 100
+        LIMIT ${limit + 1}
       `);
 
       const normalized: EventRow[] = rows.map((r) => ({
@@ -197,6 +201,10 @@ export const relayRouter = createTRPCRouter({
             : (r.props ?? {}),
       }));
 
-      return normalized;
+      const hasMore = normalized.length > limit;
+      const items = hasMore ? normalized.slice(0, limit) : normalized;
+      const nextCursor = hasMore ? items[items.length - 1]?.occurred_at : null;
+
+      return { items, nextCursor };
     }),
 });

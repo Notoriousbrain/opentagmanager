@@ -1,6 +1,7 @@
 "use client";
 
 import { notFound } from "next/navigation";
+import { motion } from "framer-motion";
 import { useActiveOrg } from "@/hooks/use-active-org";
 import Link from "next/link";
 import { EventsTable } from "@/components/events/events-table";
@@ -10,6 +11,8 @@ import { useProjectName } from "@/hooks/use-project-nme";
 import { trpc } from "@/lib/trpc/react";
 import { EventRow } from "@otm/types";
 import { EventsFilterBar } from "@/components/events/events-filter-bar";
+import { Button, Card } from "@otm/ui";
+import { EventsSkeleton } from "@/components/events/events-skeleton";
 
 export default function ProjectEventsPage({
   params,
@@ -19,6 +22,7 @@ export default function ProjectEventsPage({
   const { id } = use(params);
   const { org, isLoading: orgLoading } = useActiveOrg();
   const { name: projectName, isLoading: projectLoading } = useProjectName(id);
+  const [cursor, setCursor] = useState<string | undefined>();
   const [filters, setFilters] = useState<{
     type?: string;
     region?: string;
@@ -26,7 +30,7 @@ export default function ProjectEventsPage({
   }>({});
 
   const eventsQuery = trpc.relay.getEventsByProject.useQuery(
-    { projectId: id, ...filters },
+    { projectId: id, ...filters, cursor },
     {
       refetchInterval: 3000,
       refetchOnWindowFocus: false,
@@ -39,7 +43,7 @@ export default function ProjectEventsPage({
     ? "loading"
     : eventsQuery.isError
       ? "error"
-      : (eventsQuery.data?.length ?? 0) === 0
+      : (eventsQuery.data?.items.length ?? 0) === 0
         ? "empty"
         : "ok";
 
@@ -51,7 +55,15 @@ export default function ProjectEventsPage({
   if (!org) return notFound();
   if (!projectLoading && !projectName) return notFound();
 
-  const events = (eventsQuery.data ?? []) as EventRow[];
+  const events: EventRow[] = eventsQuery.data?.items ?? [];
+  const nextCursor: string | null = eventsQuery.data?.nextCursor ?? null;
+
+  const total = events.length;
+  const uniqueTypes = new Set(events.map((e) => e.type)).size;
+  const uniqueRegions = new Set(events.map((e) => e.region)).size;
+  const latest = events[0]?.occurred_at
+    ? new Date(events[0].occurred_at).toLocaleString()
+    : "—";
 
   return (
     <main className="flex flex-col gap-6 p-6">
@@ -106,10 +118,50 @@ export default function ProjectEventsPage({
       </header>
 
       <section className="rounded-xl border p-6 space-y-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Card className="p-3 text-sm">
+            <div className="text-zinc-400">Events</div>
+            <div className="text-xl font-semibold">{total}</div>
+          </Card>
+          <Card className="p-3 text-sm">
+            <div className="text-zinc-400">Types</div>
+            <div className="text-xl font-semibold">{uniqueTypes}</div>
+          </Card>
+          <Card className="p-3 text-sm">
+            <div className="text-zinc-400">Regions</div>
+            <div className="text-xl font-semibold">{uniqueRegions}</div>
+          </Card>
+          <Card className="p-3 text-sm">
+            <div className="text-zinc-400">Latest</div>
+            <div className="text-xs">{latest}</div>
+          </Card>
+        </div>
         <EventsFilterBar onChange={setFilters} />
         <EventsStateBar state={state} onRetry={() => eventsQuery.refetch()} />
 
-        {state === "ok" && <EventsTable data={events} />}
+        {eventsQuery.isLoading ? (
+          <EventsSkeleton />
+        ) : state === "ok" ? (
+          <motion.div
+            key={cursor ?? "page"}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <EventsTable data={events} />
+          </motion.div>
+        ) : null}
+        {state === "ok" && nextCursor && (
+          <div className="flex justify-center mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setCursor(nextCursor)}
+              disabled={eventsQuery.isFetching}
+            >
+              {eventsQuery.isFetching ? "Loading..." : "Load More"}
+            </Button>
+          </div>
+        )}
       </section>
     </main>
   );
