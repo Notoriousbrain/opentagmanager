@@ -46,26 +46,39 @@ export function EventTrendChart() {
     );
   }
 
-  // --- Group by project_id ---
-  const grouped: Record<string, { day: string; total: number }[]> = {};
+  // -------------------------------------------------------------------
+  // 🔥 Group by project_name instead of project_id
+  // -------------------------------------------------------------------
+  const grouped: Record<
+    string,
+    { day: string; total: number }[]
+  > = {};
+
   for (const row of data) {
-    const key = row.project_id;
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push({ day: row.day, total: Number(row.total) });
+    const name = row.project_name ?? "Unknown Project";
+    if (!grouped[name]) grouped[name] = [];
+    grouped[name].push({ day: row.day, total: Number(row.total) });
   }
 
-  // --- Create combined dataset (day as key, project totals as columns) ---
+  // -------------------------------------------------------------------
+  // 🔥 Build combined dataset for recharts
+  // -------------------------------------------------------------------
   const allDays = Array.from(new Set(data.map((r) => r.day))).sort();
+
   const chartData = allDays.map((day) => {
     const entry: Record<string, number | string> = { day };
-    for (const [project, values] of Object.entries(grouped)) {
-      const found = values.find((v) => v.day === day);
-      entry[project] = found ? found.total : 0;
+
+    for (const [projectName, values] of Object.entries(grouped)) {
+      const point = values.find((v) => v.day === day);
+      entry[projectName] = point ? point.total : 0;
     }
+
     return entry;
   });
 
-  // --- Generate consistent colors ---
+  // -------------------------------------------------------------------
+  // 🔥 Colors
+  // -------------------------------------------------------------------
   const colors = [
     "#60a5fa", // blue-400
     "#34d399", // emerald-400
@@ -75,7 +88,7 @@ export function EventTrendChart() {
     "#fb923c", // orange-400
   ];
 
-  const projectIds = Object.keys(grouped);
+  const projectNames = Object.keys(grouped);
 
   return (
     <Card className="col-span-full">
@@ -96,11 +109,13 @@ export function EventTrendChart() {
                 }}
               />
               <Legend />
-              {projectIds.map((projectId, i) => (
+
+              {projectNames.map((projectName, i) => (
                 <Line
-                  key={projectId}
+                  key={projectName}
                   type="monotone"
-                  dataKey={projectId}
+                  dataKey={projectName}
+                  name={projectName}
                   stroke={colors[i % colors.length]}
                   strokeWidth={2}
                   dot={false}

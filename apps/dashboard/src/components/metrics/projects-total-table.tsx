@@ -2,7 +2,7 @@
 
 import { trpc } from "@/lib/trpc/react";
 import {
-    Card,
+  Card,
   CardContent,
   CardHeader,
   CardTitle,
@@ -45,9 +45,7 @@ export function ProjectTotalsTable() {
     );
   }
 
-  const sorted = [...data].sort(
-    (a, b) => Number(b.total) - Number(a.total)
-  );
+  const sorted = [...data].sort((a, b) => Number(b.total) - Number(a.total));
 
   return (
     <Card>
@@ -67,7 +65,7 @@ export function ProjectTotalsTable() {
               {sorted.map((row) => (
                 <TableRow key={row.project_id}>
                   <TableCell className="font-medium">
-                    {row.project_id}
+                    {row.project_name ?? "Unknown"}
                   </TableCell>
                   <TableCell className="text-right">
                     {Number(row.total).toLocaleString()}

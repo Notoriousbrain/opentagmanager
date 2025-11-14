@@ -50,13 +50,11 @@ async function fetchJsonWithTimeout<T>(
 }
 
 async function getRelayMetrics(): Promise<RelayMetrics> {
-  // serve from cache if fresh
   const now = Date.now();
   if (cachedMetrics && cachedMetrics.expiresAt > now) {
     return cachedMetrics.value;
   }
 
-  // fetch with timeout, fallback to last cache or defaults
   try {
     const data = await fetchJsonWithTimeout<RelayMetrics>(
       METRICS_URL,
@@ -65,7 +63,7 @@ async function getRelayMetrics(): Promise<RelayMetrics> {
     cachedMetrics = { value: data, expiresAt: now + METRICS_CACHE_MS };
     return data;
   } catch {
-    if (cachedMetrics) return cachedMetrics.value; // stale-while-revalidate feel
+    if (cachedMetrics) return cachedMetrics.value;
     return DEFAULT_METRICS;
   }
 }
@@ -79,15 +77,20 @@ export const relayRouter = createTRPCRouter({
     try {
       const rows = await queryClickHouse<{
         project_id: string;
+        project_name: string | null;
         total: number;
       }>(`
-        SELECT project_id, count() AS total
-        FROM osstag.events_raw
-        GROUP BY project_id
+        SELECT
+          e.project_id,
+          p.project_name,
+          count() AS total
+        FROM osstag.events_raw e
+        LEFT JOIN osstag.project_lookup p ON e.project_id = p.project_id
+        GROUP BY e.project_id, p.project_name
       `);
       return rows;
     } catch {
-      return [] as { project_id: string; total: number }[];
+      return [];
     }
   }),
 
@@ -95,35 +98,44 @@ export const relayRouter = createTRPCRouter({
     try {
       const rows = await queryClickHouse<{
         project_id: string;
+        project_name: string | null;
         day: string;
         total: number;
       }>(`
         SELECT
-          project_id,
-          toDate(occurred_at) AS day,
+          e.project_id,
+          p.project_name,
+          toDate(e.occurred_at) AS day,
           count() AS total
-        FROM osstag.events_raw
+        FROM osstag.events_raw e
+        LEFT JOIN osstag.project_lookup p ON e.project_id = p.project_id
         WHERE day >= today() - 14
-        GROUP BY project_id, day
-        ORDER BY project_id, day ASC
+        GROUP BY e.project_id, p.project_name, day
+        ORDER BY day ASC
       `);
       return rows;
     } catch {
-      return [] as { project_id: string; day: string; total: number }[];
+      return [];
     }
   }),
 
   countByType: publicProcedure.query(async () => {
     try {
-      const rows = await queryClickHouse<{ type: string; total: number }>(`
-      SELECT
-        type,
-        count() AS total
-      FROM osstag.events_raw
-      WHERE occurred_at >= now() - INTERVAL 14 DAY
-      GROUP BY type
-      ORDER BY total DESC
-    `);
+      const rows = await queryClickHouse<{
+        type: string;
+        project_name: string | null;
+        total: number;
+      }>(`
+        SELECT
+          e.type,
+          p.project_name,
+          count() AS total
+        FROM osstag.events_raw e
+        LEFT JOIN osstag.project_lookup p ON e.project_id = p.project_id
+        WHERE e.occurred_at >= now() - INTERVAL 14 DAY
+        GROUP BY e.type, p.project_name
+        ORDER BY total DESC
+      `);
       return rows;
     } catch {
       return [];
@@ -132,15 +144,21 @@ export const relayRouter = createTRPCRouter({
 
   countByRegion: publicProcedure.query(async () => {
     try {
-      const rows = await queryClickHouse<{ region: string; total: number }>(`
-      SELECT
-        data.props.region AS region,
-        count() AS total
-      FROM osstag.events_raw
-      WHERE occurred_at >= now() - INTERVAL 14 DAY
-      GROUP BY data.props.region
-      ORDER BY total DESC
-    `);
+      const rows = await queryClickHouse<{
+        region: string | null;
+        project_name: string | null;
+        total: number;
+      }>(`
+        SELECT
+          e.data.props.region AS region,
+          p.project_name,
+          count() AS total
+        FROM osstag.events_raw e
+        LEFT JOIN osstag.project_lookup p ON e.project_id = p.project_id
+        WHERE e.occurred_at >= now() - INTERVAL 14 DAY
+        GROUP BY region, p.project_name
+        ORDER BY total DESC
+      `);
       return rows;
     } catch {
       return [];
@@ -161,44 +179,48 @@ export const relayRouter = createTRPCRouter({
     .query(async ({ input }) => {
       const { projectId, type, region, since, cursor, limit } = input;
 
-      const whereParts: string[] = [`project_id = '${projectId}'`];
-      if (type) whereParts.push(`type = '${type}'`);
-      if (region) whereParts.push(`data.props.region = '${region}'`);
-      if (since) whereParts.push(`occurred_at >= parseDateTimeBestEffort('${since}')`);
-      if (cursor) whereParts.push(`occurred_at < parseDateTimeBestEffort('${cursor}')`);
+      const whereParts: string[] = [`e.project_id = '${projectId}'`];
+      if (type) whereParts.push(`e.type = '${type}'`);
+      if (region) whereParts.push(`e.data.props.region = '${region}'`);
+      if (since)
+        whereParts.push(`e.occurred_at >= parseDateTimeBestEffort('${since}')`);
+      if (cursor)
+        whereParts.push(`e.occurred_at < parseDateTimeBestEffort('${cursor}')`);
 
       const whereClause = whereParts.join(" AND ");
 
       type RawRow = {
         project_id: string;
+        project_name: string | null;
         type: string;
         region: string | null;
-        props: unknown;
+        props: string | null;
         occurred_at: string;
       };
 
       const rows = await queryClickHouse<RawRow>(`
         SELECT
-          project_id,
-          type,
-          JSONExtract(toJSONString(data), 'props', 'JSON') AS props,
-          data.props.region AS region,
-          occurred_at
-        FROM osstag.events_raw
+          e.project_id,
+          p.project_name,
+          e.type,
+          e.data.props.region AS region,
+          JSONExtract(toJSONString(e.data), 'props', 'JSON') AS props,
+          e.occurred_at
+        FROM osstag.events_raw e
+        LEFT JOIN osstag.project_lookup p ON e.project_id = p.project_id
         WHERE ${whereClause}
-        ORDER BY occurred_at DESC
+        ORDER BY e.occurred_at DESC
         LIMIT ${limit + 1}
       `);
 
       const normalized: EventRow[] = rows.map((r) => ({
         project_id: r.project_id,
+        project_name: r.project_name ?? "Unknown",
         type: r.type,
         region: r.region ?? "—",
         occurred_at: r.occurred_at,
         props:
-          r.props && typeof r.props === "string"
-            ? JSON.parse(r.props)
-            : (r.props ?? {}),
+          r.props && typeof r.props === "string" ? JSON.parse(r.props) : {},
       }));
 
       const hasMore = normalized.length > limit;
