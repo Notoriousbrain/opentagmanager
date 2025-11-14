@@ -12,21 +12,23 @@ import {
   Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@otm/ui";
-import { Loader2 } from "lucide-react";
 import { MetricsFilters } from "./metrics-filter-bar";
 
 export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
-  const { data, isLoading, isError } = trpc.relay.countByDay.useQuery(filters);
+  const { data, isLoading, isError } = trpc.relay.countByDay.useQuery(filters, {
+    refetchInterval: 15000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
+  });
 
   if (isLoading) {
     return (
-      <Card className="col-span-full">
+      <Card className="col-span-full animate-pulse">
         <CardHeader>
           <CardTitle>Event Trend (14 Days)</CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading event data…</span>
+        <CardContent>
+          <div className="h-64 w-full bg-muted/30 rounded" />
         </CardContent>
       </Card>
     );
@@ -36,20 +38,18 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
     return (
       <Card className="col-span-full">
         <CardHeader>
-          <CardTitle>Event Trend (14 Days)</CardTitle>
+          <CardTitle>Event Trend</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-sm">
-            No event data available.
-          </p>
+          <div className="text-center py-8 text-muted-foreground">
+            <p className="font-medium">No trend data available</p>
+            <p className="text-sm">Try selecting a different time range.</p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
-  // -------------------------------------------------------------------
-  // 🔥 Group by project_name instead of project_id
-  // -------------------------------------------------------------------
   const grouped: Record<string, { day: string; total: number }[]> = {};
 
   for (const row of data) {
@@ -58,9 +58,6 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
     grouped[name].push({ day: row.day, total: Number(row.total) });
   }
 
-  // -------------------------------------------------------------------
-  // 🔥 Build combined dataset for recharts
-  // -------------------------------------------------------------------
   const allDays = Array.from(new Set(data.map((r) => r.day))).sort();
 
   const chartData = allDays.map((day) => {
@@ -74,16 +71,13 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
     return entry;
   });
 
-  // -------------------------------------------------------------------
-  // 🔥 Colors
-  // -------------------------------------------------------------------
   const colors = [
-    "#60a5fa", // blue-400
-    "#34d399", // emerald-400
-    "#f472b6", // pink-400
-    "#facc15", // yellow-400
-    "#a78bfa", // violet-400
-    "#fb923c", // orange-400
+    "#60a5fa", 
+    "#34d399", 
+    "#f472b6", 
+    "#facc15", 
+    "#a78bfa", 
+    "#fb923c", 
   ];
 
   const projectNames = Object.keys(grouped);

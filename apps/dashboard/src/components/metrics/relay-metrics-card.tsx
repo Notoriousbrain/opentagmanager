@@ -2,21 +2,32 @@
 
 import { trpc } from "@/lib/trpc/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@otm/ui";
-import { Loader2 } from "lucide-react";
 
 export function RelayMetricsCard() {
-  const { data, isLoading, isError } = trpc.relay.getMetrics.useQuery();
+  const { data, isLoading, isError } = trpc.relay.getMetrics.useQuery(
+    undefined,
+    {
+      refetchInterval: 5000,
+      refetchOnWindowFocus: false,
+      refetchIntervalInBackground: false,
+    }
+  );
 
   if (isLoading) {
     return (
-      <Card className="min-w-[320px]">
+      <Card className="animate-pulse">
         <CardHeader>
           <CardTitle>Relay Metrics</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Loading metrics…</span>
+          <div className="space-y-4">
+            <div className="h-4 w-40 bg-muted rounded" />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="h-16 bg-muted/30 rounded" />
+              <div className="h-16 bg-muted/30 rounded" />
+              <div className="h-16 bg-muted/30 rounded" />
+              <div className="h-16 bg-muted/30 rounded" />
+            </div>
           </div>
         </CardContent>
       </Card>

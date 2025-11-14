@@ -13,12 +13,17 @@ import {
   TableHeader,
   TableRow,
 } from "@otm/ui";
-import { Loader2 } from "lucide-react";
 import { MetricsFilters } from "./metrics-filter-bar";
 
 export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
-  const { data, isLoading, isError } =
-    trpc.relay.countByProject.useQuery(filters);
+  const { data, isLoading, isError } = trpc.relay.countByProject.useQuery(
+    filters,
+    {
+      refetchInterval: 15000,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: false,
+    }
+  );
 
   if (isLoading) {
     return (
@@ -26,9 +31,13 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
         <CardHeader>
           <CardTitle>Project Totals</CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading project totals…</span>
+        <CardContent>
+          <div className="space-y-3 animate-pulse">
+            <div className="h-4 w-32 bg-muted rounded" />
+            <div className="h-4 w-full bg-muted/80 rounded" />
+            <div className="h-4 w-full bg-muted/70 rounded" />
+            <div className="h-4 w-3/4 bg-muted/60 rounded" />
+          </div>
         </CardContent>
       </Card>
     );
@@ -41,7 +50,12 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
           <CardTitle>Project Totals</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No data available.</p>
+          <div className="text-center py-8 text-muted-foreground">
+            <p className="font-medium">No events found</p>
+            <p className="text-sm">
+              Try adjusting filters or selecting a different project.
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
