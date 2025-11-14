@@ -32,6 +32,11 @@ const DEFAULT_METRICS: RelayMetrics = {
   cleaned: 0,
 };
 
+const MetricsInput = z.object({
+  projectId: z.string().optional(),
+  range: z.enum(["7d", "14d", "30d"]).default("14d"),
+});
+
 let cachedMetrics: { value: RelayMetrics; expiresAt: number } | null = null;
 
 async function fetchJsonWithTimeout<T>(
@@ -73,29 +78,67 @@ export const relayRouter = createTRPCRouter({
     return await getRelayMetrics();
   }),
 
-  countByProject: publicProcedure.query(async () => {
-    try {
-      const rows = await queryClickHouse<{
-        project_id: string;
-        project_name: string | null;
-        total: number;
-      }>(`
-        SELECT
-          e.project_id,
-          p.project_name,
-          count() AS total
-        FROM osstag.events_raw e
-        LEFT JOIN osstag.project_lookup p ON e.project_id = p.project_id
-        GROUP BY e.project_id, p.project_name
-      `);
-      return rows;
-    } catch {
-      return [];
-    }
-  }),
+  // ------------------------------------------------------------
+  // COUNT BY PROJECT
+  // ------------------------------------------------------------
+  countByProject: publicProcedure
+    .input(MetricsInput)
+    .query(async ({ input }) => {
+      try {
+        const { projectId, range } = input;
 
-  countByDay: publicProcedure.query(async () => {
+        const rangeSql =
+          range === "7d"
+            ? "now() - INTERVAL 7 DAY"
+            : range === "30d"
+              ? "now() - INTERVAL 30 DAY"
+              : "now() - INTERVAL 14 DAY";
+
+        const projectFilter =
+          projectId && projectId !== "all"
+            ? `e.project_id = '${projectId}' AND`
+            : "";
+
+        const rows = await queryClickHouse<{
+          project_id: string;
+          project_name: string | null;
+          total: number;
+        }>(`
+          SELECT
+            toString(e.project_id) AS project_id,
+            p.project_name,
+            count() AS total
+          FROM osstag.events_raw e
+          LEFT JOIN osstag.project_lookup p ON e.project_id = p.project_id
+          WHERE ${projectFilter} e.occurred_at >= ${rangeSql}
+          GROUP BY project_id, p.project_name
+        `);
+
+        return rows;
+      } catch {
+        return [];
+      }
+    }),
+
+  // ------------------------------------------------------------
+  // COUNT BY DAY (Trend Chart)
+  // ------------------------------------------------------------
+  countByDay: publicProcedure.input(MetricsInput).query(async ({ input }) => {
     try {
+      const { projectId, range } = input;
+
+      const rangeSql =
+        range === "7d"
+          ? "now() - INTERVAL 7 DAY"
+          : range === "30d"
+            ? "now() - INTERVAL 30 DAY"
+            : "now() - INTERVAL 14 DAY";
+
+      const projectFilter =
+        projectId && projectId !== "all"
+          ? `e.project_id = '${projectId}' AND`
+          : "";
+
       const rows = await queryClickHouse<{
         project_id: string;
         project_name: string | null;
@@ -103,68 +146,104 @@ export const relayRouter = createTRPCRouter({
         total: number;
       }>(`
         SELECT
-          e.project_id,
+          toString(e.project_id) AS project_id,
           p.project_name,
           toDate(e.occurred_at) AS day,
           count() AS total
         FROM osstag.events_raw e
         LEFT JOIN osstag.project_lookup p ON e.project_id = p.project_id
-        WHERE day >= today() - 14
-        GROUP BY e.project_id, p.project_name, day
+        WHERE ${projectFilter} e.occurred_at >= ${rangeSql}
+        GROUP BY project_id, p.project_name, day
         ORDER BY day ASC
       `);
+
       return rows;
     } catch {
       return [];
     }
   }),
 
-  countByType: publicProcedure.query(async () => {
+  // ------------------------------------------------------------
+  // COUNT BY TYPE
+  // ------------------------------------------------------------
+  countByType: publicProcedure.input(MetricsInput).query(async ({ input }) => {
     try {
+      const { projectId, range } = input;
+
+      const rangeSql =
+        range === "7d"
+          ? "now() - INTERVAL 7 DAY"
+          : range === "30d"
+            ? "now() - INTERVAL 30 DAY"
+            : "now() - INTERVAL 14 DAY";
+
+      const projectFilter =
+        projectId && projectId !== "all"
+          ? `e.project_id = '${projectId}' AND`
+          : "";
+
       const rows = await queryClickHouse<{
         type: string;
-        project_name: string | null;
         total: number;
       }>(`
         SELECT
           e.type,
-          p.project_name,
           count() AS total
         FROM osstag.events_raw e
-        LEFT JOIN osstag.project_lookup p ON e.project_id = p.project_id
-        WHERE e.occurred_at >= now() - INTERVAL 14 DAY
-        GROUP BY e.type, p.project_name
+        WHERE ${projectFilter} e.occurred_at >= ${rangeSql}
+        GROUP BY e.type
         ORDER BY total DESC
       `);
+
       return rows;
     } catch {
       return [];
     }
   }),
 
-  countByRegion: publicProcedure.query(async () => {
-    try {
-      const rows = await queryClickHouse<{
-        region: string | null;
-        project_name: string | null;
-        total: number;
-      }>(`
-        SELECT
-          e.data.props.region AS region,
-          p.project_name,
-          count() AS total
-        FROM osstag.events_raw e
-        LEFT JOIN osstag.project_lookup p ON e.project_id = p.project_id
-        WHERE e.occurred_at >= now() - INTERVAL 14 DAY
-        GROUP BY region, p.project_name
-        ORDER BY total DESC
-      `);
-      return rows;
-    } catch {
-      return [];
-    }
-  }),
+  // ------------------------------------------------------------
+  // COUNT BY REGION
+  // ------------------------------------------------------------
+  countByRegion: publicProcedure
+    .input(MetricsInput)
+    .query(async ({ input }) => {
+      try {
+        const { projectId, range } = input;
 
+        const rangeSql =
+          range === "7d"
+            ? "now() - INTERVAL 7 DAY"
+            : range === "30d"
+              ? "now() - INTERVAL 30 DAY"
+              : "now() - INTERVAL 14 DAY";
+
+        const projectFilter =
+          projectId && projectId !== "all"
+            ? `e.project_id = '${projectId}' AND`
+            : "";
+
+        const rows = await queryClickHouse<{
+          region: string | null;
+          total: number;
+        }>(`
+          SELECT
+            e.data.props.region AS region,
+            count() AS total
+          FROM osstag.events_raw e
+          WHERE ${projectFilter} e.occurred_at >= ${rangeSql}
+          GROUP BY e.data.props.region
+          ORDER BY total DESC
+        `);
+
+        return rows;
+      } catch {
+        return [];
+      }
+    }),
+
+  // ------------------------------------------------------------
+  // GET EVENTS BY PROJECT (pagination)
+  // ------------------------------------------------------------
   getEventsByProject: publicProcedure
     .input(
       z.object({
@@ -200,7 +279,7 @@ export const relayRouter = createTRPCRouter({
 
       const rows = await queryClickHouse<RawRow>(`
         SELECT
-          e.project_id,
+          toString(e.project_id) AS project_id,
           p.project_name,
           e.type,
           e.data.props.region AS region,

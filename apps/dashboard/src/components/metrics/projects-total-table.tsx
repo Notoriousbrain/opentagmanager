@@ -14,9 +14,11 @@ import {
   TableRow,
 } from "@otm/ui";
 import { Loader2 } from "lucide-react";
+import { MetricsFilters } from "./metrics-filter-bar";
 
-export function ProjectTotalsTable() {
-  const { data, isLoading, isError } = trpc.relay.countByProject.useQuery();
+export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
+  const { data, isLoading, isError } =
+    trpc.relay.countByProject.useQuery(filters);
 
   if (isLoading) {
     return (
@@ -57,13 +59,19 @@ export function ProjectTotalsTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Project ID</TableHead>
+                <TableHead>Project</TableHead>
                 <TableHead className="text-right">Total Events</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sorted.map((row) => (
-                <TableRow key={row.project_id}>
+                <TableRow
+                  key={
+                    row.project_id ??
+                    row.project_name ??
+                    Math.random().toString()
+                  }
+                >
                   <TableCell className="font-medium">
                     {row.project_name ?? "Unknown"}
                   </TableCell>

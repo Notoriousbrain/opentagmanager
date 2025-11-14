@@ -13,9 +13,10 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@otm/ui";
 import { Loader2 } from "lucide-react";
+import { MetricsFilters } from "./metrics-filter-bar";
 
-export function EventTrendChart() {
-  const { data, isLoading, isError } = trpc.relay.countByDay.useQuery();
+export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
+  const { data, isLoading, isError } = trpc.relay.countByDay.useQuery(filters);
 
   if (isLoading) {
     return (
@@ -49,10 +50,7 @@ export function EventTrendChart() {
   // -------------------------------------------------------------------
   // 🔥 Group by project_name instead of project_id
   // -------------------------------------------------------------------
-  const grouped: Record<
-    string,
-    { day: string; total: number }[]
-  > = {};
+  const grouped: Record<string, { day: string; total: number }[]> = {};
 
   for (const row of data) {
     const name = row.project_name ?? "Unknown Project";
@@ -99,7 +97,10 @@ export function EventTrendChart() {
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                className="stroke-muted/30"
+              />
               <XAxis dataKey="day" fontSize={12} />
               <YAxis fontSize={12} />
               <Tooltip

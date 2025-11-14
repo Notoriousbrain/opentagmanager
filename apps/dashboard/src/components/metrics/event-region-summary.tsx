@@ -3,9 +3,10 @@
 import { trpc } from "@/lib/trpc/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@otm/ui";
 import { Loader2 } from "lucide-react";
+import { MetricsFilters } from "./metrics-filter-bar";
 
-export function EventRegionSummary() {
-  const { data, isLoading, isError } = trpc.relay.countByRegion.useQuery();
+export function EventRegionSummary({ filters }: { filters: MetricsFilters }) {
+  const { data, isLoading, isError } = trpc.relay.countByRegion.useQuery(filters);
 
   if (isLoading) {
     return (
