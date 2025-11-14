@@ -273,6 +273,8 @@ export const relayRouter = createTRPCRouter({
           r.props && typeof r.props === "string" ? JSON.parse(r.props) : {},
       }));
 
+      normalized.sort((a, b) => b.occurred_at.localeCompare(a.occurred_at));
+
       const hasMore = normalized.length > limit;
       const items = hasMore ? normalized.slice(0, limit) : normalized;
       const nextCursor = hasMore ? items[items.length - 1]?.occurred_at : null;

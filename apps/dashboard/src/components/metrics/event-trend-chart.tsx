@@ -25,7 +25,15 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
     return (
       <Card className="col-span-full animate-pulse">
         <CardHeader>
-          <CardTitle>Event Trend (14 Days)</CardTitle>
+          <CardTitle>
+            Event Trend (
+            {filters.range === "7d"
+              ? "7"
+              : filters.range === "30d"
+                ? "30"
+                : "14"}{" "}
+            Days)
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-64 w-full bg-muted/30 rounded" />
@@ -53,7 +61,7 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
   const grouped: Record<string, { day: string; total: number }[]> = {};
 
   for (const row of data) {
-    const name = row.project_name ?? "Unknown Project";
+    const name = row.project_name ?? "Unnamed Project";
     if (!grouped[name]) grouped[name] = [];
     grouped[name].push({ day: row.day, total: Number(row.total) });
   }
@@ -72,12 +80,12 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
   });
 
   const colors = [
-    "#60a5fa", 
-    "#34d399", 
-    "#f472b6", 
-    "#facc15", 
-    "#a78bfa", 
-    "#fb923c", 
+    "#60a5fa",
+    "#34d399",
+    "#f472b6",
+    "#facc15",
+    "#a78bfa",
+    "#fb923c",
   ];
 
   const projectNames = Object.keys(grouped);
@@ -110,7 +118,7 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
                   key={projectName}
                   type="monotone"
                   dataKey={projectName}
-                  name={projectName}
+                  name={projectName.replace(/_/g, " ")}
                   stroke={colors[i % colors.length]}
                   strokeWidth={2}
                   dot={false}

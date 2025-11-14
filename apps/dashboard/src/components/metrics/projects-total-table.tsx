@@ -87,7 +87,7 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
                   }
                 >
                   <TableCell className="font-medium">
-                    {row.project_name ?? "Unknown"}
+                    {row.project_name ?? "Unnamed Project"}
                   </TableCell>
                   <TableCell className="text-right">
                     {Number(row.total).toLocaleString()}
