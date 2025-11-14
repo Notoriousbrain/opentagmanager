@@ -13,27 +13,24 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@otm/ui";
 import { MetricsFilters } from "./metrics-filter-bar";
+import { rangeToLabel } from "./range-label";
 
 export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
-  const { data, isLoading, isError } = trpc.relay.countByDay.useQuery(filters, {
-    refetchInterval: 15000,
-    refetchIntervalInBackground: false,
-    refetchOnWindowFocus: false,
-  });
+  const { projectId, range } = filters;
+  const { data, isLoading, isError } = trpc.relay.countByDay.useQuery(
+    { projectId, range },
+    {
+      refetchInterval: 15000,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: false,
+    }
+  );
 
   if (isLoading) {
     return (
       <Card className="col-span-full animate-pulse">
         <CardHeader>
-          <CardTitle>
-            Event Trend (
-            {filters.range === "7d"
-              ? "7"
-              : filters.range === "30d"
-                ? "30"
-                : "14"}{" "}
-            Days)
-          </CardTitle>
+          <CardTitle>Event Trend — {rangeToLabel(filters.range)}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-64 w-full bg-muted/30 rounded" />
@@ -46,7 +43,7 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
     return (
       <Card className="col-span-full">
         <CardHeader>
-          <CardTitle>Event Trend</CardTitle>
+          <CardTitle>Event Trend — {rangeToLabel(range)}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
@@ -93,7 +90,7 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
   return (
     <Card className="col-span-full">
       <CardHeader>
-        <CardTitle>Event Trend (14 Days)</CardTitle>
+        <CardTitle>Event Trend — {rangeToLabel(range)}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-64">

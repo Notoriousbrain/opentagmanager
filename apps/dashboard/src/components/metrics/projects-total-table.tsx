@@ -14,10 +14,12 @@ import {
   TableRow,
 } from "@otm/ui";
 import { MetricsFilters } from "./metrics-filter-bar";
+import { rangeToLabel } from "./range-label";
 
 export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
+  const { projectId, range } = filters;
   const { data, isLoading, isError } = trpc.relay.countByProject.useQuery(
-    filters,
+    { projectId, range },
     {
       refetchInterval: 15000,
       refetchIntervalInBackground: false,
@@ -29,7 +31,7 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Project Totals</CardTitle>
+          <CardTitle>Project Totals — {rangeToLabel(range)}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3 animate-pulse">
@@ -47,7 +49,7 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Project Totals</CardTitle>
+          <CardTitle>Project Totals — {rangeToLabel(range)}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
@@ -66,7 +68,7 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Project Totals</CardTitle>
+        <CardTitle>Project Totals — {rangeToLabel(filters.range)}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">

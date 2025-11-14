@@ -3,10 +3,12 @@
 import { trpc } from "@/lib/trpc/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@otm/ui";
 import { MetricsFilters } from "./metrics-filter-bar";
+import { rangeToLabel } from "./range-label";
 
 export function EventTypeSummary({ filters }: { filters: MetricsFilters }) {
+  const { projectId, range } = filters;
   const { data, isLoading, isError } = trpc.relay.countByType.useQuery(
-    filters,
+    { projectId, range },
     {
       refetchInterval: 15000,
       refetchIntervalInBackground: false,
@@ -20,7 +22,7 @@ export function EventTypeSummary({ filters }: { filters: MetricsFilters }) {
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="animate-pulse">
             <CardHeader>
-              <div className="h-4 w-24 bg-muted rounded" />
+              <CardTitle>Event Type Summary — {rangeToLabel(range)}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-7 w-16 bg-muted/80 rounded" />
@@ -35,7 +37,9 @@ export function EventTypeSummary({ filters }: { filters: MetricsFilters }) {
     return (
       <Card className="col-span-full">
         <CardHeader>
-          <CardTitle>Event Type Summary</CardTitle>
+          <CardTitle>
+            Event Type Summary — {rangeToLabel(filters.range)}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
