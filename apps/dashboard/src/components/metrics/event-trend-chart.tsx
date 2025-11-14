@@ -12,20 +12,31 @@ import {
   Legend,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@otm/ui";
-import { Loader2 } from "lucide-react";
+import { MetricsFilters } from "./metrics-filter-bar";
 
-export function EventTrendChart() {
-  const { data, isLoading, isError } = trpc.relay.countByDay.useQuery();
+export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
+  const { data, isLoading, isError } = trpc.relay.countByDay.useQuery(filters, {
+    refetchInterval: 15000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
+  });
 
   if (isLoading) {
     return (
-      <Card className="col-span-full">
+      <Card className="col-span-full animate-pulse">
         <CardHeader>
-          <CardTitle>Event Trend (14 Days)</CardTitle>
+          <CardTitle>
+            Event Trend (
+            {filters.range === "7d"
+              ? "7"
+              : filters.range === "30d"
+                ? "30"
+                : "14"}{" "}
+            Days)
+          </CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading event data…</span>
+        <CardContent>
+          <div className="h-64 w-full bg-muted/30 rounded" />
         </CardContent>
       </Card>
     );
@@ -35,47 +46,49 @@ export function EventTrendChart() {
     return (
       <Card className="col-span-full">
         <CardHeader>
-          <CardTitle>Event Trend (14 Days)</CardTitle>
+          <CardTitle>Event Trend</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-sm">
-            No event data available.
-          </p>
+          <div className="text-center py-8 text-muted-foreground">
+            <p className="font-medium">No trend data available</p>
+            <p className="text-sm">Try selecting a different time range.</p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
-  // --- Group by project_id ---
   const grouped: Record<string, { day: string; total: number }[]> = {};
+
   for (const row of data) {
-    const key = row.project_id;
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push({ day: row.day, total: Number(row.total) });
+    const name = row.project_name ?? "Unnamed Project";
+    if (!grouped[name]) grouped[name] = [];
+    grouped[name].push({ day: row.day, total: Number(row.total) });
   }
 
-  // --- Create combined dataset (day as key, project totals as columns) ---
   const allDays = Array.from(new Set(data.map((r) => r.day))).sort();
+
   const chartData = allDays.map((day) => {
     const entry: Record<string, number | string> = { day };
-    for (const [project, values] of Object.entries(grouped)) {
-      const found = values.find((v) => v.day === day);
-      entry[project] = found ? found.total : 0;
+
+    for (const [projectName, values] of Object.entries(grouped)) {
+      const point = values.find((v) => v.day === day);
+      entry[projectName] = point ? point.total : 0;
     }
+
     return entry;
   });
 
-  // --- Generate consistent colors ---
   const colors = [
-    "#60a5fa", // blue-400
-    "#34d399", // emerald-400
-    "#f472b6", // pink-400
-    "#facc15", // yellow-400
-    "#a78bfa", // violet-400
-    "#fb923c", // orange-400
+    "#60a5fa",
+    "#34d399",
+    "#f472b6",
+    "#facc15",
+    "#a78bfa",
+    "#fb923c",
   ];
 
-  const projectIds = Object.keys(grouped);
+  const projectNames = Object.keys(grouped);
 
   return (
     <Card className="col-span-full">
@@ -86,7 +99,10 @@ export function EventTrendChart() {
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                className="stroke-muted/30"
+              />
               <XAxis dataKey="day" fontSize={12} />
               <YAxis fontSize={12} />
               <Tooltip
@@ -96,11 +112,13 @@ export function EventTrendChart() {
                 }}
               />
               <Legend />
-              {projectIds.map((projectId, i) => (
+
+              {projectNames.map((projectName, i) => (
                 <Line
-                  key={projectId}
+                  key={projectName}
                   type="monotone"
-                  dataKey={projectId}
+                  dataKey={projectName}
+                  name={projectName.replace(/_/g, " ")}
                   stroke={colors[i % colors.length]}
                   strokeWidth={2}
                   dot={false}

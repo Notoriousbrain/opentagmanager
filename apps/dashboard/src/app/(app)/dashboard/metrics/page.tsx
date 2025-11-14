@@ -1,39 +1,51 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+
+import {
+  MetricsFilterBar,
+  MetricsFilters,
+} from "@/components/metrics/metrics-filter-bar";
+
+import { EventTypeSummary } from "@/components/metrics/event-type-summary";
 import { EventRegionSummary } from "@/components/metrics/event-region-summary";
 import { EventTrendChart } from "@/components/metrics/event-trend-chart";
-import { EventTypeSummary } from "@/components/metrics/event-type-summary";
-import { MetricsHeader } from "@/components/metrics/metrics-header";
-import { ProjectTotalsTable } from "@/components/metrics/projects-total-table";
 import { RelayMetricsCard } from "@/components/metrics/relay-metrics-card";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Events & Metrics – OSSTag Dashboard",
-};
+import { ProjectTotalsTable } from "@/components/metrics/projects-total-table";
+import { useDebounce } from "@otm/ui";
 
 export default function MetricsPage() {
+  const search = useSearchParams();
+
+  const initialFilters: MetricsFilters = {
+    projectId: (search.get("project") as "all" | string) ?? "all",
+    range: (search.get("range") as "7d" | "14d" | "30d") ?? "14d",
+  };
+
+  const [filters, setFilters] = useState<MetricsFilters>(initialFilters);
+  const debouncedFilters = useDebounce(filters, 300);
+
+  useEffect(() => {
+    setFilters({
+      projectId: (search.get("project") as "all" | string) ?? "all",
+      range: (search.get("range") as "7d" | "14d" | "30d") ?? "14d",
+    });
+  }, [search]);
+
   return (
-    <main className="flex flex-col gap-8 p-6 bg-subtle rounded-xl">
-      <MetricsHeader />
+    <div className="grid gap-6">
+      <MetricsFilterBar
+        projectId={filters.projectId}
+        range={filters.range}
+        onChange={(f) => setFilters(f)}
+      />
 
-      <section>
-        <EventTypeSummary />
-      </section>
-
-      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <RelayMetricsCard />
-      </section>
-
-      <section>
-        <EventRegionSummary />
-      </section>
-
-      <section className="grid gap-6">
-        <EventTrendChart />
-      </section>
-
-      <section className="grid gap-6">
-        <ProjectTotalsTable />
-      </section>
-    </main>
+      <ProjectTotalsTable filters={debouncedFilters} />
+      <EventTypeSummary filters={debouncedFilters} />
+      <EventRegionSummary filters={debouncedFilters} />
+      <EventTrendChart filters={debouncedFilters} />
+      <RelayMetricsCard />
+    </div>
   );
 }

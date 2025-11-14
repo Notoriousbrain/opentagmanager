@@ -25,7 +25,15 @@ export function EventsTable({ data }: { data: EventRow[] }) {
             <td className="py-2 px-3">{e.type}</td>
             <td className="py-2 px-3">{e.region ?? "—"}</td>
             <td className="py-2 px-3 text-zinc-400">
-              {new Date(e.occurred_at).toLocaleString()}
+              {new Date(e.occurred_at).toLocaleString("en-IN", {
+                hour12: false,
+                year: "numeric",
+                month: "short",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              })}
             </td>
             <td className="py-2 px-3 text-sm text-zinc-300">
               <EventPropsViewer props={e.props ?? null} />

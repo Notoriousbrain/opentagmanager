@@ -17,3 +17,4 @@ export * from "./lib/guards";
 export * from "./components/dropdown-menu"
 export * from "./components/table"
 export * from "./components/scroll-area"
+export * from "./hooks/use-debounce"

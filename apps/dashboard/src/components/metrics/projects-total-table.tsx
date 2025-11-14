@@ -2,7 +2,7 @@
 
 import { trpc } from "@/lib/trpc/react";
 import {
-    Card,
+  Card,
   CardContent,
   CardHeader,
   CardTitle,
@@ -13,10 +13,17 @@ import {
   TableHeader,
   TableRow,
 } from "@otm/ui";
-import { Loader2 } from "lucide-react";
+import { MetricsFilters } from "./metrics-filter-bar";
 
-export function ProjectTotalsTable() {
-  const { data, isLoading, isError } = trpc.relay.countByProject.useQuery();
+export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
+  const { data, isLoading, isError } = trpc.relay.countByProject.useQuery(
+    filters,
+    {
+      refetchInterval: 15000,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: false,
+    }
+  );
 
   if (isLoading) {
     return (
@@ -24,9 +31,13 @@ export function ProjectTotalsTable() {
         <CardHeader>
           <CardTitle>Project Totals</CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading project totals…</span>
+        <CardContent>
+          <div className="space-y-3 animate-pulse">
+            <div className="h-4 w-32 bg-muted rounded" />
+            <div className="h-4 w-full bg-muted/80 rounded" />
+            <div className="h-4 w-full bg-muted/70 rounded" />
+            <div className="h-4 w-3/4 bg-muted/60 rounded" />
+          </div>
         </CardContent>
       </Card>
     );
@@ -39,15 +50,18 @@ export function ProjectTotalsTable() {
           <CardTitle>Project Totals</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No data available.</p>
+          <div className="text-center py-8 text-muted-foreground">
+            <p className="font-medium">No events found</p>
+            <p className="text-sm">
+              Try adjusting filters or selecting a different project.
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
-  const sorted = [...data].sort(
-    (a, b) => Number(b.total) - Number(a.total)
-  );
+  const sorted = [...data].sort((a, b) => Number(b.total) - Number(a.total));
 
   return (
     <Card>
@@ -59,15 +73,21 @@ export function ProjectTotalsTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Project ID</TableHead>
+                <TableHead>Project</TableHead>
                 <TableHead className="text-right">Total Events</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sorted.map((row) => (
-                <TableRow key={row.project_id}>
+                <TableRow
+                  key={
+                    row.project_id ??
+                    row.project_name ??
+                    Math.random().toString()
+                  }
+                >
                   <TableCell className="font-medium">
-                    {row.project_id}
+                    {row.project_name ?? "Unnamed Project"}
                   </TableCell>
                   <TableCell className="text-right">
                     {Number(row.total).toLocaleString()}
