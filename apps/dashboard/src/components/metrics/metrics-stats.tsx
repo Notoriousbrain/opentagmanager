@@ -2,7 +2,6 @@
 
 import { trpc } from "@/lib/trpc/react";
 import { Card, CardContent } from "@otm/ui";
-import { Loader2 } from "lucide-react";
 import { MetricsFilters } from "./metrics-filter-bar";
 import { rangeToLabel } from "./range-label";
 
@@ -20,9 +19,10 @@ export function MetricsStats({ filters }: { filters: MetricsFilters }) {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="border-primary/20">
-            <CardContent className="flex items-center h-20 justify-center text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
+          <Card key={i} className="border-primary/20 animate-pulse">
+            <CardContent className="py-6 space-y-2">
+              <div className="h-3 w-24 bg-white rounded" />
+              <div className="h-7 w-16 bg-white rounded" />
             </CardContent>
           </Card>
         ))}

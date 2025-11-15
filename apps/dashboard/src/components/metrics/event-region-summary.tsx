@@ -20,14 +20,12 @@ export function EventRegionSummary({ filters }: { filters: MetricsFilters }) {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="animate-pulse">
+          <Card key={i} className="border-primary/20 animate-pulse">
             <CardHeader>
-              <CardTitle>
-                Region Summary — {rangeToLabel(filters.range)}
-              </CardTitle>
+              <div className="h-4 w-20 bg-white rounded" />
             </CardHeader>
             <CardContent>
-              <div className="h-7 w-16 bg-muted/80 rounded" />
+              <div className="h-7 w-16 bg-white rounded" />
             </CardContent>
           </Card>
         ))}

@@ -28,12 +28,12 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
 
   if (isLoading) {
     return (
-      <Card className="col-span-full animate-pulse">
+      <Card className="col-span-full">
         <CardHeader>
-          <CardTitle>Event Trend — {rangeToLabel(filters.range)}</CardTitle>
+          <CardTitle>Event Trend — {rangeToLabel(range)}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-64 w-full bg-muted/30 rounded" />
+          <div className="h-64 w-full bg-white rounded animate-pulse" />
         </CardContent>
       </Card>
     );

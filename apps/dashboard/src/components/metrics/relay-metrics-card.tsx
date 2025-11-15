@@ -17,16 +17,16 @@ export function RelayMetricsCard() {
     return (
       <Card className="animate-pulse">
         <CardHeader>
-          <CardTitle>Relay Metrics</CardTitle>
+          <div className="h-4 w-20 bg-white rounded" />
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="h-4 w-40 bg-muted rounded" />
+            <div className="h-4 w-40 bg-white rounded" />
             <div className="grid grid-cols-2 gap-4">
-              <div className="h-16 bg-muted/30 rounded" />
-              <div className="h-16 bg-muted/30 rounded" />
-              <div className="h-16 bg-muted/30 rounded" />
-              <div className="h-16 bg-muted/30 rounded" />
+              <div className="h-16 bg-white/30 rounded" />
+              <div className="h-16 bg-white/30 rounded" />
+              <div className="h-16 bg-white/30 rounded" />
+              <div className="h-16 bg-white/30 rounded" />
             </div>
           </div>
         </CardContent>

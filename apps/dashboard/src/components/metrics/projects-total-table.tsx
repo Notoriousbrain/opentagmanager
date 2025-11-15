@@ -30,15 +30,39 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Project Totals — {rangeToLabel(range)}</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle>
+            <div className="h-5 w-48 bg-white rounded animate-pulse" />
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3 animate-pulse">
-            <div className="h-4 w-32 bg-muted rounded" />
-            <div className="h-4 w-full bg-muted/80 rounded" />
-            <div className="h-4 w-full bg-muted/70 rounded" />
-            <div className="h-4 w-3/4 bg-muted/60 rounded" />
+
+        <CardContent className="pt-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    <div className="h-4 w-28 bg-white rounded animate-pulse" />
+                  </TableHead>
+                  <TableHead className="text-right">
+                    <div className="h-4 w-20 bg-white rounded animate-pulse" />
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <TableRow key={i} className="h-12">
+                    <TableCell>
+                      <div className="h-4 w-48 bg-white rounded animate-pulse" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="h-4 w-16 bg-white rounded animate-pulse" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>
@@ -67,18 +91,22 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle>Project Totals — {rangeToLabel(filters.range)}</CardTitle>
       </CardHeader>
-      <CardContent>
+
+      <CardContent className="pt-0">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Project</TableHead>
-                <TableHead className="text-right">Total Events</TableHead>
+                <TableHead className="font-medium text-sm">Project</TableHead>
+                <TableHead className="text-right font-medium text-sm">
+                  Total Events
+                </TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
               {sorted.map((row) => (
                 <TableRow
@@ -87,10 +115,12 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
                     row.project_name ??
                     Math.random().toString()
                   }
+                  className="h-12 hover:bg-white/5 transition-colors"
                 >
                   <TableCell className="font-medium">
                     {row.project_name ?? "Unnamed Project"}
                   </TableCell>
+
                   <TableCell className="text-right">
                     {Number(row.total).toLocaleString()}
                   </TableCell>

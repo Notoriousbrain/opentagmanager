@@ -19,13 +19,13 @@ export function EventTypeSummary({ filters }: { filters: MetricsFilters }) {
   if (isLoading) {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="animate-pulse">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Card key={i} className="border-primary/20 animate-pulse">
             <CardHeader>
-              <CardTitle>Event Type Summary — {rangeToLabel(range)}</CardTitle>
+              <div className="h-4 w-24 bg-white rounded" />
             </CardHeader>
             <CardContent>
-              <div className="h-7 w-16 bg-muted/80 rounded" />
+              <div className="h-7 w-16 bg-white rounded" />
             </CardContent>
           </Card>
         ))}
