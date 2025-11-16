@@ -28,7 +28,7 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
 
   if (isLoading) {
     return (
-      <Card className="col-span-full">
+      <Card className="col-span-full border-white/10">
         <CardHeader>
           <CardTitle>Event Trend — {rangeToLabel(range)}</CardTitle>
         </CardHeader>
@@ -41,7 +41,7 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
 
   if (isError || !data?.length) {
     return (
-      <Card className="col-span-full">
+      <Card className="col-span-full border-white/10">
         <CardHeader>
           <CardTitle>Event Trend — {rangeToLabel(range)}</CardTitle>
         </CardHeader>

@@ -34,7 +34,7 @@ export function RelayMetricsCard() {
 
   if (isError || !data) {
     return (
-      <Card className="col-span-full border-destructive/40">
+      <Card className="col-span-full border-white/10">
         <CardHeader>
           <CardTitle>Relay Metrics</CardTitle>
         </CardHeader>

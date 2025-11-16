@@ -18,7 +18,7 @@ export function EventTypeSummary({ filters }: { filters: MetricsFilters }) {
 
   if (isLoading) {
     return (
-      <Card className="col-span-full">
+      <Card className="col-span-full border-white/10">
         <CardHeader>
           <CardTitle>
             <div className="h-4 w-48 bg-white/40 animate-pulse rounded" />
@@ -44,7 +44,7 @@ export function EventTypeSummary({ filters }: { filters: MetricsFilters }) {
 
   if (isError || !data?.length) {
     return (
-      <Card className="col-span-full">
+      <Card className="col-span-full border-white/10">
         <CardHeader>
           <CardTitle>Event Type Summary — {rangeToLabel(range)}</CardTitle>
         </CardHeader>
