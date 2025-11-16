@@ -15,19 +15,17 @@ export function RelayMetricsCard() {
 
   if (isLoading) {
     return (
-      <Card className="animate-pulse">
+      <Card className="col-span-full border-white/10 animate-pulse">
         <CardHeader>
-          <div className="h-4 w-20 bg-white rounded" />
+          <CardTitle>
+            <div className="h-4 w-32 bg-white/40 rounded" />
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="h-4 w-40 bg-white rounded" />
-            <div className="grid grid-cols-2 gap-4">
-              <div className="h-16 bg-white/30 rounded" />
-              <div className="h-16 bg-white/30 rounded" />
-              <div className="h-16 bg-white/30 rounded" />
-              <div className="h-16 bg-white/30 rounded" />
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-20 rounded bg-white/20" />
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -36,12 +34,14 @@ export function RelayMetricsCard() {
 
   if (isError || !data) {
     return (
-      <Card className="min-w-[320px] border-destructive/40">
+      <Card className="col-span-full border-destructive/40">
         <CardHeader>
           <CardTitle>Relay Metrics</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-destructive text-sm">Failed to load metrics.</p>
+          <p className="text-destructive text-sm">
+            Failed to load relay metrics.
+          </p>
         </CardContent>
       </Card>
     );
@@ -50,12 +50,13 @@ export function RelayMetricsCard() {
   const uptimeMinutes = (data.uptimeSeconds / 60).toFixed(1);
 
   return (
-    <Card className="min-w-[320px]">
+    <Card className="col-span-full border-white/10">
       <CardHeader>
         <CardTitle>Relay Metrics</CardTitle>
       </CardHeader>
+
       <CardContent>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <Metric label="Uptime (min)" value={uptimeMinutes} />
           <Metric label="Events Accepted" value={data.acceptedEvents} />
           <Metric label="Batches" value={data.acceptedBatches} />
@@ -68,9 +69,9 @@ export function RelayMetricsCard() {
 
 function Metric({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="flex flex-col">
-      <span className="text-muted-foreground text-xs">{label}</span>
-      <span className="font-medium">{value}</span>
+    <div className="p-4 rounded-lg border border-white/10 hover:border-white/20 transition-colors">
+      <div className="text-muted-foreground text-xs">{label}</div>
+      <div className="text-xl font-semibold mt-1">{value}</div>
     </div>
   );
 }

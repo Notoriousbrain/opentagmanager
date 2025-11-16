@@ -29,23 +29,23 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader className="pb-3">
+      <Card className="col-span-full border-white/10">
+        <CardHeader>
           <CardTitle>
-            <div className="h-5 w-48 bg-white rounded animate-pulse" />
+            <div className="h-4 w-48 bg-white/10 rounded animate-pulse" />
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="pt-0">
+        <CardContent>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>
-                    <div className="h-4 w-28 bg-white rounded animate-pulse" />
+                    <div className="h-3 w-28 bg-white/10 rounded animate-pulse" />
                   </TableHead>
                   <TableHead className="text-right">
-                    <div className="h-4 w-20 bg-white rounded animate-pulse" />
+                    <div className="h-3 w-20 bg-white/10 rounded animate-pulse" />
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -54,10 +54,10 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
                 {Array.from({ length: 2 }).map((_, i) => (
                   <TableRow key={i} className="h-12">
                     <TableCell>
-                      <div className="h-4 w-48 bg-white rounded animate-pulse" />
+                      <div className="h-4 w-40 bg-white/40 rounded animate-pulse" />
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="h-4 w-16 bg-white rounded animate-pulse" />
+                      <div className="h-4 w-16 bg-white/40 rounded animate-pulse" />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -71,15 +71,16 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
 
   if (isError || !data?.length) {
     return (
-      <Card>
+      <Card className="col-span-full border-white/10">
         <CardHeader>
           <CardTitle>Project Totals — {rangeToLabel(range)}</CardTitle>
         </CardHeader>
+
         <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-10 text-muted-foreground">
             <p className="font-medium">No events found</p>
             <p className="text-sm">
-              Try adjusting filters or selecting a different project.
+              Try changing filters or selecting another project.
             </p>
           </div>
         </CardContent>
@@ -90,18 +91,18 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
   const sorted = [...data].sort((a, b) => Number(b.total) - Number(a.total));
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle>Project Totals — {rangeToLabel(filters.range)}</CardTitle>
+    <Card className="col-span-full border-white/10">
+      <CardHeader>
+        <CardTitle>Project Totals — {rangeToLabel(range)}</CardTitle>
       </CardHeader>
 
-      <CardContent className="pt-0">
+      <CardContent>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="font-medium text-sm">Project</TableHead>
-                <TableHead className="text-right font-medium text-sm">
+              <TableRow className="border-white/10">
+                <TableHead className="text-sm font-medium">Project</TableHead>
+                <TableHead className="text-right text-sm font-medium">
                   Total Events
                 </TableHead>
               </TableRow>
@@ -110,12 +111,8 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
             <TableBody>
               {sorted.map((row) => (
                 <TableRow
-                  key={
-                    row.project_id ??
-                    row.project_name ??
-                    Math.random().toString()
-                  }
-                  className="h-12 hover:bg-white/5 transition-colors"
+                  key={`${row.project_id}`}
+                  className="h-12 hover:bg-white/5 border-white/10 transition-colors"
                 >
                   <TableCell className="font-medium">
                     {row.project_name ?? "Unnamed Project"}

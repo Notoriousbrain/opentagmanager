@@ -18,18 +18,27 @@ export function EventRegionSummary({ filters }: { filters: MetricsFilters }) {
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="border-primary/20 animate-pulse">
-            <CardHeader>
-              <div className="h-4 w-20 bg-white rounded" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-7 w-16 bg-white rounded" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Card className="col-span-full">
+        <CardHeader>
+          <CardTitle>
+            <div className="h-4 w-48 bg-white/40 rounded animate-pulse" />
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="p-4 rounded-lg border border-white/10 flex flex-col gap-3 animate-pulse"
+              >
+                <div className="h-4 w-28 bg-white/40 rounded" />
+                <div className="h-7 w-16 bg-white/40 rounded" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -37,7 +46,7 @@ export function EventRegionSummary({ filters }: { filters: MetricsFilters }) {
     return (
       <Card className="col-span-full">
         <CardHeader>
-          <CardTitle>Region Summary — {rangeToLabel(filters.range)}</CardTitle>
+          <CardTitle>Region Summary — {rangeToLabel(range)}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
@@ -50,21 +59,29 @@ export function EventRegionSummary({ filters }: { filters: MetricsFilters }) {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {data.map((row) => (
-        <Card key={row.region || "unknown"} className="border-primary/20">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium capitalize">
-              {row.region || "Unknown"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">
-              {Number(row.total).toLocaleString()}
-            </p>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+    <Card className="col-span-full border-white/10">
+      <CardHeader>
+        <CardTitle>Region Summary — {rangeToLabel(range)}</CardTitle>
+      </CardHeader>
+
+      <CardContent>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {data.map((row) => (
+            <div
+              key={row.region || "unknown"}
+              className="p-4 rounded-lg border border-white/10 hover:border-white/20 transition-colors"
+            >
+              <p className="text-sm text-muted-foreground capitalize">
+                {row.region || "Unknown"}
+              </p>
+
+              <p className="text-3xl font-semibold mt-1">
+                {Number(row.total).toLocaleString()}
+              </p>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

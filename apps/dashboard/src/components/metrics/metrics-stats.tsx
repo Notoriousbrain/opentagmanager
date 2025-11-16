@@ -19,10 +19,13 @@ export function MetricsStats({ filters }: { filters: MetricsFilters }) {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="border-primary/20 animate-pulse">
-            <CardContent className="py-6 space-y-2">
-              <div className="h-3 w-24 bg-white rounded" />
-              <div className="h-7 w-16 bg-white rounded" />
+          <Card
+            key={i}
+            className="p-4 border-white/10 animate-pulse rounded-lg"
+          >
+            <CardContent className="space-y-3 py-4">
+              <div className="h-4 w-28 bg-white/40 rounded" />
+              <div className="h-8 w-20 bg-white/40 rounded" />
             </CardContent>
           </Card>
         ))}
@@ -30,11 +33,14 @@ export function MetricsStats({ filters }: { filters: MetricsFilters }) {
     );
   }
 
-  if (isError || !dayQ.data) {
+  if (isError || !dayQ.data?.length) {
     return (
-      <p className="text-sm text-muted-foreground">
-        No metrics available for {rangeToLabel(range)}.
-      </p>
+      <Card className="col-span-full border-white/10">
+        <CardContent className="py-10 text-center text-muted-foreground">
+          <p className="font-medium">No metrics available</p>
+          <p className="text-sm">Try changing filters: {rangeToLabel(range)}</p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -64,10 +70,10 @@ export function MetricsStats({ filters }: { filters: MetricsFilters }) {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <Card className="border-primary/20">
-      <CardContent className="py-6">
-        <div className="text-sm text-muted-foreground">{label}</div>
-        <div className="text-2xl font-semibold">{value}</div>
+    <Card className="border cursor-pointer border-white/10 hover:border-white/20 transition-colors rounded-lg">
+      <CardContent className="py-5">
+        <p className="text-sm text-muted-foreground">{label}</p>
+        <p className="text-3xl font-semibold mt-1">{value}</p>
       </CardContent>
     </Card>
   );
