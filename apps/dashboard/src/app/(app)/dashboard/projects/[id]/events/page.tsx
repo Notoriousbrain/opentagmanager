@@ -11,8 +11,9 @@ import { useProjectName } from "@/hooks/use-project-nme";
 import { trpc } from "@/lib/trpc/react";
 import { EventRow } from "@otm/types";
 import { EventsFilterBar } from "@/components/events/events-filter-bar";
-import { Button, Card } from "@otm/ui";
+import { Button } from "@otm/ui";
 import { EventsSkeleton } from "@/components/events/events-skeleton";
+import { EventsStats } from "@/components/events/events-stats";
 
 export default function ProjectEventsPage({
   params,
@@ -57,13 +58,6 @@ export default function ProjectEventsPage({
 
   const events: EventRow[] = eventsQuery.data?.items ?? [];
   const nextCursor: string | null = eventsQuery.data?.nextCursor ?? null;
-
-  const total = events.length;
-  const uniqueTypes = new Set(events.map((e) => e.type)).size;
-  const uniqueRegions = new Set(events.map((e) => e.region)).size;
-  const latest = events[0]?.occurred_at
-    ? new Date(events[0].occurred_at).toLocaleString()
-    : "—";
 
   return (
     <main className="flex flex-col gap-6 p-6">
@@ -118,24 +112,15 @@ export default function ProjectEventsPage({
       </header>
 
       <section className="rounded-xl border p-6 space-y-4">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card className="p-3 text-sm">
-            <div className="text-zinc-400">Events</div>
-            <div className="text-xl font-semibold">{total}</div>
-          </Card>
-          <Card className="p-3 text-sm">
-            <div className="text-zinc-400">Types</div>
-            <div className="text-xl font-semibold">{uniqueTypes}</div>
-          </Card>
-          <Card className="p-3 text-sm">
-            <div className="text-zinc-400">Regions</div>
-            <div className="text-xl font-semibold">{uniqueRegions}</div>
-          </Card>
-          <Card className="p-3 text-sm">
-            <div className="text-zinc-400">Latest</div>
-            <div className="text-xs">{latest}</div>
-          </Card>
-        </div>
+        <EventsStats
+          projectId={id}
+          filters={{
+            range: filters.since ?? "1d",
+            type: filters.type ?? null,
+            region: filters.region ?? null,
+            search: null,
+          }}
+        />
         <EventsFilterBar onChange={setFilters} />
         <EventsStateBar state={state} onRetry={() => eventsQuery.refetch()} />
 
