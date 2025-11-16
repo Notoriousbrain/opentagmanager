@@ -14,6 +14,7 @@ import { EventTrendChart } from "@/components/metrics/event-trend-chart";
 import { RelayMetricsCard } from "@/components/metrics/relay-metrics-card";
 import { ProjectTotalsTable } from "@/components/metrics/projects-total-table";
 import { useDebounce } from "@otm/ui";
+import { MetricsStats } from "@/components/metrics/metrics-stats";
 
 export default function MetricsPage() {
   const search = useSearchParams();
@@ -40,7 +41,7 @@ export default function MetricsPage() {
         range={filters.range}
         onChange={(f) => setFilters(f)}
       />
-
+      <MetricsStats filters={filters} />
       <ProjectTotalsTable filters={debouncedFilters} />
       <EventTypeSummary filters={debouncedFilters} />
       <EventRegionSummary filters={debouncedFilters} />

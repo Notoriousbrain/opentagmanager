@@ -13,30 +13,27 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@otm/ui";
 import { MetricsFilters } from "./metrics-filter-bar";
+import { rangeToLabel } from "./range-label";
 
 export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
-  const { data, isLoading, isError } = trpc.relay.countByDay.useQuery(filters, {
-    refetchInterval: 15000,
-    refetchIntervalInBackground: false,
-    refetchOnWindowFocus: false,
-  });
+  const { projectId, range } = filters;
+  const { data, isLoading, isError } = trpc.relay.countByDay.useQuery(
+    { projectId, range },
+    {
+      refetchInterval: 15000,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: false,
+    }
+  );
 
   if (isLoading) {
     return (
-      <Card className="col-span-full animate-pulse">
+      <Card className="col-span-full">
         <CardHeader>
-          <CardTitle>
-            Event Trend (
-            {filters.range === "7d"
-              ? "7"
-              : filters.range === "30d"
-                ? "30"
-                : "14"}{" "}
-            Days)
-          </CardTitle>
+          <CardTitle>Event Trend — {rangeToLabel(range)}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-64 w-full bg-muted/30 rounded" />
+          <div className="h-64 w-full rounded bg-white/40 animate-pulse" />
         </CardContent>
       </Card>
     );
@@ -46,12 +43,12 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
     return (
       <Card className="col-span-full">
         <CardHeader>
-          <CardTitle>Event Trend</CardTitle>
+          <CardTitle>Event Trend — {rangeToLabel(range)}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
+          <div className="text-center py-10 text-muted-foreground">
             <p className="font-medium">No trend data available</p>
-            <p className="text-sm">Try selecting a different time range.</p>
+            <p className="text-sm">Try selecting another range.</p>
           </div>
         </CardContent>
       </Card>
@@ -72,8 +69,8 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
     const entry: Record<string, number | string> = { day };
 
     for (const [projectName, values] of Object.entries(grouped)) {
-      const point = values.find((v) => v.day === day);
-      entry[projectName] = point ? point.total : 0;
+      const p = values.find((v) => v.day === day);
+      entry[projectName] = p ? p.total : 0;
     }
 
     return entry;
@@ -91,10 +88,11 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
   const projectNames = Object.keys(grouped);
 
   return (
-    <Card className="col-span-full">
+    <Card className="col-span-full border-white/10">
       <CardHeader>
-        <CardTitle>Event Trend (14 Days)</CardTitle>
+        <CardTitle>Event Trend — {rangeToLabel(range)}</CardTitle>
       </CardHeader>
+
       <CardContent>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -113,12 +111,12 @@ export function EventTrendChart({ filters }: { filters: MetricsFilters }) {
               />
               <Legend />
 
-              {projectNames.map((projectName, i) => (
+              {projectNames.map((project, i) => (
                 <Line
-                  key={projectName}
+                  key={project}
                   type="monotone"
-                  dataKey={projectName}
-                  name={projectName.replace(/_/g, " ")}
+                  dataKey={project}
+                  name={project}
                   stroke={colors[i % colors.length]}
                   strokeWidth={2}
                   dot={false}

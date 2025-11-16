@@ -4,10 +4,11 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/react";
 import { useActiveOrg } from "@/hooks/use-active-org";
-import { Button, Separator, Skeleton } from "@otm/ui";
+import { Button, Skeleton } from "@otm/ui";
 import { UserMenu } from "./user-menu";
 import { OrgSwitcher } from "../org/org-switcher";
 import Image from "next/image";
+import Link from "next/link";
 
 export function DashboardHeader() {
   const router = useRouter();
@@ -59,7 +60,9 @@ export function DashboardHeader() {
           </Button>
         )}
 
-        <Separator orientation="vertical" className="h-6 bg-white/10" />
+        <Link href="/dashboard/metrics" prefetch={false}>
+          <Button variant="outline">Metrics</Button>
+        </Link>
 
         {me.isLoading ? (
           <Skeleton className="h-8 w-28 rounded-md" />
