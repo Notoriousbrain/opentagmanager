@@ -16,6 +16,8 @@ export function EventRegionSummary({ filters }: { filters: MetricsFilters }) {
     }
   );
 
+  console.log(data, "data");
+
   if (isLoading) {
     return (
       <Card className="col-span-full border-white/10">

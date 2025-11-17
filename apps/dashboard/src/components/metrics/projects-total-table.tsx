@@ -26,7 +26,6 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
       refetchOnWindowFocus: false,
     }
   );
-  console.log(data, "data");
 
   if (isLoading) {
     return (
