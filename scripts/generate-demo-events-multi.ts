@@ -30,9 +30,10 @@ async function sendEvent(projectId: string, i: number) {
     events: [
       {
         eventId: `${projectId}_${i}_${Date.now()}`,
-        project_id: projectId,
         type: randomEventType(),
         props: randomProps(),
+        userId: `user_${Math.floor(Math.random() * 1000)}`,
+        timestamp: Date.now(),
       },
     ],
   };
