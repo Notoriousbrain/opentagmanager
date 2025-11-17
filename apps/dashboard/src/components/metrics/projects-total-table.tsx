@@ -32,7 +32,7 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
       <Card className="col-span-full border-white/10">
         <CardHeader>
           <CardTitle>
-            <div className="h-4 w-48 bg-white/10 rounded animate-pulse" />
+            <div className="h-4 w-48 bg-white/40 rounded animate-pulse" />
           </CardTitle>
         </CardHeader>
 
@@ -40,19 +40,19 @@ export function ProjectTotalsTable({ filters }: { filters: MetricsFilters }) {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="border-white/10">
                   <TableHead>
-                    <div className="h-3 w-28 bg-white/10 rounded animate-pulse" />
+                    <div className="h-3 w-28 bg-white/40 rounded animate-pulse" />
                   </TableHead>
                   <TableHead className="text-right">
-                    <div className="h-3 w-20 bg-white/10 rounded animate-pulse" />
+                    <div className="h-3 w-20 bg-white/40 rounded animate-pulse" />
                   </TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
                 {Array.from({ length: 2 }).map((_, i) => (
-                  <TableRow key={i} className="h-12">
+                  <TableRow key={i} className="h-12 border-white/10">
                     <TableCell>
                       <div className="h-4 w-40 bg-white/40 rounded animate-pulse" />
                     </TableCell>

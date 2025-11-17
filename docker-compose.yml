@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_USER: otm
       POSTGRES_PASSWORD: omguseotm
-      POSTGRES_DB: otm
+      POSTGRES_DB: osstag
       TZ: UTC
     ports:
       - "5432:5432"

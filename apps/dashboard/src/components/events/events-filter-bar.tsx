@@ -56,13 +56,15 @@ export function EventsFilterBar({ onChange }: EventsFilterBarProps) {
       <div className="flex flex-col">
         <label className="text-xs text-muted-foreground mb-1">Type</label>
         <Select onValueChange={(v) => setType(v === "all" ? undefined : v)}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-[150px] border-white/10">
             <SelectValue placeholder="All" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
+          <SelectContent className="border-white/10">
+            <SelectItem value="all" className="border-white/10">
+              All
+            </SelectItem>
             {EVENT_TYPES.map((t) => (
-              <SelectItem key={t} value={t}>
+              <SelectItem key={t} value={t} className="border-white/10">
                 {t}
               </SelectItem>
             ))}
@@ -73,13 +75,15 @@ export function EventsFilterBar({ onChange }: EventsFilterBarProps) {
       <div className="flex flex-col">
         <label className="text-xs text-muted-foreground mb-1">Region</label>
         <Select onValueChange={(v) => setRegion(v === "all" ? undefined : v)}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-[150px] border-white/10">
             <SelectValue placeholder="All" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
+          <SelectContent className="border-white/10">
+            <SelectItem value="all" className="border-white/10">
+              All
+            </SelectItem>
             {REGIONS.map((r) => (
-              <SelectItem key={r} value={r}>
+              <SelectItem key={r} value={r} className="border-white/10">
                 {r}
               </SelectItem>
             ))}
@@ -90,12 +94,16 @@ export function EventsFilterBar({ onChange }: EventsFilterBarProps) {
       <div className="flex flex-col">
         <label className="text-xs text-muted-foreground mb-1">Since</label>
         <Select value={since} onValueChange={setSince}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-[140px] border-white/10">
             <SelectValue placeholder="Time range" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="border-white/10">
             {TIME_RANGES.map((r) => (
-              <SelectItem key={r.value} value={r.value}>
+              <SelectItem
+                key={r.value}
+                value={r.value}
+                className="border-white/10"
+              >
                 {r.label}
               </SelectItem>
             ))}

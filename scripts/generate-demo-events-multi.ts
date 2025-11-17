@@ -4,17 +4,17 @@ import { Header } from "../packages/relay-core/src/types";
 import { execSync } from "node:child_process";
 
 const RELAY_URL = "http://localhost:4000/";
-const SECRET = "test_secret_public"; // same as relay verifier
+const SECRET = "test_secret_public";
 const PUBLIC_KEY = "OTM_PK_demo1234567890abcd";
 
-// --- CONFIG ---
-const PROJECTS = ["demo_project_1", "demo_project_2", "demo_project_3"];
-const EVENTS_PER_PROJECT = 5; // per cycle
-const CYCLE_DELAY_MS = 2000; // 2s pause between cycles
+const PROJECTS = ["demo_project_1"];
+const EVENTS_PER_PROJECT = 5;
+const CYCLE_DELAY_MS = 2000;
 
 function randomEventType() {
-  const types = ["page_view", "click", "signup", "purchase", "scroll"];
-  return types[Math.floor(Math.random() * types.length)];
+  return ["page_view", "click", "signup", "purchase", "scroll"][
+    Math.floor(Math.random() * 5)
+  ];
 }
 
 function randomProps() {
@@ -30,9 +30,10 @@ async function sendEvent(projectId: string, i: number) {
     events: [
       {
         eventId: `${projectId}_${i}_${Date.now()}`,
-        project_id: projectId,
         type: randomEventType(),
         props: randomProps(),
+        userId: `user_${Math.floor(Math.random() * 1000)}`,
+        timestamp: Date.now(),
       },
     ],
   };

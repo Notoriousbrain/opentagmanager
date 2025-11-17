@@ -57,7 +57,9 @@ export async function handleIngestRequest(
 
         eventId: e.eventId,
         type: e.type,
-        data: e.data ?? {},
+
+        props: (e as any).props ?? {},
+        userId: (e as any).userId ?? null,
 
         occurredAt,
         receivedAt: now,

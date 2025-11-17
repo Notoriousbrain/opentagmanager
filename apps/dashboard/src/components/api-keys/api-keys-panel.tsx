@@ -161,7 +161,7 @@ export function ApiKeysPanel({ projectId }: { projectId: string }) {
           {list.isLoading && <ListSkeleton rows={3} />}
 
           {list.isSuccess && keys.length === 0 && !creating && !issuedToken && (
-            <div className="rounded-xl border border-dashed border-white/15 p-6 text-sm text-zinc-400 min-h-[64px] flex items-center">
+            <div className="rounded-xl border border-dashed border-white/15 p-6 text-sm text-zinc-400 min-h-16 flex items-center">
               No active keys.{" "}
               {canCreate
                 ? "Create a key to get started."

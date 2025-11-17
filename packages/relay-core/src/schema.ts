@@ -4,7 +4,8 @@ import type { RelayLimits } from "./limits";
 export const ingestEventSchema = z.object({
   eventId: z.string().min(1, "eventId is required"),
   type: z.string().min(1, "type is required"),
-  data: z.unknown().optional(),
+  props: z.record(z.string(), z.any()).default({}),
+  userId: z.string().nullable().optional(),
   timestamp: z.union([z.string(), z.number()]).optional(),
 });
 
@@ -16,8 +17,13 @@ export function makeIngestBatchSchema(limits: RelayLimits) {
     events: z
       .array(ingestEventSchema)
       .min(1, "at least one event required")
-      .max(limits.maxEventsPerBatch, `too many events (max ${limits.maxEventsPerBatch})`),
+      .max(
+        limits.maxEventsPerBatch,
+        `too many events (max ${limits.maxEventsPerBatch})`
+      ),
   });
 }
 
-export type IngestBatchInput = z.infer<ReturnType<typeof makeIngestBatchSchema>>;
+export type IngestBatchInput = z.infer<
+  ReturnType<typeof makeIngestBatchSchema>
+>;

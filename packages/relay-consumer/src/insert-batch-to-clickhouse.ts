@@ -5,7 +5,7 @@ import {
   type NormalizedEvent,
 } from "@otm/relay-core";
 import { retryIfRetryable } from "@otm/relay-core";
-import { env } from "@otm/env"; 
+import { env } from "@otm/env";
 
 export async function insertBatchToClickhouse(
   events: NormalizedEvent[]
@@ -35,10 +35,15 @@ export async function insertBatchToClickhouse(
     project_id: e.projectId,
     tenant_id: e.tenantId ?? null,
     type: e.type,
-    data: e.data ?? {},
+
+    data: JSON.stringify({
+      name: e.type,
+      props: e.props,
+      userId: e.userId ?? null,
+    }),
+
     occurred_at: safeDate(e.occurredAt ?? Date.now()),
     received_at: safeDate(e.receivedAt ?? Date.now()),
-    _ingested_at: safeDate(Date.now()),
     ip: e.ip ?? null,
     ua: e.ua ?? null,
     request_id: e.requestId,

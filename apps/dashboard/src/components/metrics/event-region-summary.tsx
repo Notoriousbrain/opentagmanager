@@ -16,9 +16,11 @@ export function EventRegionSummary({ filters }: { filters: MetricsFilters }) {
     }
   );
 
+  console.log(data, "data");
+
   if (isLoading) {
     return (
-      <Card className="col-span-full">
+      <Card className="col-span-full border-white/10">
         <CardHeader>
           <CardTitle>
             <div className="h-4 w-48 bg-white/40 rounded animate-pulse" />
@@ -44,7 +46,7 @@ export function EventRegionSummary({ filters }: { filters: MetricsFilters }) {
 
   if (isError || !data?.length) {
     return (
-      <Card className="col-span-full">
+      <Card className="col-span-full border-white/10">
         <CardHeader>
           <CardTitle>Region Summary — {rangeToLabel(range)}</CardTitle>
         </CardHeader>
