@@ -185,7 +185,7 @@ export const relayRouter = createTRPCRouter({
     }
   }),
 
-  countByRegion: publicProcedure
+ countByRegion: publicProcedure
     .input(MetricsInput)
     .query(async ({ input }) => {
       try {
@@ -199,11 +199,11 @@ export const relayRouter = createTRPCRouter({
           total: number;
         }>(`
           SELECT
-            e.data.props.region AS region,
+            JSONExtractString(e.data, 'props.region') AS region,
             count() AS total
           FROM osstag.events_raw e
           WHERE ${projectFilter} e.occurred_at >= ${rangeSql}
-          GROUP BY e.data.props.region
+          GROUP BY region
           ORDER BY total DESC
         `);
 
@@ -211,7 +211,7 @@ export const relayRouter = createTRPCRouter({
       } catch {
         return [];
       }
-    }),
+    }), 
 
   getEventsByProject: publicProcedure
     .input(
@@ -253,8 +253,8 @@ export const relayRouter = createTRPCRouter({
           toString(e.project_id) AS project_id,
           p.project_name,
           e.type,
-          e.data.props.region AS region,
-          e.data.props AS props,
+          JSONExtractString(e.data, 'props.region') AS region,
+          JSONExtract(e.data, 'props', 'JSON') AS props,
           e.occurred_at
         FROM osstag.events_raw e
         LEFT JOIN osstag.project_lookup p ON e.project_id = p.project_id

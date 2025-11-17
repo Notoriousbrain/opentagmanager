@@ -42,9 +42,9 @@ export const eventsRouter = createTRPCRouter({
       }>(`
         SELECT
           count() AS totalEvents,
-          uniq(data.userId) AS uniqueUsers,
-          topK(1)(data.name)[1] AS topEventType,
-          topK(1)(data.props.region)[1] AS topRegion
+          uniq(JSONExtractString(data, 'userId')) AS uniqueUsers,
+          topK(1)(JSONExtractString(data, 'name'))[1] AS topEventType,
+          topK(1)(JSONExtractString(data, 'props.region'))[1] AS topRegion
         FROM osstag.events_raw
         WHERE ${whereClause}
       `);

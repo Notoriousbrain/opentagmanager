@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { trpc } from "@/lib/trpc/react";
 
@@ -34,12 +34,19 @@ export function useActiveOrg() {
     orgs.find((o) => o.id === selectedOrgId) ??
     (orgs.length === 1 ? orgs[0] : null);
 
-  // Redirects for zero orgs or selection
-  if (!mine.isLoading) {
-    if (status === "zero" && pathname !== ORG_NEW) router.replace(ORG_NEW);
-    if (status === "many" && !selectedOrgId && pathname !== ORG_PICK)
+  useEffect(() => {
+    if (mine.isLoading) return;
+
+    if (status === "zero" && pathname !== ORG_NEW && pathname !== ORG_PICK) {
+      router.replace(ORG_NEW);
+      return;
+    }
+
+    if (status === "many" && !selectedOrgId && pathname !== ORG_PICK) {
       router.replace(ORG_PICK);
-  }
+      return;
+    }
+  }, [mine.isLoading, status, selectedOrgId, pathname, router]);
 
   return { org, orgs, status, isLoading: mine.isLoading };
 }

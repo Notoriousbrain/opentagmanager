@@ -36,14 +36,14 @@ export async function insertBatchToClickhouse(
     tenant_id: e.tenantId ?? null,
     type: e.type,
 
-    data: {
+    data: JSON.stringify({
       name: e.type,
-      props: e.props ?? {},
+      props: e.props,
       userId: e.userId ?? null,
-    },
+    }),
+
     occurred_at: safeDate(e.occurredAt ?? Date.now()),
     received_at: safeDate(e.receivedAt ?? Date.now()),
-    _ingested_at: safeDate(Date.now()),
     ip: e.ip ?? null,
     ua: e.ua ?? null,
     request_id: e.requestId,

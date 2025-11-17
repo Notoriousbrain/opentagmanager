@@ -18,8 +18,9 @@ export interface NormalizedEvent {
 
   eventId: string;
   type: string;
+
   props: Record<string, any>; 
-  userId?: string;
+  userId?: string | null;
 
   traceId?: string;
 
