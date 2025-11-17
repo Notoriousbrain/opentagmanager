@@ -254,7 +254,7 @@ export const relayRouter = createTRPCRouter({
           p.project_name,
           e.type,
           e.data.props.region AS region,
-          JSONExtract(toJSONString(e.data), 'props', 'JSON') AS props,
+          e.data.props AS props,
           e.occurred_at
         FROM osstag.events_raw e
         LEFT JOIN osstag.project_lookup p ON e.project_id = p.project_id
@@ -269,8 +269,7 @@ export const relayRouter = createTRPCRouter({
         type: r.type,
         region: r.region ?? "—",
         occurred_at: r.occurred_at,
-        props:
-          r.props && typeof r.props === "string" ? JSON.parse(r.props) : {},
+        props: r.props ?? {},
       }));
 
       normalized.sort((a, b) => b.occurred_at.localeCompare(a.occurred_at));

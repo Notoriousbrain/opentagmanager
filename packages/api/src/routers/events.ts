@@ -2,25 +2,30 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
 import { queryClickHouse } from "@otm/core";
 
+function isoToCHDate(iso: string): string {
+  return iso.replace("T", " ").replace("Z", "").slice(0, 19);
+}
+
 export const eventsRouter = createTRPCRouter({
   stats: protectedProcedure
     .input(
       z.object({
         projectId: z.string(),
-        range: z.string(),
+        since: z.string().nullable().optional(),
         type: z.string().nullable().optional(),
         region: z.string().nullable().optional(),
         search: z.string().nullable().optional(),
       })
     )
     .query(async ({ input }) => {
-      const { projectId, range, type, region, search } = input;
+      const { projectId, since, type, region, search } = input;
 
-      // Build WHERE filters dynamically
-      const filters: string[] = [
-        `project_id = '${projectId}'`,
-        `timestamp >= now() - INTERVAL ${range}`,
-      ];
+      const filters: string[] = [`project_id = '${projectId}'`];
+
+      if (since) {
+        const chSince = isoToCHDate(since);
+        filters.push(`occurred_at >= toDateTime('${chSince}')`);
+      }
 
       if (type) filters.push(`data.name = '${type}'`);
       if (region) filters.push(`data.props.region = '${region}'`);

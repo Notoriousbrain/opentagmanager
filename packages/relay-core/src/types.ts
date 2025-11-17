@@ -18,9 +18,10 @@ export interface NormalizedEvent {
 
   eventId: string;
   type: string;
-  data: unknown;
+  props: Record<string, any>; 
+  userId?: string;
 
-   traceId?: string;
+  traceId?: string;
 
   occurredAt?: MsTimestamp | null;
   receivedAt: MsTimestamp;
@@ -53,7 +54,7 @@ export interface IngestResponse {
   requestId: string;
   eventsAccepted: number;
   receivedAt: MsTimestamp;
-  ts: number
+  ts: number;
 }
 
 export type Result<T, E = Error> =

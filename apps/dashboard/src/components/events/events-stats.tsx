@@ -6,7 +6,7 @@ import { trpc } from "@/lib/trpc/react";
 type EventsStatsProps = {
   projectId: string;
   filters: {
-    range: string;
+    since: string | null;
     type?: string | null;
     region?: string | null;
     search?: string | null;
@@ -16,7 +16,7 @@ type EventsStatsProps = {
 export function EventsStats({ projectId, filters }: EventsStatsProps) {
   const { data, isLoading } = trpc.events.stats.useQuery({
     projectId,
-    range: filters.range,
+    since: filters.since ?? null,
     type: filters.type ?? null,
     region: filters.region ?? null,
     search: filters.search ?? null,
@@ -27,7 +27,7 @@ export function EventsStats({ projectId, filters }: EventsStatsProps) {
       {[1, 2, 3, 4].map((i) => (
         <Card
           key={i}
-          className="border-white/40 border-[0.5px] bg-white/5 animate-pulse"
+          className="border-white/10 animate-pulse"
         >
           <CardHeader className="pb-2">
             <div className="h-4 w-20 bg-white/10 rounded" />
@@ -54,7 +54,7 @@ export function EventsStats({ projectId, filters }: EventsStatsProps) {
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <Card className="border-white/40 border-[0.5px] bg-white/5">
+    <Card className="border-white/10">
       <CardHeader className="pb-2">
         <CardTitle className="text-xs font-medium text-white/70">
           {label}

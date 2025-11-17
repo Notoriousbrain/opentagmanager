@@ -48,10 +48,6 @@ export default function ProjectEventsPage({
         ? "empty"
         : "ok";
 
-  const [mockState, setMockState] = useState<
-    "loading" | "error" | "empty" | "ok"
-  >("ok");
-
   if (orgLoading) return <div>Loading organization…</div>;
   if (!org) return notFound();
   if (!projectLoading && !projectName) return notFound();
@@ -88,20 +84,6 @@ export default function ProjectEventsPage({
         </div>
 
         <div className="flex items-center gap-2">
-          <select
-            className="rounded border bg-transparent p-1 text-sm"
-            value={mockState}
-            onChange={(e) =>
-              setMockState(
-                e.target.value as "loading" | "error" | "empty" | "ok"
-              )
-            }
-          >
-            <option value="ok">OK</option>
-            <option value="loading">Loading</option>
-            <option value="error">Error</option>
-            <option value="empty">Empty</option>
-          </select>
           <Link
             href={`/dashboard/projects/${id}`}
             className="text-sm text-muted-foreground hover:underline"
@@ -111,16 +93,17 @@ export default function ProjectEventsPage({
         </div>
       </header>
 
-      <section className="rounded-xl border p-6 space-y-4">
+      <section className="rounded-xl border border-white/10 p-6 space-y-4">
         <EventsStats
           projectId={id}
           filters={{
-            range: filters.since ?? "1d",
+            since: filters.since ?? null,
             type: filters.type ?? null,
             region: filters.region ?? null,
             search: null,
           }}
         />
+
         <EventsFilterBar onChange={setFilters} />
         <EventsStateBar state={state} onRetry={() => eventsQuery.refetch()} />
 
@@ -136,6 +119,7 @@ export default function ProjectEventsPage({
             <EventsTable data={events} />
           </motion.div>
         ) : null}
+
         {state === "ok" && nextCursor && (
           <div className="flex justify-center mt-4">
             <Button
