@@ -11,7 +11,7 @@ import { useProjectName } from "@/hooks/use-project-name";
 import { trpc } from "@/lib/trpc/react";
 import { EventRow } from "@otm/types";
 import { EventsFilterBar } from "@/components/events/events-filter-bar";
-import { Button } from "@otm/ui";
+import { Button, Label, Switch } from "@otm/ui";
 import { EventsSkeleton } from "@/components/events/events-skeleton";
 import { EventsStats } from "@/components/events/events-stats";
 
@@ -24,6 +24,8 @@ export default function ProjectEventsPage({
   const { org, isLoading: orgLoading } = useActiveOrg();
   const { name: projectName, isLoading: projectLoading } = useProjectName(id);
   const [cursor, setCursor] = useState<string | undefined>();
+  const [autoRefresh, setAutoRefresh] = useState(true);
+
   const [filters, setFilters] = useState<{
     type?: string;
     region?: string;
@@ -33,7 +35,7 @@ export default function ProjectEventsPage({
   const eventsQuery = trpc.relay.getEventsByProject.useQuery(
     { projectId: id, ...filters, cursor },
     {
-      refetchInterval: 3000,
+      refetchInterval: autoRefresh ? 3000 : false,
       refetchOnWindowFocus: false,
       enabled: !!org && !orgLoading,
       retry: false,
@@ -100,7 +102,17 @@ export default function ProjectEventsPage({
           </h1>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          {/* Auto-Refresh Toggle */}
+          <div className="flex items-center gap-2">
+            <Label htmlFor="auto-refresh">Auto Refresh</Label>
+            <Switch
+              id="auto-refresh"
+              checked={autoRefresh}
+              onCheckedChange={(v) => setAutoRefresh(v)}
+            />
+          </div>
+
           <Button
             variant="outline"
             onClick={() => downloadEventsAsJson(events)}
@@ -116,6 +128,12 @@ export default function ProjectEventsPage({
           </Link>
         </div>
       </header>
+
+      {!autoRefresh && (
+        <div className="rounded-md bg-yellow-500/10 border border-yellow-500/20 p-3 text-yellow-600 text-sm">
+          ⚠ Live updates paused — Auto-refresh is off
+        </div>
+      )}
 
       <section className="rounded-xl border border-white/10 p-6 space-y-4">
         <EventsStats
