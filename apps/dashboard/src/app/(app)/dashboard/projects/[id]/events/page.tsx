@@ -11,7 +11,7 @@ import { useProjectName } from "@/hooks/use-project-name";
 import { trpc } from "@/lib/trpc/react";
 import { EventRow } from "@otm/types";
 import { EventsFilterBar } from "@/components/events/events-filter-bar";
-import { Button } from "@otm/ui";
+import { Button, Switch } from "@otm/ui";
 import { EventsSkeleton } from "@/components/events/events-skeleton";
 import { EventsStats } from "@/components/events/events-stats";
 import { fetchAllEvents } from "@/lib/events/fetch-all-events";
@@ -111,6 +111,20 @@ export default function ProjectEventsPage({
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={autoRefresh}
+              onCheckedChange={(v) => setAutoRefresh(v)}
+              id="auto-refresh-toggle"
+            />
+            <label
+              htmlFor="auto-refresh-toggle"
+              className="text-sm text-muted-foreground cursor-pointer"
+            >
+              Auto-Refresh
+            </label>
+          </div>
+
           <Button
             variant="outline"
             disabled={downloading || state !== "ok"}
