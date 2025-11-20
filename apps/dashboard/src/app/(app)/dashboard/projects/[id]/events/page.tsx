@@ -7,7 +7,7 @@ import Link from "next/link";
 import { EventsTable } from "@/components/events/events-table";
 import { use, useState } from "react";
 import { EventsStateBar } from "@/components/events/events-state";
-import { useProjectName } from "@/hooks/use-project-nme";
+import { useProjectName } from "@/hooks/use-project-name";
 import { trpc } from "@/lib/trpc/react";
 import { EventRow } from "@otm/types";
 import { EventsFilterBar } from "@/components/events/events-filter-bar";
@@ -39,6 +39,23 @@ export default function ProjectEventsPage({
       retry: false,
     }
   );
+
+  function downloadEventsAsJson(items: unknown[]) {
+    if (!items?.length) return;
+
+    const blob = new Blob([JSON.stringify(items, null, 2)], {
+      type: "application/json",
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `events-${Date.now()}.json`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  }
 
   const state: "loading" | "error" | "empty" | "ok" = eventsQuery.isLoading
     ? "loading"
@@ -84,6 +101,13 @@ export default function ProjectEventsPage({
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => downloadEventsAsJson(events)}
+          >
+            Download JSON
+          </Button>
+
           <Link
             href={`/dashboard/projects/${id}`}
             className="text-sm text-muted-foreground hover:underline"
