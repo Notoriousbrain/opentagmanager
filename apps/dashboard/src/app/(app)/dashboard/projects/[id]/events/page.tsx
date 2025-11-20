@@ -11,9 +11,10 @@ import { useProjectName } from "@/hooks/use-project-name";
 import { trpc } from "@/lib/trpc/react";
 import { EventRow } from "@otm/types";
 import { EventsFilterBar } from "@/components/events/events-filter-bar";
-import { Button, Label, Switch } from "@otm/ui";
+import { Button } from "@otm/ui";
 import { EventsSkeleton } from "@/components/events/events-skeleton";
 import { EventsStats } from "@/components/events/events-stats";
+import { fetchAllEvents } from "@/lib/events/fetch-all-events";
 
 export default function ProjectEventsPage({
   params,
@@ -25,6 +26,7 @@ export default function ProjectEventsPage({
   const { name: projectName, isLoading: projectLoading } = useProjectName(id);
   const [cursor, setCursor] = useState<string | undefined>();
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   const [filters, setFilters] = useState<{
     type?: string;
@@ -42,10 +44,10 @@ export default function ProjectEventsPage({
     }
   );
 
-  function downloadEventsAsJson(items: unknown[]) {
-    if (!items?.length) return;
+  function downloadEventsAsJson(events: unknown[]) {
+    if (!events?.length) return;
 
-    const blob = new Blob([JSON.stringify(items, null, 2)], {
+    const blob = new Blob([JSON.stringify(events, null, 2)], {
       type: "application/json",
     });
 
@@ -69,7 +71,7 @@ export default function ProjectEventsPage({
 
   if (orgLoading) return <div>Loading organization…</div>;
   if (!org) return notFound();
-  if (!projectLoading && !projectName) return notFound();
+  if (!projectLoading && projectName === null) return notFound();
 
   const events: EventRow[] = eventsQuery.data?.items ?? [];
   const nextCursor: string | null = eventsQuery.data?.nextCursor ?? null;
@@ -82,9 +84,11 @@ export default function ProjectEventsPage({
             <Link href="/dashboard" className="hover:underline">
               Projects
             </Link>
-            {" › "}
+
+            {" > "}
+
             {projectLoading ? (
-              <span>Loading…</span>
+              <span className="inline-block h-4 w-28 bg-white/20 rounded animate-pulse" />
             ) : (
               <Link
                 href={`/dashboard/projects/${id}`}
@@ -93,31 +97,31 @@ export default function ProjectEventsPage({
                 {projectName || "Unknown"}
               </Link>
             )}
-            {" › "}
+
+            {" > "}
             <span className="text-foreground">Events</span>
           </nav>
 
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
             Recent Events
+            {projectLoading && (
+              <span className="inline-block h-5 w-5 bg-white/20 rounded animate-pulse" />
+            )}
           </h1>
         </div>
 
-        <div className="flex items-center gap-4">
-          {/* Auto-Refresh Toggle */}
-          <div className="flex items-center gap-2">
-            <Label htmlFor="auto-refresh">Auto Refresh</Label>
-            <Switch
-              id="auto-refresh"
-              checked={autoRefresh}
-              onCheckedChange={(v) => setAutoRefresh(v)}
-            />
-          </div>
-
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            onClick={() => downloadEventsAsJson(events)}
+            disabled={downloading || state !== "ok"}
+            onClick={async () => {
+              setDownloading(true);
+              const all = await fetchAllEvents(id, filters);
+              setDownloading(false);
+              downloadEventsAsJson(all);
+            }}
           >
-            Download JSON
+            {downloading ? "Generating…" : "Download JSON"}
           </Button>
 
           <Link
