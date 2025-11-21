@@ -234,7 +234,14 @@ export const relayRouter = createTRPCRouter({
         `e.project_id = '${safeString(projectId)}'`,
       ];
       if (type) whereParts.push(`e.type = '${type}'`);
-      if (region) whereParts.push(`e.data.props.region = '${region}'`);
+      if (region) {
+        whereParts.push(`
+          JSONExtractString(
+            JSONExtractRaw(e.data, 'props'),
+            'region'
+          ) = '${region}'
+        `);
+      }
       if (since)
         whereParts.push(`e.occurred_at >= parseDateTimeBestEffort('${since}')`);
       if (cursor)
