@@ -4,11 +4,29 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as readline from "node:readline";
 
-const DLQ_DIR = path.resolve(".dlq");
+const CANDIDATES = [
+  path.join(process.cwd(), "dlq"),
+  path.join(process.cwd(), ".dlq"),
+  path.join(process.cwd(), "apps/ingest/dlq"),
+  path.join(process.cwd(), "packages/relay-core/dlq"),
+  path.join(process.cwd(), "packages/relay-core/tmp/dlq"),
+];
+
+const DLQ_DIR = CANDIDATES.find((dir) => fs.existsSync(dir));
+
+if (!DLQ_DIR) {
+  console.warn("⚠️  No DLQ directory found.");
+  process.exit(0);
+}
+console.log("📁 Using DLQ directory:", DLQ_DIR);
 const TOPIC = process.env.KAFKA_TOPIC_INGEST ?? "osstag.ingest";
 const BROKERS = (process.env.KAFKA_BROKERS ?? "localhost:9092").split(",");
-const LIMIT = Number(process.argv.find((a) => a.startsWith("--limit="))?.split("=")[1] ?? Infinity);
-const PROJECT = process.argv.find((a) => a.startsWith("--project="))?.split("=")[1];
+const LIMIT = Number(
+  process.argv.find((a) => a.startsWith("--limit="))?.split("=")[1] ?? Infinity
+);
+const PROJECT = process.argv
+  .find((a) => a.startsWith("--project="))
+  ?.split("=")[1];
 
 async function* readNDJSON(filePath: string) {
   const stream = fs.createReadStream(filePath, "utf8");
@@ -51,22 +69,33 @@ async function main() {
 
   for (const file of files) {
     console.log(`📂 Reading ${path.basename(file)}`);
-    for await (const event of readNDJSON(file)) {
-      if (PROJECT && event.project_id !== PROJECT) continue;
-      await producer.send({
-        topic: TOPIC,
-        messages: [{ value: JSON.stringify(event) }],
-      });
-      totalSent++;
-      if (totalSent >= LIMIT) {
-        console.log(`⏹️ Reached --limit=${LIMIT}, stopping.`);
-        await producer.disconnect();
-        return;
+    for await (const wrapper of readNDJSON(file)) {
+      if (!wrapper.events || !Array.isArray(wrapper.events)) {
+        console.warn("⚠️ Skipped invalid DLQ entry", wrapper);
+        continue;
+      }
+
+      for (const ev of wrapper.events) {
+        if (PROJECT && ev.projectId !== PROJECT) continue;
+
+        await producer.send({
+          topic: TOPIC,
+          messages: [{ value: JSON.stringify(ev) }],
+        });
+
+        totalSent++;
+        if (totalSent >= LIMIT) {
+          console.log(`⏹️ Reached --limit=${LIMIT}, stopping.`);
+          await producer.disconnect();
+          return;
+        }
       }
     }
   }
 
-  console.log(`✅ Replayed ${totalSent} events from DLQ → Kafka topic ${TOPIC}`);
+  console.log(
+    `✅ Replayed ${totalSent} events from DLQ → Kafka topic ${TOPIC}`
+  );
   await producer.disconnect();
 }
 

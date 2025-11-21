@@ -61,13 +61,15 @@ export default function ProjectEventsPage({
     URL.revokeObjectURL(url);
   }
 
-  const state: "loading" | "error" | "empty" | "ok" = eventsQuery.isLoading
+  const state = eventsQuery.isLoading
     ? "loading"
     : eventsQuery.isError
       ? "error"
-      : (eventsQuery.data?.items.length ?? 0) === 0
-        ? "empty"
-        : "ok";
+      : !eventsQuery.data
+        ? "loading"
+        : eventsQuery.data.items.length === 0
+          ? "empty"
+          : "ok";
 
   if (orgLoading) return <div>Loading organization…</div>;
   if (!org) return notFound();
