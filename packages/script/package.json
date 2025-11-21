@@ -1,0 +1,17 @@
+{
+  "name": "@otm/script",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/v1.js",
+  "module": "dist/v1.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun run build",
+    "dev": "bun run build --watch",
+    "clean": "rm -rf dist"
+  },
+  "sideEffects": false
+}
