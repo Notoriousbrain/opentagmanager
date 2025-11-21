@@ -1,20 +1,19 @@
 "use client";
 
 import { notFound } from "next/navigation";
-import { motion } from "framer-motion";
 import { useActiveOrg } from "@/hooks/use-active-org";
 import Link from "next/link";
 import { EventsTable } from "@/components/events/events-table";
-import { use, useState } from "react";
+import { use, useRef, useState } from "react";
 import { EventsStateBar } from "@/components/events/events-state";
 import { useProjectName } from "@/hooks/use-project-name";
 import { trpc } from "@/lib/trpc/react";
-import { EventRow } from "@otm/types";
 import { EventsFilterBar } from "@/components/events/events-filter-bar";
 import { Button, Switch } from "@otm/ui";
 import { EventsSkeleton } from "@/components/events/events-skeleton";
 import { EventsStats } from "@/components/events/events-stats";
 import { fetchAllEvents } from "@/lib/events/fetch-all-events";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 
 export default function ProjectEventsPage({
   params,
@@ -24,7 +23,7 @@ export default function ProjectEventsPage({
   const { id } = use(params);
   const { org, isLoading: orgLoading } = useActiveOrg();
   const { name: projectName, isLoading: projectLoading } = useProjectName(id);
-  const [cursor, setCursor] = useState<string | undefined>();
+
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [downloading, setDownloading] = useState(false);
 
@@ -34,13 +33,16 @@ export default function ProjectEventsPage({
     since?: string;
   }>({});
 
-  const eventsQuery = trpc.relay.getEventsByProject.useQuery(
-    { projectId: id, ...filters, cursor },
+  const eventsInfinite = trpc.relay.getEventsByProject.useInfiniteQuery(
     {
-      refetchInterval: autoRefresh ? 3000 : false,
+      projectId: id,
+      ...filters,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
       refetchOnWindowFocus: false,
-      enabled: !!org && !orgLoading,
       retry: false,
+      enabled: !!org && !orgLoading,
     }
   );
 
@@ -60,23 +62,35 @@ export default function ProjectEventsPage({
 
     URL.revokeObjectURL(url);
   }
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const events = eventsInfinite.data?.pages.flatMap((p) => p.items) ?? [];
+  const nextCursor = eventsInfinite.data?.pages.at(-1)?.nextCursor ?? null;
 
-  const state = eventsQuery.isLoading
+  useIntersectionObserver({
+    target: sentinelRef,
+    enabled: !!nextCursor,
+    onIntersect: () => {
+      if (
+        !eventsInfinite.isFetching &&
+        !eventsInfinite.isFetchingNextPage &&
+        eventsInfinite.hasNextPage
+      ) {
+        eventsInfinite.fetchNextPage();
+      }
+    },
+  });
+
+  const state = eventsInfinite.isLoading
     ? "loading"
-    : eventsQuery.isError
+    : eventsInfinite.isError
       ? "error"
-      : !eventsQuery.data
-        ? "loading"
-        : eventsQuery.data.items.length === 0
-          ? "empty"
-          : "ok";
+      : events.length === 0
+        ? "empty"
+        : "ok";
 
   if (orgLoading) return <div>Loading organization…</div>;
   if (!org) return notFound();
   if (!projectLoading && projectName === null) return notFound();
-
-  const events: EventRow[] = eventsQuery.data?.items ?? [];
-  const nextCursor: string | null = eventsQuery.data?.nextCursor ?? null;
 
   return (
     <main className="flex flex-col gap-6 p-6">
@@ -167,31 +181,19 @@ export default function ProjectEventsPage({
         />
 
         <EventsFilterBar onChange={setFilters} />
-        <EventsStateBar state={state} onRetry={() => eventsQuery.refetch()} />
+        <EventsStateBar
+          state={state}
+          onRetry={() => eventsInfinite.refetch()}
+        />
 
-        {eventsQuery.isLoading ? (
+        {eventsInfinite.isLoading ? (
           <EventsSkeleton />
         ) : state === "ok" ? (
-          <motion.div
-            key={cursor ?? "page"}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <EventsTable data={events} />
-          </motion.div>
+          <EventsTable data={events} />
         ) : null}
 
-        {state === "ok" && nextCursor && (
-          <div className="flex justify-center mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setCursor(nextCursor)}
-              disabled={eventsQuery.isFetching}
-            >
-              {eventsQuery.isFetching ? "Loading..." : "Load More"}
-            </Button>
-          </div>
+        {events.length > 0 && nextCursor && (
+          <div ref={sentinelRef} className="h-16 w-full" />
         )}
       </section>
     </main>

@@ -27,10 +27,22 @@ export const eventsRouter = createTRPCRouter({
         filters.push(`occurred_at >= toDateTime('${chSince}')`);
       }
 
-      if (type) filters.push(`data.name = '${type}'`);
-      if (region) filters.push(`data.props.region = '${region}'`);
-      if (search)
-        filters.push(`JSONExtractString(raw, 'name') ILIKE '%${search}%'`);
+      if (type) {
+        filters.push(`JSONExtractString(data, 'name') = '${type}'`);
+      }
+
+      if (region) {
+        filters.push(`
+          JSONExtractString(
+            JSONExtractRaw(data, 'props'),
+            'region'
+          ) = '${region}'
+      `);
+      }
+
+      if (search) {
+        filters.push(`JSONExtractString(data, 'name') ILIKE '%${search}%'`);
+      }
 
       const whereClause = filters.join(" AND ");
 
@@ -44,7 +56,12 @@ export const eventsRouter = createTRPCRouter({
           count() AS totalEvents,
           uniq(JSONExtractString(data, 'userId')) AS uniqueUsers,
           topK(1)(JSONExtractString(data, 'name'))[1] AS topEventType,
-          topK(1)(JSONExtractString(data, 'props.region'))[1] AS topRegion
+          topK(1)(
+            JSONExtractString(
+              JSONExtractRaw(data, 'props'),
+              'region'
+            )
+          )[1] AS topRegion
         FROM osstag.events_raw
         WHERE ${whereClause}
       `);
