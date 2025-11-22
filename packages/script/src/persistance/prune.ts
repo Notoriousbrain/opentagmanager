@@ -1,6 +1,6 @@
-import type { Event } from "@otm/types";
+import { RawEvent } from "@otm/web";
 
-export function pruneOldEvents(events: Event[]): Event[] {
+export function pruneOldEvents(events: RawEvent[]): RawEvent[] {
   const cutoff = Date.now() - 48 * 60 * 60 * 1000;
 
   return events.filter((e) => {

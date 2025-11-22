@@ -3,6 +3,7 @@ export interface ScriptState {
   clientId: string;
   sessionId: string;
   initializedAt: string;
+  userId?: string;
   config: {
     ingestUrl: string;
   };

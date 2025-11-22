@@ -1,25 +1,56 @@
-import { buildBatch } from "./batching/build-batch";
 import { sendBatch } from "./transport";
 import { getBackoffDelay } from "./batching/backoff";
-import type { BatchPayload } from "@otm/types";
+import { buildBatchBase } from "@otm/web";
+import type { RawEvent } from "@otm/web";
 import { getState } from "./bootstrap/state";
+import { clearQueue, getQueue } from "./queue";
+import { BatchPayload, Event } from "@otm/types";
 
-const INGEST_URL = "/api/ingest";
+function transformToEvent(raw: RawEvent): Event {
+  return {
+    ...raw,
+    id: crypto.randomUUID(),
+    url: location.href,
+    referrer: document.referrer || null,
+    props: raw.properties,
 
-async function trySend(batch: BatchPayload): Promise<boolean> {
-  const body = JSON.stringify(batch);
-  return sendBatch(INGEST_URL, body);
+    viewport: {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    },
+
+    region: null,
+
+    context: {
+      framework: "html",
+    },
+  } as Event;
 }
 
 export async function flush(): Promise<void> {
-  const batch = buildBatch();
-  if (!batch) return;
+  const queue = getQueue();
+  if (queue.length === 0) return;
 
-  const { config } = getState();
+  const { projectId, clientId, sessionId, config } = getState();
+
+  const rawBatch = buildBatchBase({
+    projectId,
+    clientId,
+    sessionId,
+    events: queue,
+  });
+
+  const finalBatch: BatchPayload = {
+    ...rawBatch,
+    events: rawBatch.events.map(transformToEvent),
+  };
+
+  clearQueue();
+
   const url = config.ingestUrl;
 
   for (let attempt = 0; attempt < 5; attempt++) {
-    const ok = await sendBatch(url, JSON.stringify(batch));
+    const ok = await sendBatch(url, JSON.stringify(finalBatch));
     if (ok) return;
 
     const delay = getBackoffDelay(attempt);

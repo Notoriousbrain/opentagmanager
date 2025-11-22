@@ -1,23 +1,23 @@
 import { storage } from "../bootstrap/storage";
-import type { Event } from "@otm/types";
 import { MAX_QUEUE_SIZE } from "../batching/constants";
 import { pruneOldEvents } from "./prune";
+import { RawEvent } from "@otm/web";
 
 const KEY = "__osstag_queue_v1";
 
-export function saveQueueToStorage(queue: Event[]): void {
+export function saveQueueToStorage(queue: RawEvent[]): void {
   try {
     const serialized = JSON.stringify(queue);
     storage.set(KEY, serialized);
   } catch {}
 }
 
-export function loadQueueFromStorage(): Event[] {
+export function loadQueueFromStorage(): RawEvent[] {
   try {
     const raw = storage.get(KEY);
     if (!raw) return [];
 
-    const parsed = JSON.parse(raw) as Event[];
+    const parsed = JSON.parse(raw) as RawEvent[];
     const pruned = pruneOldEvents(parsed);
 
     return pruned.slice(0, MAX_QUEUE_SIZE);
