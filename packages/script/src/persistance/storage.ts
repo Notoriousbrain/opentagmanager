@@ -1,7 +1,7 @@
 import { storage } from "../bootstrap/storage";
 import { MAX_QUEUE_SIZE } from "../batching/constants";
 import { pruneOldEvents } from "./prune";
-import { RawEvent } from "@otm/web";
+import { RawEvent } from "@otm/sdk";
 
 const KEY = "__osstag_queue_v1";
 

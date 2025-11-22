@@ -1,7 +1,7 @@
 import { sendBatch } from "./transport";
 import { getBackoffDelay } from "./batching/backoff";
-import { buildBatchBase } from "@otm/web";
-import type { RawEvent } from "@otm/web";
+import { buildBatchBase } from "@otm/sdk";
+import type { RawEvent } from "@otm/sdk";
 import { getState } from "./bootstrap/state";
 import { clearQueue, getQueue } from "./queue";
 import { BatchPayload, Event } from "@otm/types";
