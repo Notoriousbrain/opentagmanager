@@ -1,8 +1,12 @@
 import type { EventProps, Event } from "@otm/types";
 import { getState } from "./bootstrap/state";
 import { MAX_QUEUE_SIZE } from "./batching/constants";
+import {
+  loadQueueFromStorage,
+  saveQueueToStorage,
+} from "./persistance/storage";
 
-const queue: Event[] = [];
+const queue: Event[] = loadQueueFromStorage();
 
 export function enqueue<T extends EventProps>(name: string, props: T): void {
   const { clientId, sessionId } = getState();
@@ -31,6 +35,8 @@ export function enqueue<T extends EventProps>(name: string, props: T): void {
   };
 
   queue.push(evt);
+
+  saveQueueToStorage(queue);
 }
 
 export function getQueue(): Event[] {
@@ -39,4 +45,5 @@ export function getQueue(): Event[] {
 
 export function clearQueue(): void {
   queue.length = 0;
+  saveQueueToStorage(queue);
 }
