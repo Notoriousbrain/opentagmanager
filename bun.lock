@@ -218,6 +218,9 @@
     "packages/script": {
       "name": "@otm/script",
       "version": "0.1.0",
+      "dependencies": {
+        "@otm/web": "workspace:*",
+      },
     },
     "packages/types": {
       "name": "@otm/types",
@@ -264,6 +267,10 @@
       "peerDependencies": {
         "next": "catalog:",
       },
+    },
+    "packages/web": {
+      "name": "@otm/web",
+      "version": "0.0.0",
     },
   },
   "catalog": {
@@ -658,6 +665,8 @@
     "@otm/typescript-config": ["@otm/typescript-config@workspace:packages/typescript-config"],
 
     "@otm/ui": ["@otm/ui@workspace:packages/ui"],
+
+    "@otm/web": ["@otm/web@workspace:packages/web"],
 
     "@peculiar/asn1-android": ["@peculiar/asn1-android@2.5.0", "", { "dependencies": { "@peculiar/asn1-schema": "^2.5.0", "asn1js": "^3.0.6", "tslib": "^2.8.1" } }, "sha512-t8A83hgghWQkcneRsgGs2ebAlRe54ns88p7ouv8PW2tzF1nAW4yHcL4uZKrFpIU+uszIRzTkcCuie37gpkId0A=="],
 

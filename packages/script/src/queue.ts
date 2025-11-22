@@ -1,4 +1,4 @@
-import type { EventProps, Event } from "@otm/types";
+import type { RawEvent } from "@otm/web";
 import { getState } from "./bootstrap/state";
 import { MAX_QUEUE_SIZE } from "./batching/constants";
 import {
@@ -6,32 +6,28 @@ import {
   saveQueueToStorage,
 } from "./persistance/storage";
 
-const queue: Event[] = loadQueueFromStorage();
+const queue: RawEvent[] = loadQueueFromStorage();
 
-export function enqueue<T extends EventProps>(name: string, props: T): void {
+export function enqueue(
+  name: string,
+  properties: Record<string, unknown> = {}
+): void {
   const { clientId, sessionId } = getState();
 
+  // Enforce queue max size
   if (queue.length >= MAX_QUEUE_SIZE) {
     queue.shift();
   }
 
-  const evt: Event<T> = {
-    id: crypto.randomUUID(),
+  const evt: RawEvent = {
     name,
-    props,
+    properties,
+    timestamp: new Date().toISOString(),
     clientId,
     sessionId,
-    timestamp: new Date().toISOString(),
-    url: window.location.href,
-    referrer: document.referrer || null,
-    viewport: {
-      width: window.innerWidth,
-      height: window.innerHeight,
-    },
-    region: null,
-    context: {
-      framework: "html",
-    },
+    // NOTE: userId optional — added only via identify()
+    // browser script's identify() should set state.userId
+    ...(getState().userId ? { userId: getState().userId } : {}),
   };
 
   queue.push(evt);
@@ -39,7 +35,7 @@ export function enqueue<T extends EventProps>(name: string, props: T): void {
   saveQueueToStorage(queue);
 }
 
-export function getQueue(): Event[] {
+export function getQueue(): RawEvent[] {
   return queue;
 }
 

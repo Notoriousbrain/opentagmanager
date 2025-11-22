@@ -15,7 +15,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "bunx tsc -p tsconfig.json"
+    "build": "bunx tsc -p tsconfig.json",
+    "dev": "bunx tsc -p tsconfig.json --watch"
   },
   "peerDependencies": {},
   "dependencies": {},

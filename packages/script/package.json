@@ -8,10 +8,13 @@
   "files": [
     "dist"
   ],
- "scripts": {
-  "build": "rollup -c",
-  "dev": "rollup -c --watch",
-  "clean": "rm -rf dist"
-},
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@otm/web": "workspace:*"
+  },
   "sideEffects": false
 }
