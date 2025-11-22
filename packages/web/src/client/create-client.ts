@@ -44,6 +44,7 @@ export interface WebClient {
   flush(): Promise<void>;
   getClientId(): Promise<string>;
   getSessionId(): Promise<string>;
+  debug(): Promise<Record<string, unknown>>;
 }
 
 export function createClient(config: WebClientConfig): WebClient {
@@ -169,11 +170,27 @@ export function createClient(config: WebClientConfig): WebClient {
     }, intervalMs);
   }
 
+  async function debug() {
+    const clientId = await ensureClientId();
+    const sessionId = await ensureSessionId();
+
+    return {
+      clientId,
+      sessionId,
+      queueLength: queue.length,
+      batching,
+      signatureEnabled: Boolean(config.signature?.secret),
+      storage:
+        storage instanceof MemoryStorageAdapter ? "memory" : "persistent",
+    };
+  }
+
   return {
     track,
     identify,
     flush,
     getClientId: ensureClientId,
     getSessionId: ensureSessionId,
+    debug
   };
 }
