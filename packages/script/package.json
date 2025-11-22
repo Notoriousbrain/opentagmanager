@@ -14,7 +14,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@otm/web": "workspace:*"
+    "@otm/sdk": "workspace:*"
   },
   "sideEffects": false
 }

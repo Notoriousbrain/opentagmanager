@@ -1,4 +1,4 @@
-import { RawEvent } from "@otm/web";
+import { RawEvent } from "@otm/sdk";
 
 export function pruneOldEvents(events: RawEvent[]): RawEvent[] {
   const cutoff = Date.now() - 48 * 60 * 60 * 1000;

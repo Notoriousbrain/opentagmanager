@@ -1,4 +1,4 @@
-import type { RawEvent } from "@otm/web";
+import type { RawEvent } from "@otm/sdk";
 import { getState } from "./bootstrap/state";
 import { MAX_QUEUE_SIZE } from "./batching/constants";
 import {
