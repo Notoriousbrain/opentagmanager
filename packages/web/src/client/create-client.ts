@@ -13,34 +13,29 @@ import {
 import { getBackoffDelay } from "../batching/backoff";
 import { buildBatchBase, RawBatchPayload } from "../batching/build-batch-base";
 import { RawEvent } from "../types/raw-events";
+import { canonicalStringify } from "../serialize/json";
+import { signHmacSHA256 } from "../signature/hmac";
+
+export interface SignatureConfig {
+  secret: string;
+  headerName?: string;
+}
 
 export interface WebClientConfig {
   projectId: string;
 
-  /**
-   * Transport function that actually sends the batch.
-   * This is where browser script, React SDK, Node SDK etc.
-   * plug in fetch/beacon/HTTP clients.
-   */
-  send(batch: RawBatchPayload): Promise<void> | void;
+  send(
+    batch: RawBatchPayload,
+    meta?: { signature?: string; headerName?: string }
+  ): Promise<void> | void;
 
-  /**
-   * Optional storage adapter (KV, localStorage, etc.).
-   * Defaults to browser localStorage (if available) or memory.
-   */
   storage?: StorageAdapter;
 
-  /**
-   * Optional batching overrides.
-   */
   batching?: Partial<BatchingConfig>;
 
-  /**
-   * Auto-flush interval in ms.
-   * - Set to null or 0 to disable interval-based auto-flush.
-   * - Defaults to 10_000 ms (10s).
-   */
   autoFlushIntervalMs?: number | null;
+
+  signature?: SignatureConfig;
 }
 
 export interface WebClient {
@@ -66,7 +61,6 @@ export function createClient(config: WebClientConfig): WebClient {
   let queue: RawEvent[] = [];
   let isFlushing = false;
 
-  // IDs are resolved lazily and cached.
   let clientIdPromise: Promise<string> | null = null;
   let sessionIdPromise: Promise<string> | null = null;
 
@@ -128,25 +122,35 @@ export function createClient(config: WebClientConfig): WebClient {
       const eventsToSend = queue.slice(0, batching.maxBatchEvents);
       queue = queue.slice(eventsToSend.length);
 
-      const batch: RawBatchPayload = buildBatchBase({
+      const rawBatch = buildBatchBase({
         projectId: config.projectId,
         clientId,
         sessionId,
         events: eventsToSend,
       });
 
-      // retry with exponential backoff
+      const batch = rawBatch;
+
+      let signatureMeta: { signature?: string; headerName?: string } = {};
+
+      if (config.signature?.secret) {
+        const canonical = canonicalStringify(batch);
+        const sig = await signHmacSHA256(config.signature.secret, canonical);
+        signatureMeta = {
+          signature: sig,
+          headerName: config.signature.headerName ?? "x-osstag-signature",
+        };
+      }
+
       for (let attempt = 0; attempt < batching.maxRetries; attempt++) {
         try {
-          await Promise.resolve(config.send(batch));
+          await Promise.resolve(config.send(batch, signatureMeta));
           return;
         } catch {
-          if (attempt === batching.maxRetries - 1) {
-            // give up after last attempt
-            return;
-          }
-          const delay = getBackoffDelay(attempt, batching);
-          await new Promise((r) => setTimeout(r, delay));
+          if (attempt === batching.maxRetries - 1) return;
+          await new Promise((r) =>
+            setTimeout(r, getBackoffDelay(attempt, batching))
+          );
         }
       }
     } finally {
@@ -154,7 +158,6 @@ export function createClient(config: WebClientConfig): WebClient {
     }
   }
 
-  // Auto-flush interval (10s default)
   const intervalMs =
     config.autoFlushIntervalMs === undefined
       ? 10_000
