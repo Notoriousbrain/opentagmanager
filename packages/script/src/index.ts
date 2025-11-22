@@ -1,12 +1,6 @@
 import { bootstrap } from "./bootstrap";
 import { api } from "./api";
 
-export function init() {
-  bootstrap();
-}
-
-init();
-
 declare global {
   interface Window {
     osstag?: typeof api;
@@ -14,3 +8,17 @@ declare global {
 }
 
 window.osstag = api;
+
+export function init() {
+  bootstrap();
+}
+
+init();
+
+import { flush } from "./flush";
+
+window.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    flush();
+  }
+});
