@@ -3,6 +3,9 @@ export interface ScriptState {
   clientId: string;
   sessionId: string;
   initializedAt: string;
+  config: {
+    ingestUrl: string;
+  };
 }
 
 let state: ScriptState | null = null;
