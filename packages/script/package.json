@@ -8,10 +8,10 @@
   "files": [
     "dist"
   ],
-  "scripts": {
-    "build": "bun run build",
-    "dev": "bun run build --watch",
-    "clean": "rm -rf dist"
-  },
+ "scripts": {
+  "build": "rollup -c",
+  "dev": "rollup -c --watch",
+  "clean": "rm -rf dist"
+},
   "sideEffects": false
 }
