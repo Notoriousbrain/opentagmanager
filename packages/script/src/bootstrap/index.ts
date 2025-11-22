@@ -2,6 +2,7 @@ import { getProjectId } from "./get-project-id";
 import { getClientId } from "./client-id";
 import { getSessionId } from "./session-id";
 import { setState } from "./state";
+import { patchHistory } from "../auto/history";
 
 export function bootstrap() {
   const projectId = getProjectId();
@@ -17,6 +18,8 @@ export function bootstrap() {
     projectId,
     clientId,
     sessionId,
-    initializedAt: new Date().toISOString()
+    initializedAt: new Date().toISOString(),
   });
+
+  patchHistory();
 }
