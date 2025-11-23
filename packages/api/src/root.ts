@@ -16,7 +16,7 @@ export const appRouter = createTRPCRouter({
   interest: interestRouter,
   relay: relayRouter,
   events: eventsRouter,
-  system: systemRouter
+  system: systemRouter,
 });
 
 export type AppRouter = typeof appRouter;

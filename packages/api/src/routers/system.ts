@@ -1,37 +1,56 @@
-import { z } from "zod";
-import { publicProcedure, createTRPCRouter } from "../trpc";
+import z from "zod";
+import { createTRPCRouter, publicProcedure } from "../trpc";
 
-async function checkRelayHealth() {
-  try {
-    const res = await fetch(
-      `${process.env.OSSTAG_PROJECT_URL}/api/ingest/ping`
-    );
-    if (!res.ok) return { online: false };
-    return { online: true };
-  } catch {
-    return { online: false };
-  }
-}
-
-const RelayStatusSchema = z.object({
+const RelayHealthSchema = z.object({
   relay: z.enum(["online", "offline"]),
-});
-
-const RelayVersionSchema = z.object({
   version: z.string(),
-});
 
-const RELAY_VERSION = "v0.1.0";
-
-export const systemRouter = createTRPCRouter({
-  relayStatus: publicProcedure.output(RelayStatusSchema).query(async () => {
-    const status = await checkRelayHealth();
-    return {
-      relay: status.online ? "online" : "offline",
-    };
+  dependencies: z.object({
+    kafka: z.enum(["online", "offline"]),
+    clickhouse: z.enum(["online", "offline"]),
+    s3: z.enum(["online", "offline"]),
   }),
 
-  relayVersion: publicProcedure.output(RelayVersionSchema).query(() => {
-    return { version: RELAY_VERSION };
+  ingest: z.object({
+    lastEventAt: z.string().nullable(),
+    eventsPerMinute: z.number(),
+    dlqSize: z.number(),
+  }),
+
+  errors: z.object({
+    http5xxRate: z.number(),
+    signatureMismatchRate: z.number(),
+  }),
+});
+export const systemRouter = createTRPCRouter({
+  relayHealth: publicProcedure.query(async () => {
+    try {
+      const url = process.env.RELAY_URL;
+      if (!url) throw new Error("RELAY_URL missing");
+
+      const res = await fetch(`${url}/health`);
+      const json = await res.json();
+
+      return RelayHealthSchema.parse(json);
+    } catch (err) {
+      return {
+        relay: "offline",
+        version: "unknown",
+        dependencies: {
+          kafka: "offline",
+          clickhouse: "offline",
+          s3: "offline",
+        },
+        ingest: {
+          lastEventAt: null,
+          eventsPerMinute: 0,
+          dlqSize: 0,
+        },
+        errors: {
+          http5xxRate: 1,
+          signatureMismatchRate: 1,
+        },
+      } satisfies z.infer<typeof RelayHealthSchema>;
+    }
   }),
 });

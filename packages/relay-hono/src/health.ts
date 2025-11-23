@@ -7,6 +7,14 @@ import { join } from "node:path";
 
 const DLQ_DIR = join(process.cwd(), "dlq");
 
+type LastEventRow = {
+  last_event: string | null;
+};
+
+type CountRow = {
+  c: number;
+};
+
 export async function getRelayHealth() {
   const start = Date.now();
 
@@ -16,12 +24,15 @@ export async function getRelayHealth() {
 
   try {
     const brokers = env.KAFKA_BROKERS?.split(",").map((s) => s.trim());
+
     if (brokers?.length) {
       const kafka = new Kafka({ clientId: "healthcheck", brokers });
       const admin = kafka.admin();
+
       await admin.connect();
-      await admin.listTopics(); 
+      await admin.listTopics();
       await admin.disconnect();
+
       kafkaOk = true;
     }
   } catch {
@@ -43,7 +54,11 @@ export async function getRelayHealth() {
   }
 
   const status =
-    kafkaOk && clickhouseOk ? "healthy" : kafkaOk || clickhouseOk ? "degraded" : "down";
+    kafkaOk && clickhouseOk
+      ? "healthy"
+      : kafkaOk || clickhouseOk
+        ? "degraded"
+        : "down";
 
   return {
     status,
@@ -64,4 +79,47 @@ export async function getRelayHealth() {
     durationMs: Date.now() - start,
     timestamp: new Date().toISOString(),
   };
+}
+
+export async function getIngestStats() {
+  const client = getClickhouseClient();
+
+  try {
+    const last = await client.query({
+      query: `
+        SELECT max(timestamp) AS last_event
+        FROM events
+      `,
+      format: "JSONEachRow",
+    });
+
+    const lastRows = (await last.json()) as LastEventRow[];
+    const lastEventAt = lastRows?.[0]?.last_event ?? null;
+
+    const epmRes = await client.query({
+      query: `
+        SELECT count() AS c
+        FROM events
+        WHERE timestamp >= now() - INTERVAL 5 MINUTE
+      `,
+      format: "JSONEachRow",
+    });
+
+    const epmRows = (await epmRes.json()) as CountRow[];
+    const eventsLast5Min = Number(epmRows?.[0]?.c ?? 0);
+
+    const eventsPerMinute = eventsLast5Min / 5;
+
+    return {
+      lastEventAt,
+      eventsPerMinute,
+      dlqSize: 0,
+    };
+  } catch {
+    return {
+      lastEventAt: null,
+      eventsPerMinute: 0,
+      dlqSize: 0,
+    };
+  }
 }
