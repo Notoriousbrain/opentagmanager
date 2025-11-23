@@ -34,6 +34,9 @@
   "peerDependencies": {
     "react": "^18 || ^19"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@otm/verify": "workspace:*",
+    "@otm/script": "workspace:*"
+  },
   "devDependencies": {}
 }

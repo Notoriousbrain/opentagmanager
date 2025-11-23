@@ -1,12 +1,11 @@
+import type { ScriptConfig } from "./config";
 export interface ScriptState {
   projectId: string;
   clientId: string;
   sessionId: string;
   initializedAt: string;
   userId?: string;
-  config: {
-    ingestUrl: string;
-  };
+  config: ScriptConfig;
 }
 
 let state: ScriptState | null = null;

@@ -1,4 +1,3 @@
-import type { BatchPayload } from "@otm/types";
 import type { StorageAdapter } from "../storage/storage";
 import {
   MemoryStorageAdapter,
@@ -15,17 +14,26 @@ import { buildBatchBase, RawBatchPayload } from "../batching/build-batch-base";
 import { RawEvent } from "../types/raw-events";
 import { canonicalStringify } from "../serialize/json";
 import { signHmacSHA256 } from "../signature/hmac";
+import { ObfuscatedPayload, obfuscatePayload } from "../obfuscate";
 
 export interface SignatureConfig {
   secret: string;
   headerName?: string;
 }
 
+export interface AntiBlockConfig {
+  enabled: boolean;
+
+  rotateTransport?: boolean;
+
+  obfuscatePayload?: boolean;
+}
+
 export interface WebClientConfig {
   projectId: string;
 
   send(
-    batch: RawBatchPayload,
+    batch: RawBatchPayload | ObfuscatedPayload,
     meta?: { signature?: string; headerName?: string }
   ): Promise<void> | void;
 
@@ -36,6 +44,8 @@ export interface WebClientConfig {
   autoFlushIntervalMs?: number | null;
 
   signature?: SignatureConfig;
+
+  antiBlock?: AntiBlockConfig;
 }
 
 export interface WebClient {
@@ -52,6 +62,8 @@ export function createClient(config: WebClientConfig): WebClient {
     ...DEFAULT_BATCHING_CONFIG,
     ...config.batching,
   };
+
+  const antiBlock = config.antiBlock ?? { enabled: false };
 
   const storage: StorageAdapter =
     config.storage ??
@@ -123,19 +135,23 @@ export function createClient(config: WebClientConfig): WebClient {
       const eventsToSend = queue.slice(0, batching.maxBatchEvents);
       queue = queue.slice(eventsToSend.length);
 
-      const rawBatch = buildBatchBase({
+      const batch = buildBatchBase({
         projectId: config.projectId,
         clientId,
         sessionId,
         events: eventsToSend,
       });
 
-      const batch = rawBatch;
+      const canonical = canonicalStringify(batch);
+
+      const finalPayload: RawBatchPayload | ObfuscatedPayload =
+        config.antiBlock?.enabled && config.antiBlock?.obfuscatePayload
+          ? obfuscatePayload(canonical)
+          : batch;
 
       let signatureMeta: { signature?: string; headerName?: string } = {};
 
       if (config.signature?.secret) {
-        const canonical = canonicalStringify(batch);
         const sig = await signHmacSHA256(config.signature.secret, canonical);
         signatureMeta = {
           signature: sig,
@@ -145,7 +161,7 @@ export function createClient(config: WebClientConfig): WebClient {
 
       for (let attempt = 0; attempt < batching.maxRetries; attempt++) {
         try {
-          await Promise.resolve(config.send(batch, signatureMeta));
+          await Promise.resolve(config.send(finalPayload, signatureMeta));
           return;
         } catch {
           if (attempt === batching.maxRetries - 1) return;
@@ -191,6 +207,6 @@ export function createClient(config: WebClientConfig): WebClient {
     flush,
     getClientId: ensureClientId,
     getSessionId: ensureSessionId,
-    debug
+    debug,
   };
 }
