@@ -227,6 +227,7 @@
       "name": "@otm/sdk",
       "version": "0.1.0",
       "dependencies": {
+        "@otm/script": "workspace:*",
         "@otm/verify": "workspace:*",
       },
       "peerDependencies": {
