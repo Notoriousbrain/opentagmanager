@@ -6,6 +6,7 @@ import { orgsRouter } from "./routers/orgs";
 import { interestRouter } from "./routers/interest";
 import { relayRouter } from "./routers/relay";
 import { eventsRouter } from "./routers/events";
+import { systemRouter } from "./routers/system";
 
 export const appRouter = createTRPCRouter({
   account: meRouter,
@@ -15,6 +16,7 @@ export const appRouter = createTRPCRouter({
   interest: interestRouter,
   relay: relayRouter,
   events: eventsRouter,
+  system: systemRouter
 });
 
 export type AppRouter = typeof appRouter;
