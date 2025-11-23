@@ -10,6 +10,7 @@ import {
   PayloadTooLargeError,
 } from "./errors";
 import { sendBatchToKafka } from "./producer";
+import { logger } from "./logger";
 
 export async function handleIngestRequest(
   batch: IngestBatchInput,
@@ -75,11 +76,24 @@ export async function handleIngestRequest(
     }
   }
 
+  logger.info("📨 attempting Kafka publish", {
+    requestId,
+    events: events.length,
+  });
+
   await retryIfRetryable(
     async () => {
       try {
         await sendBatchToKafka(events);
+        logger.info("✅ Kafka publish success", {
+          requestId,
+          events: events.length,
+        });
       } catch (error) {
+        logger.error("❌ Kafka publish failed", {
+          requestId,
+          error: (error as Error).message,
+        });
         throw new KafkaUnavailableError("Failed to enqueue Kafka batch", {
           cause: error,
           detail: { requestId, count: events.length },

@@ -1,4 +1,6 @@
-export function sendViaForm(url: string, body: string): Promise<boolean> {
+import { SendBody } from ".";
+
+export function sendViaForm(url: string, body: SendBody): Promise<boolean> {
   return new Promise((resolve) => {
     try {
       const form = document.createElement("form");
@@ -9,7 +11,7 @@ export function sendViaForm(url: string, body: string): Promise<boolean> {
       const input = document.createElement("input");
       input.type = "hidden";
       input.name = "d";
-      input.value = body;
+      input.value = body.base64;
       form.appendChild(input);
 
       document.body.appendChild(form);

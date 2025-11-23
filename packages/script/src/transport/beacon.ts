@@ -1,9 +1,11 @@
+import { SendBody } from ".";
+
 export async function sendViaBeacon(
   url: string,
-  body: string
+  body: SendBody
 ): Promise<boolean> {
   try {
-    const blob = new Blob([body], { type: "application/json" });
+    const blob = new Blob([body.json], { type: "application/json" });
     return navigator.sendBeacon(url, blob);
   } catch {
     return false;

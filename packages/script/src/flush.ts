@@ -49,10 +49,10 @@ export async function flush(): Promise<void> {
   const url = config.ingestUrl;
 
   const raw = JSON.stringify(finalBatch);
-  const body = obfuscatePayload(raw);
+  const { json, base64 } = obfuscatePayload(raw);
 
   for (let attempt = 0; attempt < 5; attempt++) {
-    const ok = await sendBatch(url, body);
+    const ok = await sendBatch(url, { json, base64 });
     if (ok) return;
 
     const delay = getBackoffDelay(attempt);

@@ -22,9 +22,8 @@ import {
   createTraceId,
   traceScope,
   collectTelemetry,
+  decodeFlexible,
 } from "@otm/relay-core";
-
-import { decodeIncomingPayload } from "@otm/verify";
 
 const LIMITS = getLimitsFromEnv();
 
@@ -134,19 +133,17 @@ relayApp.post("/", async (c) => {
     const traceId = createTraceId();
     const rawBody = await c.req.text();
 
-    let decoded;
-    try {
-      decoded = decodeIncomingPayload(JSON.parse(rawBody));
-    } catch {
+    const json = decodeFlexible(rawBody);
+
+    const ip = c.req.header("x-forwarded-for") ?? "unknown";
+
+    if (!json || typeof json !== "object") {
       metrics.httpErrors5xx++;
       return c.json(
         { ok: false, error: "Invalid or undecodable payload" },
         400
       );
     }
-
-    const json = decoded;
-    const ip = c.req.header("x-forwarded-for") ?? "unknown";
 
     logger.info(
       "Incoming ingest request",
