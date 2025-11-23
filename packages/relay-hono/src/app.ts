@@ -89,8 +89,15 @@ relayApp.get("/metrics/prom", (c) => {
 });
 
 relayApp.get("/telemetry", async (c) => {
-  const snapshot = await collectTelemetry();
-  return c.json(snapshot);
+  const health = await getRelayHealth();
+  const core = await collectTelemetry();
+
+  return c.json({
+    ...core,
+    clickhouseHealthy: health.subsystems.clickhouse === "ok",
+    kafkaHealthy: health.subsystems.kafka === "ok",
+    dlqFiles: health.subsystems.dlqFiles,
+  });
 });
 
 relayApp.get("/admin/replay", async (c) => {
@@ -101,6 +108,7 @@ relayApp.get("/admin/replay", async (c) => {
 
   try {
     const result = await replayAllDLQ();
+    metrics.replays += 1;
     logger.info("DLQ replay completed", { result });
     return c.json({ status: "ok", ...result });
   } catch (err) {

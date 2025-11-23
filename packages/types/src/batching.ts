@@ -1,4 +1,4 @@
-import { RawEvent } from "../types/raw-events";
+import type { RawEvent } from "./raw-event";
 
 export interface RawBatchPayload {
   projectId: string;

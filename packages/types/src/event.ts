@@ -1,5 +1,3 @@
-// packages/@otm/types/src/event.ts
-
 export type EventProps = Record<string, unknown>;
 
 export interface Viewport {

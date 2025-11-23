@@ -10,11 +10,10 @@ import {
   type BatchingConfig,
 } from "../batching/constants";
 import { getBackoffDelay } from "../batching/backoff";
-import { buildBatchBase, RawBatchPayload } from "../batching/build-batch-base";
-import { RawEvent } from "../types/raw-events";
 import { canonicalStringify } from "../serialize/json";
 import { signHmacSHA256 } from "../signature/hmac";
 import { ObfuscatedPayload, obfuscatePayload } from "../obfuscate";
+import { buildBatchBase, RawBatchPayload, RawEvent } from "@otm/types";
 
 export interface SignatureConfig {
   secret: string;

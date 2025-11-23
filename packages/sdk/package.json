@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@otm/verify": "workspace:*",
-    "@otm/script": "workspace:*"
+    "@otm/types": "workspace:*"
   },
   "devDependencies": {}
 }

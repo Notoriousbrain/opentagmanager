@@ -2,19 +2,19 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { insertBatchToClickhouse } from "@otm/relay-consumer";
 import type { NormalizedEvent } from "./types";
-import { metrics } from "@otm/relay-hono";
 
 const DLQ_DIR = join(process.cwd(), "dlq");
 
-export async function replayAllDLQ(): Promise<{ files: number; total: number }> {
+export async function replayAllDLQ(): Promise<{
+  files: number;
+  total: number;
+}> {
   const files = readdirSync(DLQ_DIR).filter((f) => f.endsWith(".ndjson"));
   let total = 0;
 
   for (const file of files) {
     const fullPath = join(DLQ_DIR, file);
-    const lines = readFileSync(fullPath, "utf8")
-      .split("\n")
-      .filter(Boolean);
+    const lines = readFileSync(fullPath, "utf8").split("\n").filter(Boolean);
 
     for (const line of lines) {
       try {
@@ -30,7 +30,6 @@ export async function replayAllDLQ(): Promise<{ files: number; total: number }> 
     }
   }
 
-  metrics.replays += 1;
   console.log(`🔁 Replayed ${total} events from ${files.length} DLQ files`);
   return { files: files.length, total };
 }
