@@ -5,6 +5,7 @@ import type { RawEvent } from "@otm/sdk";
 import { getState } from "./bootstrap/state";
 import { clearQueue, getQueue } from "./queue";
 import { BatchPayload, Event } from "@otm/types";
+import { obfuscatePayload } from "./transport/obfuscate";
 
 function transformToEvent(raw: RawEvent): Event {
   return {
@@ -49,8 +50,11 @@ export async function flush(): Promise<void> {
 
   const url = config.ingestUrl;
 
+  const raw = JSON.stringify(finalBatch);
+  const body = obfuscatePayload(raw);
+
   for (let attempt = 0; attempt < 5; attempt++) {
-    const ok = await sendBatch(url, JSON.stringify(finalBatch));
+    const ok = await sendBatch(url, body);
     if (ok) return;
 
     const delay = getBackoffDelay(attempt);
