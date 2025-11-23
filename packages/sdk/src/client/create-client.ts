@@ -21,6 +21,14 @@ export interface SignatureConfig {
   headerName?: string;
 }
 
+export interface AntiBlockConfig {
+  enabled: boolean;
+
+  rotateTransport?: boolean;
+
+  obfuscatePayload?: boolean;
+}
+
 export interface WebClientConfig {
   projectId: string;
 
@@ -36,6 +44,8 @@ export interface WebClientConfig {
   autoFlushIntervalMs?: number | null;
 
   signature?: SignatureConfig;
+
+  antiBlock?: AntiBlockConfig;
 }
 
 export interface WebClient {
@@ -52,6 +62,8 @@ export function createClient(config: WebClientConfig): WebClient {
     ...DEFAULT_BATCHING_CONFIG,
     ...config.batching,
   };
+
+  const antiBlock = config.antiBlock ?? { enabled: false };
 
   const storage: StorageAdapter =
     config.storage ??
@@ -191,6 +203,6 @@ export function createClient(config: WebClientConfig): WebClient {
     flush,
     getClientId: ensureClientId,
     getSessionId: ensureSessionId,
-    debug
+    debug,
   };
 }
