@@ -4,3 +4,4 @@ export * from "./verify-events";
 export * from "./verify-skew"
 export * from "./verify-incoming";
 export * from "./dlq";
+export * from "./classify";
