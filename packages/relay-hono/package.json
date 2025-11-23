@@ -6,11 +6,11 @@
   "exports": {
     ".": "./src/index.ts"
   },
-
   "dependencies": {
     "@otm/relay-core": "workspace:*",
     "hono": "catalog:",
     "@otm/relay-db": "workspace:*",
+    "@otm/verify": "workspace:*",
     "@otm/relay-consumer": "workspace:*",
     "drizzle-orm": "catalog:"
   }

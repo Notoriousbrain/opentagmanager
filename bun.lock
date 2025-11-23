@@ -211,6 +211,7 @@
         "@otm/relay-consumer": "workspace:*",
         "@otm/relay-core": "workspace:*",
         "@otm/relay-db": "workspace:*",
+        "@otm/verify": "workspace:*",
         "drizzle-orm": "catalog:",
         "hono": "catalog:",
       },
@@ -224,7 +225,10 @@
     },
     "packages/sdk": {
       "name": "@otm/sdk",
-      "version": "0.0.0",
+      "version": "0.1.0",
+      "dependencies": {
+        "@otm/verify": "workspace:*",
+      },
       "peerDependencies": {
         "react": "^18 || ^19",
       },
@@ -273,6 +277,13 @@
       },
       "peerDependencies": {
         "next": "catalog:",
+      },
+    },
+    "packages/verify": {
+      "name": "@otm/verify",
+      "version": "0.0.0",
+      "dependencies": {
+        "@otm/types": "workspace:*",
       },
     },
   },
@@ -668,6 +679,8 @@
     "@otm/typescript-config": ["@otm/typescript-config@workspace:packages/typescript-config"],
 
     "@otm/ui": ["@otm/ui@workspace:packages/ui"],
+
+    "@otm/verify": ["@otm/verify@workspace:packages/verify"],
 
     "@radix-ui/number": ["@radix-ui/number@1.1.1", "", {}, "sha512-MkKCwxlXTgz6CFoJx3pCwn07GKp36+aZyu/u2Ln2VrA5DcdyCZkASEDBTd8x5whTQQL5CiYf4prXKLcgQdv29g=="],
 

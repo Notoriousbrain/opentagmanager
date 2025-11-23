@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import type { BatchPayload } from "@otm/types";
+import { decodeIncomingPayload } from "@otm/verify";
 
 import { canonicalStringify } from "../serialize/json";
 import { signHmacSHA256 } from "../signature/hmac";
@@ -27,7 +27,15 @@ export function otmProxy(config: OTMProxyConfig) {
 
   async function handler(req: NextRequest) {
     try {
-      const json = (await req.json()) as BatchPayload;
+      const raw = await req.json();
+      const json = decodeIncomingPayload(raw);
+
+      if (!json) {
+        return NextResponse.json(
+          { ok: false, error: "Invalid or un-decodable payload" },
+          { status: 400 }
+        );
+      }
 
       if (secret) {
         const received = req.headers.get("x-osstag-signature");

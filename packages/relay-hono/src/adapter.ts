@@ -19,6 +19,7 @@ import { db, schema } from "@otm/db";
 import { eq } from "drizzle-orm";
 import { getRelayHealth } from "./health";
 import { formatPrometheusMetrics } from "./metrics-prom";
+import { decodeIncomingPayload } from "@otm/verify";
 
 export const metrics = {
   requests: 0,
@@ -97,7 +98,21 @@ relayApp.post("/", async (c) => {
     const traceId = createTraceId();
 
     const rawBody = await c.req.text();
-    const json = JSON.parse(rawBody);
+    let decoded;
+    try {
+      const raw = JSON.parse(rawBody);
+      decoded = decodeIncomingPayload(raw);
+    } catch {
+      decoded = null;
+    }
+
+    if (!decoded) {
+      return c.json(
+        { ok: false, error: "Invalid or undecodable payload" },
+        400
+      );
+    }
+    const json = decoded;
     const ip = c.req.header("x-forwarded-for") ?? "unknown";
 
     logger.info(
