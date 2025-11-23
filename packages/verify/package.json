@@ -1,0 +1,18 @@
+{
+  "name": "@otm/verify",
+  "version": "0.0.0",
+  "private": false,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "bunx tsc -p tsconfig.json",
+    "dev": "bunx tsc -p tsconfig.json --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@otm/types": "workspace:*"
+  },
+  "devDependencies": {}
+}
