@@ -1,3 +1,1 @@
-export * from "./adapter";
-export * from "./admin"
-export * from "./health"
+export { relayApp } from "./app";

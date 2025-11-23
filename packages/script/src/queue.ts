@@ -1,10 +1,10 @@
-import type { RawEvent } from "@otm/sdk";
 import { getState } from "./bootstrap/state";
 import { MAX_QUEUE_SIZE } from "./batching/constants";
 import {
   loadQueueFromStorage,
   saveQueueToStorage,
 } from "./persistance/storage";
+import { RawEvent } from "@otm/types";
 
 const queue: RawEvent[] = loadQueueFromStorage();
 
@@ -14,7 +14,6 @@ export function enqueue(
 ): void {
   const { clientId, sessionId } = getState();
 
-  // Enforce queue max size
   if (queue.length >= MAX_QUEUE_SIZE) {
     queue.shift();
   }
@@ -25,8 +24,6 @@ export function enqueue(
     timestamp: new Date().toISOString(),
     clientId,
     sessionId,
-    // NOTE: userId optional — added only via identify()
-    // browser script's identify() should set state.userId
     ...(getState().userId ? { userId: getState().userId } : {}),
   };
 

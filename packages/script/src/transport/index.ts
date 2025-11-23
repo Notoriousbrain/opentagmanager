@@ -3,7 +3,7 @@ import { sendViaFetch } from "./fetch";
 import { sendViaPixel } from "./pixel";
 import { sendViaForm } from "./form";
 
-type TransportFn = (url: string, body: string) => Promise<boolean> | boolean;
+type TransportFn = (url: string, body: SendBody) => Promise<boolean> | boolean;
 
 const TRANSPORTS: TransportFn[] = [
   sendViaBeacon,
@@ -12,7 +12,12 @@ const TRANSPORTS: TransportFn[] = [
   sendViaForm,
 ];
 
-export async function sendBatch(url: string, body: string): Promise<boolean> {
+export interface SendBody {
+  json: string;
+  base64: string;
+}
+
+export async function sendBatch(url: string, body: SendBody): Promise<boolean> {
   const startIndex = Math.floor(Math.random() * TRANSPORTS.length);
 
   for (let i = 0; i < TRANSPORTS.length; i++) {

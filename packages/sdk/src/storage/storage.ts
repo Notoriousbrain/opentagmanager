@@ -1,20 +1,8 @@
-/**
- * Shared Storage Adapter for all OSSTag client SDKs.
- *
- * IMPORTANT:
- * - Supports both sync and async methods.
- * - Browser script will use sync localStorage automatically.
- * - Node/Workers/RSC SDKs may use async implementations later.
- */
-
 export interface StorageAdapter {
   get(key: string): string | null | Promise<string | null>;
   set(key: string, value: string): void | Promise<void>;
 }
 
-/**
- * In-memory fallback (used on server or unsupported runtimes).
- */
 export class MemoryStorageAdapter implements StorageAdapter {
   private store = new Map<string, string>();
 
@@ -27,10 +15,6 @@ export class MemoryStorageAdapter implements StorageAdapter {
   }
 }
 
-/**
- * Returns a browser localStorage adapter **if available**.
- * Otherwise returns null (SDKs must fallback to memory/storage).
- */
 export function getBrowserLocalStorageAdapter(): StorageAdapter | null {
   if (typeof window === "undefined") return null;
   if (!("localStorage" in window)) return null;

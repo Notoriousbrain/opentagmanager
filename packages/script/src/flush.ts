@@ -1,10 +1,8 @@
 import { sendBatch } from "./transport";
 import { getBackoffDelay } from "./batching/backoff";
-import { buildBatchBase } from "@otm/sdk";
-import type { RawEvent } from "@otm/sdk";
 import { getState } from "./bootstrap/state";
 import { clearQueue, getQueue } from "./queue";
-import { BatchPayload, Event } from "@otm/types";
+import { BatchPayload, buildBatchBase, Event, RawEvent } from "@otm/types";
 import { obfuscatePayload } from "./transport/obfuscate";
 
 function transformToEvent(raw: RawEvent): Event {
@@ -51,10 +49,10 @@ export async function flush(): Promise<void> {
   const url = config.ingestUrl;
 
   const raw = JSON.stringify(finalBatch);
-  const body = obfuscatePayload(raw);
+  const { json, base64 } = obfuscatePayload(raw);
 
   for (let attempt = 0; attempt < 5; attempt++) {
-    const ok = await sendBatch(url, body);
+    const ok = await sendBatch(url, { json, base64 });
     if (ok) return;
 
     const delay = getBackoffDelay(attempt);

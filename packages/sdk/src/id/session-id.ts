@@ -1,13 +1,5 @@
 import type { StorageAdapter } from "../storage/storage";
 
-/**
- * Rolling 30-minute session window.
- *
- * Session is renewed if:
- * - No existing sessionId
- * - Timestamp missing
- * - Timestamp expired (>30m)
- */
 export async function getSessionId(storage: StorageAdapter): Promise<string> {
   const ID_KEY = "__osstag_sid";
   const TS_KEY = "__osstag_sid_ts";
@@ -28,7 +20,6 @@ export async function getSessionId(storage: StorageAdapter): Promise<string> {
     return sid!;
   }
 
-  // create new session
   const newId = crypto.randomUUID();
 
   await Promise.all([
