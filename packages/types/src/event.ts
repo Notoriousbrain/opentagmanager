@@ -18,6 +18,7 @@ export type FrameworkName =
 
 export interface EventContext {
   framework: FrameworkName;
+  [key: string]: unknown;
 }
 
 export interface Event<TProps extends EventProps = EventProps> {
