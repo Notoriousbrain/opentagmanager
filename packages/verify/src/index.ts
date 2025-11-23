@@ -6,3 +6,4 @@ export * from "./verify-incoming";
 export * from "./dlq";
 export * from "./classify";
 export * from "./verify-and-classify";
+export * from "./decode";
