@@ -19,6 +19,7 @@
     "@trpc/react-query": "catalog:",
     "@trpc/server": "catalog:",
     "api": "*",
+    "date-fns": "^4.1.0",
     "framer-motion": "catalog:",
     "next": "catalog:",
     "react": "catalog:",

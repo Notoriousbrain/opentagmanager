@@ -75,6 +75,50 @@ export const eventsRouter = createTRPCRouter({
         }
       );
     }),
+
+  live: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        windowMinutes: z.number().int().min(1).max(60).default(5),
+      })
+    )
+    .query(async ({ input }) => {
+      const { projectId, windowMinutes } = input;
+
+      const rows = await queryClickHouse<{
+        last_event_at: string | null;
+        total: number;
+      }>(`
+        SELECT
+          max(occurred_at) AS last_event_at,
+          count() AS total
+        FROM osstag.events_raw
+        WHERE project_id = '${projectId}'
+          AND occurred_at >= now() - INTERVAL ${windowMinutes} MINUTE
+      `);
+
+      const row = rows[0];
+
+      if (!row || row.total === 0) {
+        return {
+          lastEventAt: null,
+          eventsPerMinute: 0,
+          totalInWindow: 0,
+          windowMinutes,
+        };
+      }
+
+      const eventsPerMinute = row.total / windowMinutes;
+
+      return {
+        lastEventAt: row.last_event_at,
+        eventsPerMinute,
+        totalInWindow: row.total,
+        windowMinutes,
+      };
+    }),
+    
   list: protectedProcedure
     .input(
       z.object({

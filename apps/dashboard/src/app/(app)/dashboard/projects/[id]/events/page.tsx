@@ -50,6 +50,17 @@ export default function ProjectEventsPage({
     }
   );
 
+  const liveStatsQuery = trpc.events.live.useQuery(
+    {
+      projectId: id,
+      windowMinutes: 5,
+    },
+    {
+      refetchInterval: autoRefresh ? 5000 : false,
+      enabled: !!org && !orgLoading,
+    }
+  );
+
   function downloadEventsAsJson(events: unknown[]) {
     if (!events?.length) return;
 
@@ -137,7 +148,7 @@ export default function ProjectEventsPage({
             <Switch
               checked={autoRefresh}
               onCheckedChange={(v) => setAutoRefresh(v)}
-              id="auto-refresh-toggle"
+              id="auto-refresh-toggle bg-white"
             />
             <label
               htmlFor="auto-refresh-toggle"
@@ -184,12 +195,20 @@ export default function ProjectEventsPage({
             region: filters.region ?? null,
             search: null,
           }}
+          lastEventAt={events[0]?.occurred_at ?? null}
         />
 
         <EventsFilterBar onChange={setFilters} />
+
         <EventsStateBar
           state={state}
-          onRetry={() => eventsInfinite.refetch()}
+          onRetry={() => {
+            eventsInfinite.refetch();
+            liveStatsQuery.refetch();
+          }}
+          liveStats={liveStatsQuery.data ?? null}
+          liveLoading={liveStatsQuery.isLoading}
+          liveError={!!liveStatsQuery.error}
         />
 
         {eventsInfinite.isLoading ? (
