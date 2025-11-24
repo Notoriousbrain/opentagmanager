@@ -147,6 +147,7 @@ export const eventsRouter = createTRPCRouter({
         type: z.string().nullable().optional(),
         region: z.string().nullable().optional(),
         since: z.string().nullable().optional(),
+        search: z.string().nullable().optional(),
       })
     )
     .query(async ({ input }) => {
@@ -171,6 +172,18 @@ export const eventsRouter = createTRPCRouter({
            'region'
          ) = '${input.region}'
         `);
+      }
+
+      if (input.search) {
+        const q = input.search.replace(/'/g, "");
+
+        filters.push(`
+         (
+           JSONExtractString(data, 'name') ILIKE '%${q}%'
+           OR JSONExtractString(data, 'userId') ILIKE '%${q}%'
+           OR JSONExtractRaw(data, 'props') ILIKE '%${q}%'
+         )
+       `);
       }
 
       const where = filters.join(" AND ");

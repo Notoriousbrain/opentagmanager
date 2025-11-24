@@ -16,6 +16,7 @@ import { fetchAllEvents } from "@/lib/events/fetch-all-events";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { trpc } from "@/lib/trpc/react";
 import { useQuerySync } from "@/lib/url/use-query-sync";
+import { EventsSearchBar } from "@/components/events/events-search-bar";
 
 export default function ProjectEventsPage({
   params,
@@ -35,6 +36,7 @@ export default function ProjectEventsPage({
     type: search.get("type") ?? undefined,
     region: search.get("region") ?? undefined,
     since: search.get("since") ?? undefined,
+    search: search.get("search") ?? undefined,
   });
 
   const debouncedFilters = useDebounce(filters, 350);
@@ -52,6 +54,7 @@ export default function ProjectEventsPage({
       since: debouncedFilters.since ?? null,
       type: debouncedFilters.type ?? null,
       region: debouncedFilters.region ?? null,
+      search: filters.search ?? null,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
@@ -198,13 +201,20 @@ export default function ProjectEventsPage({
       )}
 
       <section className="rounded-xl border border-white/10 p-6 space-y-4">
+        <EventsSearchBar
+          value={filters.search ?? ""}
+          onChange={(v) =>
+            setFilters((f) => ({ ...f, search: v || undefined }))
+          }
+        />
+
         <EventsStats
           projectId={id}
           filters={{
             since: filters.since ?? null,
             type: filters.type ?? null,
             region: filters.region ?? null,
-            search: null,
+            search: filters.search ?? null, 
           }}
           lastEventAt={events[0]?.occurred_at ?? null}
         />
