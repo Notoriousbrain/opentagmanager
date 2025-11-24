@@ -4,13 +4,12 @@ import { RelayError } from "./errors";
 import { logger } from "./logger";
 import { traceScope } from "./trace";
 
-// 🧩 import metrics from relay-hono (keep it optional)
-let metrics: any;
+let relayApp: any = null;
 try {
-  // avoid circular import breaking builds — use dynamic require
-  metrics = null
+  const mod = await import("@otm/relay-hono");
+  relayApp = mod.relayApp ?? null;
 } catch {
-  metrics = null;
+  relayApp = null;
 }
 
 interface DLQRecord {
@@ -63,8 +62,8 @@ export function writeToDLQ(
       })
     );
 
-    if (metrics && typeof metrics.dlqWrites === "number") {
-      metrics.dlqWrites += 1;
+    if (relayApp?.metrics && typeof relayApp.metrics.dlqWrites === "number") {
+      relayApp.metrics.dlqWrites += 1;
     }
   } catch (dlqErr) {
     logger.error("DLQ write failed", { error: (dlqErr as Error).message });
