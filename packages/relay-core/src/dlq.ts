@@ -8,7 +8,7 @@ import { traceScope } from "./trace";
 let metrics: any;
 try {
   // avoid circular import breaking builds — use dynamic require
-  metrics = (await import("@otm/relay-hono")).metrics;
+  metrics = null
 } catch {
   metrics = null;
 }

@@ -2,13 +2,30 @@
 
 import { AlertCircle } from "lucide-react";
 
+type EventsState = "loading" | "error" | "empty" | "ok";
+
+interface EventsStateBarProps {
+  state: EventsState;
+  onRetry?: () => void;
+
+  liveStats?: {
+    lastEventAt: string | null;
+    eventsPerMinute: number;
+    totalInWindow: number;
+    windowMinutes: number;
+  } | null;
+
+  liveLoading?: boolean;
+  liveError?: boolean;
+}
+
 export function EventsStateBar({
   state,
   onRetry,
-}: {
-  state: "loading" | "error" | "empty" | "ok";
-  onRetry?: () => void;
-}) {
+  liveStats,
+  liveLoading,
+  liveError,
+}: EventsStateBarProps) {
   if (state === "loading") {
     return (
       <div className="rounded-lg border border-white/10 bg-muted/10 p-4 text-sm text-muted-foreground">
@@ -48,5 +65,35 @@ export function EventsStateBar({
     );
   }
 
-  return null;
+  let liveLabel: string | null = null;
+
+  if (liveLoading) {
+    liveLabel = "Fetching live stats…";
+  } else if (liveError) {
+    liveLabel = "Live stats unavailable.";
+  } else if (liveStats) {
+    const w = liveStats.windowMinutes;
+
+    if (liveStats.totalInWindow === 0) {
+      liveLabel = `No events in the last ${w} minutes.`;
+    } else {
+      liveLabel = `${liveStats.totalInWindow} events in last ${w} minutes (~${liveStats.eventsPerMinute.toFixed(
+        1
+      )}/min)`;
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-white/10 bg-muted/10 p-4 text-xs text-muted-foreground">
+      <div className="flex flex-col gap-0.5">
+        <span>Showing recent events</span>
+
+        {liveLabel && (
+          <span className="text-[11px] text-muted-foreground/80">
+            {liveLabel}
+          </span>
+        )}
+      </div>
+    </div>
+  );
 }

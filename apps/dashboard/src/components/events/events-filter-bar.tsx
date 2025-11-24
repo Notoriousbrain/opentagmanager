@@ -14,6 +14,8 @@ export interface FilterValues {
   type?: string;
   region?: string;
   since?: string;
+
+  [key: string]: string | undefined;
 }
 
 interface EventsFilterBarProps {
@@ -21,18 +23,9 @@ interface EventsFilterBarProps {
 }
 
 const TIME_RANGES = [
-  {
-    label: "Last 24 h",
-    value: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
-  },
-  {
-    label: "Last 7 days",
-    value: new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString(),
-  },
-  {
-    label: "Last 14 days",
-    value: new Date(Date.now() - 14 * 24 * 3600 * 1000).toISOString(),
-  },
+  { label: "Last 24 h", value: "24h" },
+  { label: "Last 7 days", value: "7d" },
+  { label: "Last 14 days", value: "14d" },
 ];
 
 const EVENT_TYPES = ["page_view", "signup", "click", "purchase"];
