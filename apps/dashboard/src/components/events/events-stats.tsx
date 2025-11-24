@@ -12,14 +12,9 @@ type EventsStatsProps = {
     region?: string | null;
     search?: string | null;
   };
-  lastEventAt: string | null;
 };
 
-export function EventsStats({
-  projectId,
-  filters,
-  lastEventAt,
-}: EventsStatsProps) {
+export function EventsStats({ projectId, filters }: EventsStatsProps) {
   const { data, isLoading } = trpc.events.stats.useQuery({
     projectId,
     since: filters.since ?? null,
@@ -44,9 +39,10 @@ export function EventsStats({
   );
 
   const lastEventDate =
-    lastEventAt != null ? format(new Date(lastEventAt), "PP") : null;
+    data?.lastEventAt != null ? format(new Date(data?.lastEventAt), "PP") : null;
+
   const lastEventTime =
-    lastEventAt != null ? format(new Date(lastEventAt), "p") : null;
+    data?.lastEventAt != null ? format(new Date(data?.lastEventAt), "p") : null;
 
   if (isLoading || !data) return skeleton;
 

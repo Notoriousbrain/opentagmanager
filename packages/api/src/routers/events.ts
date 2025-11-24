@@ -69,10 +69,12 @@ export const eventsRouter = createTRPCRouter({
         uniqueUsers: number;
         topEventType: string | null;
         topRegion: string | null;
+        lastEventAt: string | null;
       }>(`
         SELECT
           count() AS totalEvents,
           uniq(JSONExtractString(data, 'userId')) AS uniqueUsers,
+          max(occurred_at) AS lastEventAt,
           topK(1)(JSONExtractString(data, 'name'))[1] AS topEventType,
           topK(1)(
             JSONExtractString(
@@ -90,6 +92,7 @@ export const eventsRouter = createTRPCRouter({
           uniqueUsers: 0,
           topEventType: null,
           topRegion: null,
+          lastEventAt: null,
         }
       );
     }),

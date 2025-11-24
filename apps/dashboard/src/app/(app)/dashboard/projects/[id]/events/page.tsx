@@ -42,8 +42,21 @@ export default function ProjectEventsPage({
   const { syncToUrl } = useQuerySync(debouncedFilters);
 
   useEffect(() => {
+    const current = new URLSearchParams(search.toString());
+
+    const incoming = new URLSearchParams();
+
+    if (debouncedFilters.type) incoming.set("type", debouncedFilters.type);
+    if (debouncedFilters.region)
+      incoming.set("region", debouncedFilters.region);
+    if (debouncedFilters.since) incoming.set("since", debouncedFilters.since);
+    if (debouncedFilters.search)
+      incoming.set("search", debouncedFilters.search);
+
+    if (current.toString() === incoming.toString()) return;
+
     syncToUrl();
-  }, [debouncedFilters, syncToUrl]);
+  }, [debouncedFilters, syncToUrl, search]);
 
   const eventsInfinite = trpc.events.list.useInfiniteQuery(
     {
@@ -235,7 +248,6 @@ export default function ProjectEventsPage({
             region: filters.region ?? null,
             search: filters.search ?? null,
           }}
-          lastEventAt={events[0]?.occurred_at ?? null}
         />
 
         <EventsFilterBar onChange={setFilters} />
