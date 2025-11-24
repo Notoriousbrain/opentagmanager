@@ -6,6 +6,23 @@ function isoToCHDate(iso: string): string {
   return iso.replace("T", " ").replace("Z", "").slice(0, 19);
 }
 
+function resolveSince(code?: string | null): string | null {
+  if (!code) return null;
+
+  const now = new Date();
+
+  switch (code) {
+    case "24h":
+      return new Date(now.getTime() - 24 * 3600 * 1000).toISOString();
+    case "7d":
+      return new Date(now.getTime() - 7 * 24 * 3600 * 1000).toISOString();
+    case "14d":
+      return new Date(now.getTime() - 14 * 24 * 3600 * 1000).toISOString();
+    default:
+      return code;
+  }
+}
+
 export const eventsRouter = createTRPCRouter({
   stats: protectedProcedure
     .input(
@@ -22,8 +39,9 @@ export const eventsRouter = createTRPCRouter({
 
       const filters: string[] = [`project_id = '${projectId}'`];
 
-      if (since) {
-        const chSince = isoToCHDate(since);
+      const sinceDate = resolveSince(since);
+      if (sinceDate) {
+        const chSince = isoToCHDate(sinceDate);
         filters.push(`occurred_at >= toDateTime('${chSince}')`);
       }
 
@@ -118,7 +136,7 @@ export const eventsRouter = createTRPCRouter({
         windowMinutes,
       };
     }),
-    
+
   list: protectedProcedure
     .input(
       z.object({
@@ -136,12 +154,10 @@ export const eventsRouter = createTRPCRouter({
 
       const filters = [`project_id = '${input.projectId}'`];
 
-      if (input.since) {
-        const sinceCH = input.since
-          .replace("T", " ")
-          .replace("Z", "")
-          .slice(0, 19);
-        filters.push(`occurred_at >= toDateTime('${sinceCH}')`);
+      const sinceDate = resolveSince(input.since);
+      if (sinceDate) {
+        const chSince = isoToCHDate(sinceDate);
+        filters.push(`occurred_at >= toDateTime('${chSince}')`);
       }
 
       if (input.type) {

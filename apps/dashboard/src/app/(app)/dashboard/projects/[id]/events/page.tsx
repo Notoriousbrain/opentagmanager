@@ -1,19 +1,21 @@
 "use client";
 
-import { notFound } from "next/navigation";
+import { notFound, useSearchParams } from "next/navigation";
 import { useActiveOrg } from "@/hooks/use-active-org";
 import Link from "next/link";
 import { EventsTable } from "@/components/events/events-table";
-import { use, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { EventsStateBar } from "@/components/events/events-state";
 import { useProjectName } from "@/hooks/use-project-name";
+import type { FilterValues } from "@/components/events/events-filter-bar";
 import { EventsFilterBar } from "@/components/events/events-filter-bar";
-import { Button, Switch } from "@otm/ui";
+import { Button, Switch, useDebounce } from "@otm/ui";
 import { EventsSkeleton } from "@/components/events/events-skeleton";
 import { EventsStats } from "@/components/events/events-stats";
 import { fetchAllEvents } from "@/lib/events/fetch-all-events";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { trpc } from "@/lib/trpc/react";
+import { useQuerySync } from "@/lib/url/use-query-sync";
 
 export default function ProjectEventsPage({
   params,
@@ -27,20 +29,29 @@ export default function ProjectEventsPage({
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [downloading, setDownloading] = useState(false);
 
-  const [filters, setFilters] = useState<{
-    type?: string;
-    region?: string;
-    since?: string;
-  }>({});
+  const search = useSearchParams();
+
+  const [filters, setFilters] = useState<FilterValues>({
+    type: search.get("type") ?? undefined,
+    region: search.get("region") ?? undefined,
+    since: search.get("since") ?? undefined,
+  });
+
+  const debouncedFilters = useDebounce(filters, 350);
+  const { syncToUrl } = useQuerySync(debouncedFilters);
+
+  useEffect(() => {
+    syncToUrl();
+  }, [debouncedFilters, syncToUrl]);
 
   const eventsInfinite = trpc.events.list.useInfiniteQuery(
     {
       projectId: id,
       limit: 50,
 
-      since: filters.since ?? null,
-      type: filters.type ?? null,
-      region: filters.region ?? null,
+      since: debouncedFilters.since ?? null,
+      type: debouncedFilters.type ?? null,
+      region: debouncedFilters.region ?? null,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
