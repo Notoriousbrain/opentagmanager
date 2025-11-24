@@ -3,7 +3,26 @@ import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { db, schema } from "@otm/db";
 import { bumpInterestCounter, getInterestCount } from "../services/interest";
-import { interestRateLimit } from "@otm/core";
+
+const memoryLimiter = new Map<string, number>();
+const WINDOW_MS = 60_000;
+
+function memoryRateLimit(key: string) {
+  const now = Date.now();
+  const entry = memoryLimiter.get(key);
+
+  if (!entry) {
+    memoryLimiter.set(key, now);
+    return true;
+  }
+
+  if (now - entry < WINDOW_MS) {
+    return false;
+  }
+
+  memoryLimiter.set(key, now);
+  return true;
+}
 
 function getClientInfoFromCtx(ctx: {
   session?: {
@@ -29,18 +48,10 @@ export const interestRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { ip, ua } = getClientInfoFromCtx(ctx);
 
-      const key =
-        ip && ip !== "" ? `ip:${ip}` : ua ? `ua:${ua.slice(0, 64)}` : "anon";
+      const key = ip ? `ip:${ip}` : ua ? `ua:${ua}` : "anon";
+      const allowed = memoryRateLimit(key);
 
-      try {
-        const { success } = await interestRateLimit.limit(key);
-        if (!success) {
-          throw new TRPCError({
-            code: "TOO_MANY_REQUESTS",
-            message: "Rate limited",
-          });
-        }
-      } catch {
+      if (!allowed) {
         throw new TRPCError({
           code: "TOO_MANY_REQUESTS",
           message: "Rate limited",
@@ -62,13 +73,8 @@ export const interestRouter = createTRPCRouter({
           err?.cause?.code ||
           err?.originalError?.code ||
           err?.error?.code;
-        const msg = String(err?.message || "").toLowerCase();
 
-        if (
-          pgCode === "23505" ||
-          msg.includes("duplicate") ||
-          msg.includes("unique")
-        ) {
+        if (pgCode === "23505") {
           throw new TRPCError({
             code: "CONFLICT",
             message: "Already in list",
