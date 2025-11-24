@@ -7,13 +7,13 @@ import { EventsTable } from "@/components/events/events-table";
 import { use, useRef, useState } from "react";
 import { EventsStateBar } from "@/components/events/events-state";
 import { useProjectName } from "@/hooks/use-project-name";
-import { trpc } from "@/lib/trpc/react";
 import { EventsFilterBar } from "@/components/events/events-filter-bar";
 import { Button, Switch } from "@otm/ui";
 import { EventsSkeleton } from "@/components/events/events-skeleton";
 import { EventsStats } from "@/components/events/events-stats";
 import { fetchAllEvents } from "@/lib/events/fetch-all-events";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
+import { trpc } from "@/lib/trpc/react";
 
 export default function ProjectEventsPage({
   params,
@@ -33,10 +33,14 @@ export default function ProjectEventsPage({
     since?: string;
   }>({});
 
-  const eventsInfinite = trpc.relay.getEventsByProject.useInfiniteQuery(
+  const eventsInfinite = trpc.events.list.useInfiniteQuery(
     {
       projectId: id,
-      ...filters,
+      limit: 50,
+
+      since: filters.since ?? null,
+      type: filters.type ?? null,
+      region: filters.region ?? null,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
@@ -62,7 +66,9 @@ export default function ProjectEventsPage({
 
     URL.revokeObjectURL(url);
   }
+
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
   const events = eventsInfinite.data?.pages.flatMap((p) => p.items) ?? [];
   const nextCursor = eventsInfinite.data?.pages.at(-1)?.nextCursor ?? null;
 
