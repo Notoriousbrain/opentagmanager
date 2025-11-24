@@ -15,13 +15,27 @@ type EventsStatsProps = {
 };
 
 export function EventsStats({ projectId, filters }: EventsStatsProps) {
-  const { data, isLoading } = trpc.events.stats.useQuery({
-    projectId,
-    since: filters.since ?? null,
-    type: filters.type ?? null,
-    region: filters.region ?? null,
-    search: filters.search ?? null,
-  });
+  const { data, isLoading } = trpc.events.stats.useQuery(
+    {
+      projectId,
+      since: filters.since ?? null,
+      type: filters.type ?? null,
+      region: filters.region ?? null,
+      search: filters.search ?? null,
+    },
+    {
+      refetchInterval: () => {
+        if (typeof document === "undefined") return false;
+        if (document.hidden) return false;
+
+        if (!filters.since) return false;
+
+        return 30_000;
+      },
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    }
+  );
 
   const skeleton = (
     <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
@@ -39,7 +53,9 @@ export function EventsStats({ projectId, filters }: EventsStatsProps) {
   );
 
   const lastEventDate =
-    data?.lastEventAt != null ? format(new Date(data?.lastEventAt), "PP") : null;
+    data?.lastEventAt != null
+      ? format(new Date(data?.lastEventAt), "PP")
+      : null;
 
   const lastEventTime =
     data?.lastEventAt != null ? format(new Date(data?.lastEventAt), "p") : null;

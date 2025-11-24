@@ -8,3 +8,4 @@ export * from "./lib/rate-limit";
 export * from "./utils/retry";
 export * from "./lib/clickhouse-client";
 export * from "./feature-flags"
+export * from "./lib/cache/query-cache"

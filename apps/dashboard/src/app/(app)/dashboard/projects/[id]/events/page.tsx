@@ -4,7 +4,7 @@ import { notFound, useSearchParams } from "next/navigation";
 import { useActiveOrg } from "@/hooks/use-active-org";
 import Link from "next/link";
 import { EventsTable } from "@/components/events/events-table";
-import { use, useEffect, useRef, useState } from "react";
+import { Suspense, use, useEffect, useRef, useState } from "react";
 import { EventsStateBar } from "@/components/events/events-state";
 import { useProjectName } from "@/hooks/use-project-name";
 import type { FilterValues } from "@/components/events/events-filter-bar";
@@ -156,123 +156,125 @@ export default function ProjectEventsPage({
   if (!projectLoading && projectName === null) return notFound();
 
   return (
-    <main className="flex flex-col gap-6 p-6">
-      <header className="flex items-center justify-between">
-        <div className="flex flex-col">
-          <nav className="text-sm text-muted-foreground mb-1">
-            <Link href="/dashboard" className="hover:underline">
-              Projects
-            </Link>
-
-            {" > "}
-
-            {projectLoading ? (
-              <span className="inline-block h-4 w-28 bg-white/20 rounded animate-pulse" />
-            ) : (
-              <Link
-                href={`/dashboard/projects/${id}`}
-                className="hover:underline"
-              >
-                {projectName || "Unknown"}
+    <Suspense fallback={null}>
+      <main className="flex flex-col gap-6 p-6">
+        <header className="flex items-center justify-between">
+          <div className="flex flex-col">
+            <nav className="text-sm text-muted-foreground mb-1">
+              <Link href="/dashboard" className="hover:underline">
+                Projects
               </Link>
-            )}
 
-            {" > "}
-            <span className="text-foreground">Events</span>
-          </nav>
+              {" > "}
 
-          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-            Recent Events
-            {projectLoading && (
-              <span className="inline-block h-5 w-5 bg-white/20 rounded animate-pulse" />
-            )}
-          </h1>
-        </div>
+              {projectLoading ? (
+                <span className="inline-block h-4 w-28 bg-white/20 rounded animate-pulse" />
+              ) : (
+                <Link
+                  href={`/dashboard/projects/${id}`}
+                  className="hover:underline"
+                >
+                  {projectName || "Unknown"}
+                </Link>
+              )}
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={autoRefresh}
-              onCheckedChange={(v) => setAutoRefresh(v)}
-              id="auto-refresh-toggle bg-white"
-            />
-            <label
-              htmlFor="auto-refresh-toggle"
-              className="text-sm text-muted-foreground cursor-pointer"
-            >
-              Auto-Refresh
-            </label>
+              {" > "}
+              <span className="text-foreground">Events</span>
+            </nav>
+
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+              Recent Events
+              {projectLoading && (
+                <span className="inline-block h-5 w-5 bg-white/20 rounded animate-pulse" />
+              )}
+            </h1>
           </div>
 
-          <Button
-            variant="outline"
-            disabled={downloading || state !== "ok"}
-            onClick={async () => {
-              setDownloading(true);
-              const all = await fetchAllEvents(id, filters);
-              setDownloading(false);
-              downloadEventsAsJson(all);
-            }}
-          >
-            {downloading ? "Generating…" : "Download JSON"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={autoRefresh}
+                onCheckedChange={(v) => setAutoRefresh(v)}
+                id="auto-refresh-toggle bg-white"
+              />
+              <label
+                htmlFor="auto-refresh-toggle"
+                className="text-sm text-muted-foreground cursor-pointer"
+              >
+                Auto-Refresh
+              </label>
+            </div>
 
-          <Link
-            href={`/dashboard/projects/${id}`}
-            className="text-sm text-muted-foreground hover:underline"
-          >
-            ← Back
-          </Link>
-        </div>
-      </header>
+            <Button
+              variant="outline"
+              disabled={downloading || state !== "ok"}
+              onClick={async () => {
+                setDownloading(true);
+                const all = await fetchAllEvents(id, filters);
+                setDownloading(false);
+                downloadEventsAsJson(all);
+              }}
+            >
+              {downloading ? "Generating…" : "Download JSON"}
+            </Button>
 
-      {!autoRefresh && (
-        <div className="rounded-md bg-yellow-500/10 border border-yellow-500/20 p-3 text-yellow-600 text-sm">
-          ⚠ Live updates paused — Auto-refresh is off
-        </div>
-      )}
+            <Link
+              href={`/dashboard/projects/${id}`}
+              className="text-sm text-muted-foreground hover:underline"
+            >
+              ← Back
+            </Link>
+          </div>
+        </header>
 
-      <section className="rounded-xl border border-white/10 p-6 space-y-4">
-        <EventsSearchBar
-          value={filters.search ?? ""}
-          onChange={(v) =>
-            setFilters((f) => ({ ...f, search: v || undefined }))
-          }
-        />
-
-        <EventsStats
-          projectId={id}
-          filters={{
-            since: filters.since ?? null,
-            type: filters.type ?? null,
-            region: filters.region ?? null,
-            search: filters.search ?? null,
-          }}
-        />
-
-        <EventsFilterBar onChange={setFilters} />
-
-        <EventsStateBar
-          state={state}
-          onRetry={() => {
-            eventsInfinite.refetch();
-            liveStatsQuery.refetch();
-          }}
-          liveStats={liveStatsQuery.data ?? null}
-          liveLoading={liveStatsQuery.isLoading}
-          liveError={!!liveStatsQuery.error}
-        />
-
-        {eventsInfinite.isLoading ? (
-          <EventsSkeleton />
-        ) : state === "ok" ? (
-          <EventsTable data={events} />
-        ) : null}
-
-        {events.length > 0 && nextCursor && (
-          <div ref={sentinelRef} className="h-16 w-full" />
+        {!autoRefresh && (
+          <div className="rounded-md bg-yellow-500/10 border border-yellow-500/20 p-3 text-yellow-600 text-sm">
+            ⚠ Live updates paused — Auto-refresh is off
+          </div>
         )}
-      </section>
-    </main>
+
+        <section className="rounded-xl border border-white/10 p-6 space-y-4">
+          <EventsSearchBar
+            value={filters.search ?? ""}
+            onChange={(v) =>
+              setFilters((f) => ({ ...f, search: v || undefined }))
+            }
+          />
+
+          <EventsStats
+            projectId={id}
+            filters={{
+              since: filters.since ?? null,
+              type: filters.type ?? null,
+              region: filters.region ?? null,
+              search: filters.search ?? null,
+            }}
+          />
+
+          <EventsFilterBar onChange={setFilters} />
+
+          <EventsStateBar
+            state={state}
+            onRetry={() => {
+              eventsInfinite.refetch();
+              liveStatsQuery.refetch();
+            }}
+            liveStats={liveStatsQuery.data ?? null}
+            liveLoading={liveStatsQuery.isLoading}
+            liveError={!!liveStatsQuery.error}
+          />
+
+          {eventsInfinite.isLoading ? (
+            <EventsSkeleton />
+          ) : state === "ok" ? (
+            <EventsTable data={events} />
+          ) : null}
+
+          {events.length > 0 && nextCursor && (
+            <div ref={sentinelRef} className="h-16 w-full" />
+          )}
+        </section>
+      </main>
+    </Suspense>
   );
 }
