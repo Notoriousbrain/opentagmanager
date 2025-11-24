@@ -26,11 +26,10 @@ export default function ProjectEventsPage({
   const { id } = use(params);
   const { org, isLoading: orgLoading } = useActiveOrg();
   const { name: projectName, isLoading: projectLoading } = useProjectName(id);
+  const search = useSearchParams();
 
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [downloading, setDownloading] = useState(false);
-
-  const search = useSearchParams();
 
   const [filters, setFilters] = useState<FilterValues>({
     type: search.get("type") ?? undefined,
@@ -57,12 +56,15 @@ export default function ProjectEventsPage({
       search: filters.search ?? null,
     },
     {
-      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-      refetchOnWindowFocus: false,
-      retry: false,
       enabled: !!org && !orgLoading,
+      retry: false,
+      refetchOnWindowFocus: false,
+      getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     }
   );
+
+  const events = eventsInfinite.data?.pages.flatMap((p) => p.items) ?? [];
+  const nextCursor = eventsInfinite.data?.pages.at(-1)?.nextCursor ?? null;
 
   const liveStatsQuery = trpc.events.live.useQuery(
     {
@@ -70,8 +72,28 @@ export default function ProjectEventsPage({
       windowMinutes: 5,
     },
     {
-      refetchInterval: autoRefresh ? 5000 : false,
       enabled: !!org && !orgLoading,
+      retry: false,
+      refetchOnReconnect: true,
+      refetchOnWindowFocus: false,
+
+      refetchInterval: () => {
+        if (typeof document === "undefined") return false;
+
+        if (!autoRefresh) return false;
+        if (document.hidden) return false;
+        if (eventsInfinite.isFetching) return false;
+        if (eventsInfinite.isFetchingNextPage) return false;
+
+        if (!events.length) return 5000;
+
+        const last = new Date(events[0].occurred_at).getTime();
+        const diff = Date.now() - last;
+
+        if (diff < 10_000) return 3000;
+        if (diff < 60_000) return 6000;
+        return 12_000;
+      },
     }
   );
 
@@ -93,9 +115,6 @@ export default function ProjectEventsPage({
   }
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-
-  const events = eventsInfinite.data?.pages.flatMap((p) => p.items) ?? [];
-  const nextCursor = eventsInfinite.data?.pages.at(-1)?.nextCursor ?? null;
 
   useIntersectionObserver({
     target: sentinelRef,
@@ -214,7 +233,7 @@ export default function ProjectEventsPage({
             since: filters.since ?? null,
             type: filters.type ?? null,
             region: filters.region ?? null,
-            search: filters.search ?? null, 
+            search: filters.search ?? null,
           }}
           lastEventAt={events[0]?.occurred_at ?? null}
         />
