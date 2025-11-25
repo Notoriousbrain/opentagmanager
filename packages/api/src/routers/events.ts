@@ -37,69 +37,60 @@ export const eventsRouter = createTRPCRouter({
     .query(async ({ input }) => {
       const { projectId, since, type, region, search } = input;
 
-      const cacheKey = `stats:${projectId}:${since ?? "all"}:${type ?? "all"}:${
+      const sinceDate = resolveSince(since);
+      const chSince = sinceDate ? isoToCHDate(sinceDate) : null;
+
+      const cacheKey = `stats:v2:${projectId}:${since ?? "all"}:${type ?? "all"}:${
         region ?? "all"
       }:${search ?? "all"}`;
 
       return cachedQuery(cacheKey, 15, async () => {
-        const filters: string[] = [`project_id = '${projectId}'`];
-
-        const sinceDate = resolveSince(since);
-        if (sinceDate) {
-          const chSince = isoToCHDate(sinceDate);
-          filters.push(`occurred_at >= toDateTime('${chSince}')`);
-        }
-
-        if (type) {
-          filters.push(`JSONExtractString(data, 'name') = '${type}'`);
-        }
-
-        if (region) {
-          filters.push(`
-          JSONExtractString(
-            JSONExtractRaw(data, 'props'),
-            'region'
-          ) = '${region}'
-      `);
-        }
-
-        if (search) {
-          filters.push(`JSONExtractString(data, 'name') ILIKE '%${search}%'`);
-        }
-
-        const whereClause = filters.join(" AND ");
-
-        const rows = await queryClickHouse<{
+        const rowsAgg = await queryClickHouse<{
           totalEvents: number;
           uniqueUsers: number;
-          topEventType: string | null;
-          topRegion: string | null;
           lastEventAt: string | null;
         }>(`
         SELECT
-          count() AS totalEvents,
-          uniq(JSONExtractString(data, 'userId')) AS uniqueUsers,
-          max(occurred_at) AS lastEventAt,
-          topK(1)(JSONExtractString(data, 'name'))[1] AS topEventType,
-          topK(1)(
-            JSONExtractString(
-              JSONExtractRaw(data, 'props'),
-              'region'
-            )
-          )[1] AS topRegion
-        FROM osstag.events_raw
-        WHERE ${whereClause}
+          sumMerge(total_events) AS totalEvents,
+          uniqMerge(unique_users) AS uniqueUsers,
+          formatDateTime(maxMerge(last_event_at), '%Y-%m-%d %H:%M:%S') AS lastEventAt
+        FROM osstag.events_minute FINAL
+        WHERE project_id = '${projectId}'
+        ${chSince ? `AND minute >= toDateTime('${chSince}')` : ""}
       `);
 
-        return (
-          rows[0] ?? {
-            totalEvents: 0,
-            uniqueUsers: 0,
-            topEventType: null,
-            topRegion: null,
-            lastEventAt: null,
-          }
-        );
+        const agg = rowsAgg[0] ?? {
+          totalEvents: 0,
+          uniqueUsers: 0,
+          lastEventAt: null,
+        };
+
+        const rowsTop = await queryClickHouse<{
+          topEventType: string | null;
+          topRegion: string | null;
+        }>(`
+        SELECT
+          topK(1)(JSONExtractString(data, 'name'))[1] AS topEventType,
+          topK(1)(
+            JSONExtractString(JSONExtractRaw(data, 'props'), 'region')
+          )[1] AS topRegion
+        FROM osstag.events_raw
+        WHERE project_id = '${projectId}'
+        ${chSince ? `AND occurred_at >= toDateTime('${chSince}')` : ""}
+      `);
+
+        const top = rowsTop[0] ?? {
+          topEventType: null,
+          topRegion: null,
+        };
+
+        return {
+          totalEvents: agg.totalEvents,
+          uniqueUsers: agg.uniqueUsers,
+          lastEventAt: agg.lastEventAt,
+          topEventType: top.topEventType,
+          topRegion: top.topRegion,
+        };
       });
     }),
 
@@ -112,24 +103,25 @@ export const eventsRouter = createTRPCRouter({
     )
     .query(async ({ input }) => {
       const { projectId, windowMinutes } = input;
+
       const cacheKey = `live:${projectId}:${windowMinutes}`;
 
       return cachedQuery(cacheKey, 5, async () => {
         const rows = await queryClickHouse<{
-          last_event_at: string | null;
-          total: number;
+          totalEvents: number;
+          lastEventAt: string | null;
         }>(`
-        SELECT
-          max(occurred_at) AS last_event_at,
-          count() AS total
-        FROM osstag.events_raw
-        WHERE project_id = '${projectId}'
-          AND occurred_at >= now() - INTERVAL ${windowMinutes} MINUTE
-      `);
+          SELECT
+            sumMerge(total_events) AS totalEvents,
+            formatDateTime(maxMerge(last_event_at), '%Y-%m-%d %H:%M:%S') AS lastEventAt
+          FROM osstag.events_minute FINAL
+          WHERE project_id = '${projectId}'
+            AND minute >= now() - INTERVAL ${windowMinutes} MINUTE
+        `);
 
         const row = rows[0];
 
-        if (!row || row.total === 0) {
+        if (!row || row.totalEvents === 0) {
           return {
             lastEventAt: null,
             eventsPerMinute: 0,
@@ -138,12 +130,10 @@ export const eventsRouter = createTRPCRouter({
           };
         }
 
-        const eventsPerMinute = row.total / windowMinutes;
-
         return {
-          lastEventAt: row.last_event_at,
-          eventsPerMinute,
-          totalInWindow: row.total,
+          lastEventAt: row.lastEventAt,
+          eventsPerMinute: row.totalEvents / windowMinutes,
+          totalInWindow: row.totalEvents,
           windowMinutes,
         };
       });
