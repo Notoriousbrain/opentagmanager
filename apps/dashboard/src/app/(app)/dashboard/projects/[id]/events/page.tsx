@@ -66,12 +66,13 @@ export default function ProjectEventsPage({
       since: debouncedFilters.since ?? null,
       type: debouncedFilters.type ?? null,
       region: debouncedFilters.region ?? null,
-      search: filters.search ?? null,
+      search: debouncedFilters.search ?? null,
     },
     {
       enabled: !!org && !orgLoading,
       retry: false,
       refetchOnWindowFocus: false,
+      initialCursor: 0,
       getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     }
   );
