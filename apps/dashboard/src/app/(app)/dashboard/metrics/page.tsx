@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 
 import {
   MetricsFilterBar,
@@ -35,20 +35,18 @@ export default function MetricsPage() {
   }, [search]);
 
   return (
-    <Suspense fallback={null}>
-      <div className="grid gap-6">
-        <MetricsFilterBar
-          projectId={filters.projectId}
-          range={filters.range}
-          onChange={(f) => setFilters(f)}
-        />
-        <MetricsStats filters={filters} />
-        <ProjectTotalsTable filters={debouncedFilters} />
-        <EventTypeSummary filters={debouncedFilters} />
-        <EventRegionSummary filters={debouncedFilters} />
-        <EventTrendChart filters={debouncedFilters} />
-        <RelayMetricsCard />
-      </div>
-    </Suspense>
+    <div className="grid gap-6">
+      <MetricsFilterBar
+        projectId={filters.projectId}
+        range={filters.range}
+        onChange={(f) => setFilters(f)}
+      />
+      <MetricsStats filters={filters} />
+      <ProjectTotalsTable filters={debouncedFilters} />
+      <EventTypeSummary filters={debouncedFilters} />
+      <EventRegionSummary filters={debouncedFilters} />
+      <EventTrendChart filters={debouncedFilters} />
+      <RelayMetricsCard />
+    </div>
   );
 }

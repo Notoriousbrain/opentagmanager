@@ -42,7 +42,7 @@ async function main() {
       tenant_id Nullable(String),
       event_id String,
       type String,
-      data String, -- store JSON as raw string
+      data String,
       occurred_at DateTime64(3, 'UTC'),
       received_at DateTime64(3, 'UTC'),
       ip Nullable(String),
@@ -55,6 +55,56 @@ async function main() {
   });
 
   console.log("✔️ events_raw table ensured");
+
+  console.log("🧹 Dropping old minute tables if they exist…");
+
+  await ch.exec({
+    query: `DROP TABLE IF EXISTS osstag.events_minute_mv SYNC`,
+  });
+
+  await ch.exec({
+    query: `DROP TABLE IF EXISTS osstag.events_minute SYNC`,
+  });
+
+  console.log("🛠️ Ensuring events_minute table exists…");
+
+  await ch.exec({
+    query: `
+    CREATE TABLE IF NOT EXISTS osstag.events_minute
+    (
+      project_id String,
+      minute DateTime,
+      event_type String,
+      region String,
+      total_events AggregateFunction(sum, UInt64),
+      unique_users AggregateFunction(uniq, String),
+      last_event_at AggregateFunction(max, DateTime64(3))
+    )
+    ENGINE = AggregatingMergeTree()
+    PARTITION BY toDate(minute)
+    ORDER BY (project_id, minute, event_type, region)
+  `,
+  });
+
+  console.log("🛠️ Ensuring events_minute_mv materialized view exists…");
+
+  await ch.exec({
+    query: `
+    CREATE MATERIALIZED VIEW osstag.events_minute_mv
+    TO osstag.events_minute
+    AS
+    SELECT
+      project_id,
+      toStartOfMinute(occurred_at) AS minute,
+      JSONExtractString(data, 'name') AS event_type,
+      JSONExtractString(JSONExtractRaw(data, 'props'), 'region') AS region,
+      sumState(toUInt64(1)) AS total_events,
+      uniqState(JSONExtractString(data, 'userId')) AS unique_users,
+      maxState(occurred_at) AS last_event_at
+    FROM osstag.events_raw
+    GROUP BY project_id, minute, event_type, region
+  `,
+  });
 
   console.log("🛠️ Ensuring project_lookup table exists…");
 
