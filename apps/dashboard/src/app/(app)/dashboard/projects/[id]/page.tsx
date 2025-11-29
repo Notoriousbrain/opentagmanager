@@ -140,15 +140,27 @@ export default function ProjectPage() {
           </Button>
 
           {project && (
-            <Button
-              variant="outline"
-              onClick={() =>
-                router.push(`/dashboard/projects/${project.id}/events`)
-              }
-            >
-              View events
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  router.push(`/dashboard/projects/${project.id}/events`)
+                }
+              >
+                View events
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() =>
+                  router.push(`/dashboard/projects/${project.id}/install`)
+                }
+              >
+                Install tracking
+              </Button>
+            </>
           )}
+
           <Button
             variant="inverse"
             onClick={() => router.push("/dashboard/new-project")}
