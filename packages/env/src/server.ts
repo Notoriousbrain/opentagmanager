@@ -18,6 +18,8 @@ export const env = createEnv({
     OTM_UPSTASH_REDIS_REST_URL: z.string().url().optional(),
     OTM_UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
 
+    OTM_INGEST_URL: z.string().optional(),
+
     OTM_API_KEY_PEPPER: z.string().min(8),
 
     GITHUB_CLIENT_ID: z.string().min(1),
