@@ -1,5 +1,3 @@
-// src/analytics/script-utils.ts
-
 export function waitForOSSTag(timeoutMs = 5000): Promise<any> {
   return new Promise((resolve, reject) => {
     const start = Date.now();

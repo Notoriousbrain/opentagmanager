@@ -1,4 +1,3 @@
-// src/analytics/script-loader.ts
 import {
   isScriptLoaded,
   hasExistingScriptTag,
@@ -14,17 +13,13 @@ export interface ScriptLoaderOptions {
 
 export async function loadOSSTagScript({
   projectId,
-  scriptUrls = [
-    "https://cdn.osstag.com/v1.min.js", // primary
-    "/osstag.js",                       // fallback to origin
-  ],
+  scriptUrls = ["https://cdn.osstag.com/v1.min.js", "/osstag.js"],
   autoInject = true,
 }: ScriptLoaderOptions): Promise<any> {
   if (isScriptLoaded()) {
     return window.OSSTag;
   }
 
-  // If script tag already exists, just wait for it
   if (hasExistingScriptTag()) {
     return waitForOSSTag();
   }
@@ -35,18 +30,14 @@ export async function loadOSSTagScript({
     );
   }
 
-  // Try loading urls in order
   for (const url of scriptUrls) {
     try {
       const tag = createScriptTag(url, projectId);
       document.head.appendChild(tag);
 
-      // If it loads, OSSTag becomes available
       const api = await waitForOSSTag();
       return api;
-    } catch {
-      // try next url
-    }
+    } catch {}
   }
 
   throw new Error("[otm] Failed to load OSSTag script from all provided URLs");

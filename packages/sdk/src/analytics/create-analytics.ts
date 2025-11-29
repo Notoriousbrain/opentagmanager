@@ -11,7 +11,6 @@ export interface AnalyticsConfig {
 
   scriptUrls?: string[];
 
-  // WebClientConfig options
   client?: Partial<WebClientConfig>;
 }
 
@@ -31,20 +30,17 @@ export function createAnalytics(config: AnalyticsConfig): Analytics {
       readyPromise = (async () => {
         const { projectId, autoInjectScript, scriptUrls } = config;
 
-        // Load OSSTag script globally
         const osstag = await loadOSSTagScript({
           projectId,
           scriptUrls,
           autoInject: autoInjectScript !== false,
         });
 
-        // Ensure OSSTag.init() is called
         osstag.init();
 
-        // Prepare WebClient (batch engine)
         client = createClient({
           projectId,
-          send: () => {}, // OSSTag handles transport itself
+          send: () => {},
           ...config.client,
         });
       })();

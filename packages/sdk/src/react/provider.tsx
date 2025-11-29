@@ -1,26 +1,28 @@
 "use client";
 
-import React from "react";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import type { ReactNode } from "react";
 import { OTMContext } from "./context";
-import type { WebClientConfig, WebClient } from "../client/create-client";
-import { createClient } from "../client/create-client";
+import { createAnalytics } from "../analytics/create-analytics";
+import type { AnalyticsConfig, Analytics } from "../analytics/create-analytics";
 import { useAutoPageview } from "./auto-pageview";
 
-export interface OTMProviderProps {
-  config: WebClientConfig;
+export interface OTMProviderProps extends AnalyticsConfig {
   children: ReactNode;
 }
 
-export function OTMProvider({ config, children }: OTMProviderProps) {
-  const client: WebClient = useMemo(() => {
-    return createClient(config);
+export function OTMProvider({ children, ...config }: OTMProviderProps) {
+  const analytics: Analytics = useMemo(() => {
+    return createAnalytics(config);
   }, [config]);
 
-  useAutoPageview(client);
+  useAutoPageview({
+    track: analytics.track,
+  });
 
   return (
-    <OTMContext.Provider value={{ client }}>{children}</OTMContext.Provider>
+    <OTMContext.Provider value={{ analytics }}>
+      {children}
+    </OTMContext.Provider>
   );
 }
