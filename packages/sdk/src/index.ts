@@ -12,3 +12,4 @@ export * from "./serialize/json";
 export * from "./signature/hmac";
 
 export * from "./client/create-client";
+export * from "./analytics/create-analytics";

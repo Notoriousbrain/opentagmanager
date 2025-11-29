@@ -1,10 +1,10 @@
 import { createContext } from "react";
-import type { WebClient } from "../client/create-client";
+import type { Analytics } from "../analytics/create-analytics";
 
 export interface OTMContextValue {
-  client: WebClient | null;
+  analytics: Analytics | null;
 }
 
 export const OTMContext = createContext<OTMContextValue>({
-  client: null,
+  analytics: null,
 });

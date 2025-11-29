@@ -1,15 +1,13 @@
 import { useContext } from "react";
 import { OTMContext } from "./context";
-import type { WebClient } from "../client/create-client";
+import type { Analytics } from "../analytics/create-analytics";
 
-export function useOTM(): WebClient {
-  const { client } = useContext(OTMContext);
+export function useOTM(): Analytics {
+  const { analytics } = useContext(OTMContext);
 
-  if (!client) {
-    throw new Error(
-      "[otm] useOTM() must be used inside <OTMProvider config={...}>"
-    );
+  if (!analytics) {
+    throw new Error("[otm] useOTM() must be used inside <OTMProvider>");
   }
 
-  return client;
+  return analytics;
 }
