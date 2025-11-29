@@ -1,14 +1,14 @@
 "use client";
 
-import { createClient } from "../client/create-client";
-import type { WebClient, WebClientConfig } from "../client/create-client";
+import { createAnalytics } from "../analytics/create-analytics";
+import type { Analytics, AnalyticsConfig } from "../analytics/create-analytics";
 
-export function createNextClient(config: WebClientConfig): WebClient {
+export function createNextClient(config: AnalyticsConfig): Analytics {
   if (typeof window === "undefined") {
     throw new Error(
-      "[otm] createNextClient() can only be used inside Next.js Client Components"
+      "[otm] createNextClient() must run inside a Next.js Client Component"
     );
   }
 
-  return createClient(config);
+  return createAnalytics(config);
 }
