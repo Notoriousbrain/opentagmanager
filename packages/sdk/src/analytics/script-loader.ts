@@ -20,15 +20,23 @@ export interface ScriptLoaderOptions {
 
 function emitTelemetry(
   fn: ScriptLoaderOptions["onTelemetry"],
-  partial: Partial<ScriptTelemetry>
+  partial: Partial<ScriptTelemetry>,
+  projectId?: string
 ) {
-  if (!fn) return;
+  if (projectId) {
+    fetch("/api/install/telemetry", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ projectId, ...partial }),
+    }).catch(() => {});
+  }
 
-  fn({
-    loaded: partial.loaded ?? false,
-    errored: partial.errored ?? false,
-    osstagReady: partial.osstagReady ?? false,
-  });
+  if (fn)
+    fn({
+      loaded: partial.loaded ?? false,
+      errored: partial.errored ?? false,
+      osstagReady: partial.osstagReady ?? false,
+    });
 }
 
 export async function loadOSSTagScript({
@@ -68,10 +76,10 @@ export async function loadOSSTagScript({
       const tag = createScriptTag(url, projectId);
 
       tag.onload = () => {
-        emitTelemetry(onTelemetry, { loaded: true });
+        emitTelemetry(onTelemetry, { loaded: true }, projectId);
       };
       tag.onerror = () => {
-        emitTelemetry(onTelemetry, { errored: true });
+        emitTelemetry(onTelemetry, { errored: true }, projectId);
       };
 
       document.head.appendChild(tag);
@@ -85,7 +93,7 @@ export async function loadOSSTagScript({
 
       return api;
     } catch {
-      emitTelemetry(onTelemetry, { errored: true });
+      emitTelemetry(onTelemetry, { errored: true }, projectId);
     }
   }
 
