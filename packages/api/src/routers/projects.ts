@@ -133,4 +133,37 @@ export const projectsRouter = createTRPCRouter({
 
       return { ok: true };
     }),
+
+  installStatus: protectedProcedure
+    .input(z.object({ projectId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      await assertProjectRole(ctx, input.projectId, [
+        "owner",
+        "admin",
+        "editor",
+        "viewer",
+      ]);
+
+      const sql = `
+      SELECT 
+        count() AS cnt,
+        max(timestamp) AS last_event
+      FROM events
+      WHERE project_id = '${input.projectId}'
+        AND timestamp >= now() - INTERVAL 5 MINUTE
+    `;
+
+      const rows = await ctx.queryClickHouse(sql);
+
+      const row = (rows[0] ?? {
+        cnt: 0,
+        last_event: null,
+      }) as { cnt: number; last_event: string | null };
+
+      return {
+        hasEvents: row.cnt > 0,
+        recentCount: row.cnt,
+        lastEventAt: row.last_event,
+      };
+    }),
 });

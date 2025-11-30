@@ -3,6 +3,7 @@ import type { inferAsyncReturnType } from "@trpc/server";
 import type { IncomingHttpHeaders } from "http";
 import { auth } from "@otm/auth";
 import superjson from "superjson";
+import { queryClickHouse } from "../../core/src/lib/clickhouse-client";
 
 function toWebHeaders(h: Headers | IncomingHttpHeaders): Headers {
   if (typeof (h as any)?.get === "function") return h as Headers;
@@ -39,7 +40,7 @@ export async function createTRPCContext(opts: {
 
   const session = await auth.api.getSession({ headers });
 
-  return { session, ip };
+  return { session, ip, queryClickHouse };
 }
 
 export type Context = inferAsyncReturnType<typeof createTRPCContext>;
