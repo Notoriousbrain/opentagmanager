@@ -168,4 +168,42 @@ export const projectsRouter = createTRPCRouter({
         lastEventAt: row.last_event,
       };
     }),
+
+  installTelemetryStatus: protectedProcedure
+    .input(z.object({ projectId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      await assertProjectRole(ctx, input.projectId, [
+        "owner",
+        "admin",
+        "editor",
+        "viewer",
+      ]);
+
+      const sql = `
+      SELECT 
+        countIf(status = 'script_loaded') AS script_loaded,
+        countIf(status = 'sdk_next_loaded') AS sdk_loaded
+      FROM install_telemetry
+      WHERE project_id = '${input.projectId}'
+        AND occurred_at >= now() - INTERVAL 10 MINUTE
+    `;
+
+      // Explicitly tell TypeScript what to expect
+      type TelemetryRow = {
+        script_loaded: number;
+        sdk_loaded: number;
+      };
+
+      const rows = await ctx.queryClickHouse(sql);
+      const row = (rows[0] ?? {
+        script_loaded: 0,
+        sdk_loaded: 0,
+      }) as TelemetryRow;
+
+      return {
+        scriptLoaded: row.script_loaded > 0,
+        sdkLoaded: row.sdk_loaded > 0,
+        blocked: row.script_loaded === 0 && row.sdk_loaded === 0,
+      };
+    }),
 });

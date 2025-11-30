@@ -5,13 +5,17 @@ import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { SendTestEvent } from "./send-test-event";
 
 export function InstallStatus({ projectId }: { projectId: string }) {
-  const query = trpc.projects.installStatus.useQuery(
+  const eventStatus = trpc.projects.installStatus.useQuery(
     { projectId },
-    { refetchInterval: 5000 } // auto-refresh every 5s
+    { refetchInterval: 5000 }
   );
 
-  const isLoading = query.isLoading;
-  const data = query.data;
+  const telemetry = trpc.projects.installTelemetryStatus.useQuery(
+    { projectId },
+    { refetchInterval: 5000 }
+  );
+
+  const isLoading = eventStatus.isLoading || telemetry.isLoading;
 
   return (
     <div className="rounded-lg border border-neutral-800 p-4 bg-neutral-950/50 space-y-3">
@@ -24,14 +28,26 @@ export function InstallStatus({ projectId }: { projectId: string }) {
         </div>
       )}
 
-      {!isLoading && data && (
+      {!isLoading && telemetry.data?.blocked && (
+        <div className="rounded-md bg-red-900/30 border border-red-700 p-3 text-red-300 text-sm">
+          ⚠️ OSSTag script appears to be blocked
+          <br />
+          This usually means an ad-blocker prevented <code>osstag.js</code> from
+          loading.
+          <br />
+          Use the <strong>self-hosted script</strong> instead via{" "}
+          <code>/osstag.js</code>.
+        </div>
+      )}
+
+      {!isLoading && !telemetry.data?.blocked && eventStatus.data && (
         <div className="flex items-center gap-2 text-sm">
-          {data.hasEvents ? (
+          {eventStatus.data.hasEvents ? (
             <>
               <CheckCircle className="h-4 w-4 text-green-500" />
               <span className="text-green-400">Connected</span>
               <span className="text-neutral-500">
-                • Last event {data.lastEventAt || "unknown"}
+                • Last event {eventStatus.data.lastEventAt || "unknown"}
               </span>
             </>
           ) : (
