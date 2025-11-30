@@ -147,13 +147,15 @@ export const projectsRouter = createTRPCRouter({
       const sql = `
       SELECT 
         count() AS cnt,
-        max(timestamp) AS last_event
-      FROM events
-      WHERE project_id = '${input.projectId}'
-        AND timestamp >= now() - INTERVAL 5 MINUTE
+        max(occurred_at) AS last_event
+      FROM events_raw
+      WHERE project_id = {projectId:String}
+        AND occurred_at >= now() - INTERVAL 5 MINUTE
     `;
 
-      const rows = await ctx.queryClickHouse(sql);
+      const rows = await ctx.queryClickHouse(sql, {
+        projectId: input.projectId,
+      });
 
       const row = (rows[0] ?? {
         cnt: 0,

@@ -9,8 +9,13 @@ const client = createClient({
 });
 
 export async function queryClickHouse<T = Record<string, unknown>>(
-  sql: string
+  sql: string,
+  params?: Record<string, any>
 ): Promise<T[]> {
-  const result = await client.query({ query: sql, format: "JSONEachRow" });
+  const result = await client.query({
+    query: sql,
+    query_params: params ?? {},
+    format: "JSONEachRow",
+  });
   return (await result.json()) as unknown as T[];
 }
