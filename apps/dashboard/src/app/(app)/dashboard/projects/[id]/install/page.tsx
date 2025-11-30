@@ -1,5 +1,6 @@
 // apps/dashboard/app/dashboard/projects/[id]/install/page.tsx
 import { InstallSnippets } from "@/components/install/install-snippets";
+import { InstallStatus } from "@/components/install/install-status";
 import Link from "next/link";
 
 interface InstallPageProps {
@@ -21,6 +22,8 @@ export default function ProjectInstallPage({ params }: InstallPageProps) {
           <p className="text-sm text-neutral-400">
             Use one of the snippets below to connect your site to this project.
           </p>
+
+          <InstallStatus projectId={projectId} />
         </div>
 
         <Link

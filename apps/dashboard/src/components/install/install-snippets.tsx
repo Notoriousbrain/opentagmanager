@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { InstallSnippetKind } from "@/lib/snippets/osstag-snippets";
 import { getInstallSnippets } from "@/lib/snippets/osstag-snippets";
 import { Button } from "@otm/ui";
+import { SendTestEvent } from "./send-test-event";
 
 const TABS: { id: InstallSnippetKind; label: string }[] = [
   { id: "html", label: "HTML <script>" },
@@ -60,6 +61,7 @@ export function InstallSnippets({ projectId }: InstallSnippetsProps) {
           <code>{code}</code>
         </pre>
       </div>
+      <SendTestEvent projectId={projectId} />
     </div>
   );
 }

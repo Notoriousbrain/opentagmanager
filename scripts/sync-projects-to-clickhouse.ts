@@ -123,6 +123,23 @@ async function main() {
 
   console.log("✔️ project_lookup table ensured");
 
+  console.log("🛠️ Ensuring install_telemetry table exists…");
+
+  await ch.exec({
+    query: `
+      CREATE TABLE IF NOT EXISTS osstag.install_telemetry
+      (
+        project_id String,
+        status String,
+        occurred_at DateTime DEFAULT now()
+      )
+      ENGINE = MergeTree
+      ORDER BY (project_id, occurred_at)
+    `,
+  });
+
+  console.log("✔️ install_telemetry table ensured");
+
   for (const p of projects) {
     console.log(`➡️ Syncing project: ${p.id} (${p.name})`);
 
