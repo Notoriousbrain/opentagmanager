@@ -1,47 +1,51 @@
 "use client";
 
-import { useState } from "react";
 import { trpc } from "@/lib/trpc/react";
-import { CheckCircle, Hourglass, AlertTriangle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { SendTestEvent } from "./send-test-event";
 
 export function InstallStatus({ projectId }: { projectId: string }) {
-  const [enabled, setEnabled] = useState(true);
-
   const query = trpc.projects.installStatus.useQuery(
     { projectId },
-    {
-      enabled,
-      refetchInterval: 4000,
-      refetchOnWindowFocus: false,
-    }
+    { refetchInterval: 5000 } // auto-refresh every 5s
   );
 
-  const status = query.data;
+  const isLoading = query.isLoading;
+  const data = query.data;
 
-  let content = null;
+  return (
+    <div className="rounded-lg border border-neutral-800 p-4 bg-neutral-950/50 space-y-3">
+      <h2 className="text-sm font-medium text-neutral-300">Install Status</h2>
 
-  if (query.isLoading) {
-    content = (
-      <div className="flex items-center gap-2 text-neutral-400 text-sm">
-        <Hourglass className="h-4 w-4 animate-spin" />
-        Checking event flow…
-      </div>
-    );
-  } else if (status?.hasEvents) {
-    content = (
-      <div className="flex items-center gap-2 text-green-400 text-sm">
-        <CheckCircle className="h-4 w-4" />
-        Events received! Last event: {status.lastEventAt}
-      </div>
-    );
-  } else {
-    content = (
-      <div className="flex items-center gap-2 text-yellow-400 text-sm">
-        <AlertTriangle className="h-4 w-4" />
-        No events yet — waiting…
-      </div>
-    );
-  }
+      {isLoading && (
+        <div className="flex items-center gap-2 text-neutral-400 text-sm">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Checking…
+        </div>
+      )}
 
-  return <div className="mt-4">{content}</div>;
+      {!isLoading && data && (
+        <div className="flex items-center gap-2 text-sm">
+          {data.hasEvents ? (
+            <>
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span className="text-green-400">Connected</span>
+              <span className="text-neutral-500">
+                • Last event {data.lastEventAt || "unknown"}
+              </span>
+            </>
+          ) : (
+            <>
+              <XCircle className="h-4 w-4 text-red-500" />
+              <span className="text-red-400">Not receiving events</span>
+            </>
+          )}
+        </div>
+      )}
+
+      <div className="pt-2 border-t border-neutral-800">
+        <SendTestEvent projectId={projectId} />
+      </div>
+    </div>
+  );
 }
