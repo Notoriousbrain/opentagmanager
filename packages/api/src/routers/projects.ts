@@ -180,11 +180,11 @@ export const projectsRouter = createTRPCRouter({
       ]);
 
       const sql = `
-      SELECT 
+      SELECT
         countIf(status = 'script_loaded') AS script_loaded,
         countIf(status = 'sdk_next_loaded') AS sdk_loaded
       FROM install_telemetry
-      WHERE project_id = '${input.projectId}'
+      WHERE project_id = {projectId:String}
         AND occurred_at >= now() - INTERVAL 10 MINUTE
     `;
 
@@ -194,7 +194,9 @@ export const projectsRouter = createTRPCRouter({
         sdk_loaded: number;
       };
 
-      const rows = await ctx.queryClickHouse(sql);
+      const rows = await ctx.queryClickHouse(sql, {
+        projectId: input.projectId,
+      });
       const row = (rows[0] ?? {
         script_loaded: 0,
         sdk_loaded: 0,

@@ -19,3 +19,14 @@ export async function queryClickHouse<T = Record<string, unknown>>(
   });
   return (await result.json()) as unknown as T[];
 }
+
+export async function insertClickHouse<T extends Record<string, unknown>>(
+  table: string,
+  values: T[]
+): Promise<void> {
+  await client.insert({
+    table,
+    values,
+    format: "JSONEachRow",
+  });
+}
