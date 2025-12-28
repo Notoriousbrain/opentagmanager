@@ -59,10 +59,10 @@ export async function loadOSSTagScript({
       emitTelemetry(onTelemetry, {
         loaded: true,
         osstagReady: true,
-      });
+      }, projectId);
       return api;
     } catch {
-      emitTelemetry(onTelemetry, { errored: true });
+      emitTelemetry(onTelemetry, { errored: true }, projectId);
       throw new Error("[otm] OSSTag failed to initialize");
     }
   }
@@ -73,23 +73,29 @@ export async function loadOSSTagScript({
 
   for (const url of scriptUrls) {
     try {
-      const tag = createScriptTag(url, projectId);
+      const tag = createScriptTag(projectId);
 
-      tag.onload = () => {
-        emitTelemetry(onTelemetry, { loaded: true }, projectId);
-      };
-      tag.onerror = () => {
-        emitTelemetry(onTelemetry, { errored: true }, projectId);
-      };
+      // Use a promise to track script load/error before OSSTag initialization
+      const scriptLoadPromise = new Promise<void>((resolve, reject) => {
+        tag.onload = () => resolve();
+        tag.onerror = () => reject(new Error(`Failed to load script: ${url}`));
+      });
 
+      // Set src AFTER attaching listeners to avoid race condition with cached scripts
+      tag.src = url;
       document.head.appendChild(tag);
 
+      // Wait for script to load
+      await scriptLoadPromise;
+
+      // Wait for OSSTag to initialize
       const api = await waitForOSSTag();
 
+      // Emit telemetry only once when fully ready
       emitTelemetry(onTelemetry, {
         loaded: true,
         osstagReady: true,
-      });
+      }, projectId);
 
       return api;
     } catch {
