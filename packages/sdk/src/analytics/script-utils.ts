@@ -25,12 +25,12 @@ export function hasExistingScriptTag(): boolean {
 }
 
 export function createScriptTag(
-  url: string,
   projectId: string
 ): HTMLScriptElement {
   const script = document.createElement("script");
-  script.src = url;
   script.async = true;
   script.dataset.osstag = projectId;
+  // NOTE: src is NOT set here to avoid race conditions.
+  // Set script.src AFTER attaching onload/onerror handlers.
   return script;
 }

@@ -28,3 +28,8 @@ body {
 [data-slot="dialog-content"] {
   z-index: 9999 !important;
 }
+
+*:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
